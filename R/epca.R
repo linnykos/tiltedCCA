@@ -1,7 +1,15 @@
 # from Liu, Lydia T., Edgar Dobriban, and Amit Singer. "$ e $ PCA: High dimensional exponential family PCA." The Annals of Applied Statistics 12.4 (2018): 2121-2150.
 
+#' Exponential PCA
+#'
+#' @param mat data matrix
+#' @param K desired rank
+#' @param mean_var_func 
+#'
+#' @return set of \code{K} eigenvectors
+#' @export
 epca <- function(mat, K, mean_var_func = function(x){x}){
-  stopifnot(K >= 1, all(dim(mat) > K+2))
+  stopifnot(K >= 1, all(dim(mat) >= K))
   
   # compute mean and cov
   p <- ncol(mat); n <- nrow(mat)
@@ -24,9 +32,9 @@ epca <- function(mat, K, mean_var_func = function(x){x}){
       x + sqrt(gamma)
     }
   })
-  cov_mat <- svd_res$u %*% diag(shrunk_eig) %*% t(svd_res$v)
+  cov_mat <- tcrossprod(svd_res$u %*% .diag_matrix(shrunk_eig), svd_res$v)
   
   # recolor
   tmp <- diag_vec^(1/2)
-  eigen(.mult_mat_vec(.mult_vec_mat(tmp, cov_mat), tmp))$vectors[,1:K]
+  eigen(.mult_mat_vec(.mult_vec_mat(tmp, cov_mat), tmp))$vectors[,1:K, drop = F]
 }

@@ -2,10 +2,10 @@
 
 ##############
 
-.svd_truncated <- function(mat, K){
-  stopifnot(min(dim(mat)) >= K + 2, nrow(mat) == ncol(mat))
+.svd_truncated <- function(mat, K = min(dim(mat))){
+  stopifnot(min(dim(mat)) >= K)
   
-  if(nrow(mat) > K+2){
+  if(min(dim(mat)) > K+2){
     res <- tryCatch({
       # ask for more singular values than needed to ensure stability
       RSpectra::svds(mat, k = K + 2)
@@ -16,6 +16,7 @@
     res <- svd(mat)
   }
   
+  res$u <- res$u[,1:K, drop = F]; res$v <- res$v[,1:K, drop = F]; res$d <- res$d[1:K]
   res
 }
 
@@ -50,6 +51,15 @@
   } else {
     diag(vec)
   }
+}
+
+# given symmetric mat, return res such that t(res) %*% mat %*% res == diag(nrow(mat))
+.inverse_onehalf <- function(mat){
+  stopifnot(sum(abs(mat - t(mat))) == 0)
+  K <- Matrix::rankMatrix(mat)
+  
+  svd_res <- .svd_truncated(mat, K = K)
+  svd_res$u %*% .diag_matrix(svd_res$d^(-1/2))
 }
 
 #######################

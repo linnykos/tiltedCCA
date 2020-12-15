@@ -19,7 +19,7 @@ test_that("heteroPCA works", {
   
   res <- heteroPCA(obs_mat, K = 2)
   
-  expect_true(all(dim(res) == c(p,2)))
+  expect_true(all(dim(res) == c(p,p)))
 })
 
 test_that("heteroPCA improves upon the typical covariance estimator", {
@@ -30,10 +30,11 @@ test_that("heteroPCA improves upon the typical covariance estimator", {
   cov_mat[(p/2+1):p, (p/2+1):p] <- 0.5
   diag(cov_mat) <- c(rep(5, p/2), rep(1, p/2))
   
+  set.seed(1)
+  latent_mat <- abs(MASS::mvrnorm(n = n, mu = c(200,rep(30, p/2-1), rep(5, p/2)), Sigma = cov_mat))
+  
   trials <- 20
   result_mat <- sapply(1:trials, function(x){
-    set.seed(x)
-    latent_mat <- abs(MASS::mvrnorm(n = n, mu = c(200,rep(30, p/2-1), rep(5, p/2)), Sigma = cov_mat))
     
     obs_mat <- matrix(NA, nrow = n, ncol = p)
     for(i in 1:n){
