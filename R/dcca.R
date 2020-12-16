@@ -52,7 +52,7 @@ dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T, verbos
     distinct_mat_2 <- mat_2 - common_mat_2
   }
   
-  list(common_factors = common_factors, 
+  list(common_factors = common_factors, cca_obj = cca_res$obj_vec,
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2)
 }

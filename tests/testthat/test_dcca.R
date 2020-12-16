@@ -151,7 +151,7 @@ test_that("dcca works", {
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_factors", "common_mat_1", "common_mat_2",
-                                             "distinct_mat_1", "distinct_mat_2"))))
+                                             "distinct_mat_1", "distinct_mat_2", "cca_obj"))))
   expect_true(all(dim(res$common_factors) == c(n, K)))
   expect_true(all(dim(res$common_mat_1) == dim(mat_1)))
   expect_true(all(dim(res$common_mat_2) == dim(mat_2)))
