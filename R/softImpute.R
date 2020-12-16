@@ -26,9 +26,6 @@ softImpute_diagnostic <- function(mat, rank_mat){
 #' @param width parameter, controlling quantile of prediction region. The default is \code{0.8}, meaning
 #' that the prediction region is by default from the 10th to 90th quantile.
 #' @param scalar 2 standard deviations for a Gaussian
-#' @param plot boolean
-#' @param compute_percentage boolean to whether or not compute the percentage of points that fall within the \code{width}-sized
-#' prediction region. It is suggested to keep this as \code{FALSE} since this might be slow to compute.
 #' @param max_points maximum number of points to be shown in the scatterplot, purely for visualization purposes only
 #' @param tol parameter between \code{0} and \code{1} for how strict (\code{1} being the strictest) to measure
 #' if the principal angle falls within the prediction region
@@ -45,7 +42,7 @@ plot_prediction_against_observed <- function(diagnostic_mat,
                                              max_points = 500000, tol = 0.95, xlim = NA,
                                              ylim = NA, transparency = 0.2, cex_text = 1, ...){
   # compute the principal angle and
-  angle_val <- compute_principal_angle(diagnostic_mat)
+  angle_val <- .compute_principal_angle(diagnostic_mat)
   
   res <- .within_prediction_region(1.5*max(diagnostic_mat), width = width,
                                    scalar = scalar, angle_val = angle_val, tol = tol,

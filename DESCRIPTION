@@ -10,7 +10,9 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     MASS,
-    RSpectra
+    RSpectra,
+    Matrix,
+    softImpute
 Suggests:
     testthat
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1

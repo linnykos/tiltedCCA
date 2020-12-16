@@ -1,30 +1,47 @@
 # from Shu, Hai, Xiao Wang, and Hongtu Zhu. "D-CCA: A decomposition-based canonical correlation analysis for high-dimensional datasets." Journal of the American Statistical Association 115.529 (2020): 292-306.
 
-dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T){
+#' D-CCA
+#'
+#' @param mat_1 data matrix 1
+#' @param mat_2 data matrix 2
+#' @param rank_1 desired rank of data matrix 1
+#' @param rank_2 desired rank of data matrix 1
+#' @param rank_12 desired rank of cross-covariance matrix
+#' @param enforce_rank boolean 
+#' @param verbose boolean
+#'
+#' @return list
+#' @export
+dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), rank_12 <= min(c(rank_1, rank_2)), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
   n <- nrow(mat_1)
   mat_1 <- scale(mat_1, center = T, scale = F)
   mat_2 <- scale(mat_2, center = T, scale = F)
   
+  if(verbose) print("D-CCA: Starting matrix shrinkage")
   if(enforce_rank | nrow(mat_1) < 2*ncol(mat_1)) mat_1 <- .spoet(mat_1, rank_1)
   if(enforce_rank | nrow(mat_2) < 2*ncol(mat_2)) mat_2 <- .spoet(mat_2, rank_2)
   
+  if(verbose) print("D-CCA: Computing covariance matrices")
   cov_1 <- stats::cov(mat_1) * (n-1)/n
   cov_2 <- stats::cov(mat_2) * (n-1)/n
   cov_12 <- crossprod(mat_1, mat_2)/n
   full_rank <- Matrix::rankMatrix(cov_12)
   
+  if(verbose) print("D-CCA: Computing CCA")
   cca_res <- .cca(cov_1, cov_2, cov_12, K = full_rank)
   score_1 <- mat_1 %*% cca_res$factor_1 #note: this is unnormalized
   score_2 <- mat_2 %*% cca_res$factor_2
   
   R_vec <- sapply(cca_res$obj_vec, function(x){1-sqrt((1-x)/(1+x))})
   
+  if(verbose) print("D-CCA: Computing common matrices")
   common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
   common_mat_1 <- common_factors[,1:rank_12, drop = F] %*% crossprod(score_1[,1:rank_12, drop = F], mat_1)/n
   common_mat_2 <- common_factors[,1:rank_12, drop = F] %*% crossprod(score_2[,1:rank_12, drop = F], mat_2)/n
   
+  if(verbose) print("D-CCA: Computing distinctive matrices")
   if(full_rank > rank_12){
     common_mat_1_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% crossprod(score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
     common_mat_2_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% crossprod(score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n

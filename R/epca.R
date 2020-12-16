@@ -4,7 +4,7 @@
 #'
 #' @param mat data matrix
 #' @param K desired rank
-#' @param mean_var_func 
+#' @param mean_var_func function relating mean to variance (depends on the distribution family being assumed)
 #'
 #' @return set of \code{K} eigenvectors
 #' @export
