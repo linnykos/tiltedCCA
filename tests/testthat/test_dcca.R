@@ -147,7 +147,7 @@ test_that("dcca works", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
   
-  res <- dcca(mat_1, mat_2, rank_1 = K, rank_2 = K, rank_12 = K)
+  res <- dcca(mat_1, mat_2, rank_1 = K, rank_2 = K, rank_12 = K, verbose = F)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_factors", "common_mat_1", "common_mat_2",
@@ -171,7 +171,7 @@ test_that("dcca yields uncorrelated distinct matrices", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  dcca_res <- dcca(mat_1, mat_2, rank_1 = K, rank_2 = K, rank_12 = K)
+  dcca_res <- dcca(mat_1, mat_2, rank_1 = K, rank_2 = K, rank_12 = K, verbose = F)
   
   res <- crossprod(dcca_res$distinct_mat_1, dcca_res$distinct_mat_2)
   

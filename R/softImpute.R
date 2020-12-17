@@ -1,13 +1,13 @@
-softImpute_diagnostic <- function(mat, rank_mat){
-  stopifnot(rank_mat > 1)
+softImpute_diagnostic <- function(mat, K, num_val = ceiling(min(c(4, dim(mat)/10)))){
+  stopifnot(K > 1)
   
   n <- nrow(mat); p <- ncol(mat)
-  idx <- .construct_missing_values(n, p)
+  idx <- .construct_missing_values(n, p, num_val = num_val)
   mat2 <- mat
   mat2[idx] <- NA
   
   lambda0_val <- softImpute::lambda0(mat)
-  res <- softImpute::softImpute(mat2, rank.max = rank_mat, lambda = min(30, lambda0_val/100))
+  res <- softImpute::softImpute(mat2, rank.max = K, lambda = min(30, lambda0_val/100))
   
   pred_val <- res$u %*% diag(res$d) %*% t(res$v)
   
@@ -56,6 +56,8 @@ plot_prediction_against_observed <- function(diagnostic_mat,
                          principal_line = res$principal_line, angle_val = angle_val,
                          xlim = xlim, ylim = ylim, transparency = transparency,
                          cex_text = cex_text, ...)
+  
+  invisible()
 }
 
 ###########
@@ -99,7 +101,7 @@ plot_prediction_against_observed <- function(diagnostic_mat,
   seq_vec <- seq(0, max_val, length.out = 500)
   stopifnot(any(seq_vec <= effective_max))
   
-  interval_mat <- cbind(seq_vec - scalar, seq_vec + scalar)
+  interval_mat <- rbind(seq_vec - scalar, seq_vec + scalar)
   rownames(interval_mat) <- c("lower", "upper")
   
   principal_line <- seq_vec * tan(angle_val*pi/180)

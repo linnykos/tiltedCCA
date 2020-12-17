@@ -17,7 +17,7 @@ test_that("heteroPCA works", {
     }
   }
   
-  res <- heteroPCA(obs_mat, K = 2)
+  res <- heteroPCA(obs_mat, K = 2, verbose = F)
   
   expect_true(all(dim(res) == c(p,p)))
 })
@@ -45,7 +45,7 @@ test_that("heteroPCA improves upon the typical covariance estimator", {
     
     target_mat <- stats::cov(latent_mat)
     
-    heteroPCA_res <- heteroPCA(obs_mat, K = K)
+    heteroPCA_res <- heteroPCA(obs_mat, K = K, verbose = F)
     naive_res <- stats::cov(obs_mat)
     
     c(max(eigen(heteroPCA_res - target_mat)$values), max(eigen(naive_res - target_mat)$values))
