@@ -17,7 +17,7 @@ test_that("epca works", {
     }
   }
   
-  res <- epca(obs_mat, K = 2)
+  res <- epca(obs_mat, K = 2, verbose = F)
   
   expect_true(all(dim(res) == c(p,2)))
 })
@@ -45,7 +45,7 @@ test_that("epca improves upon the typical covariance estimator", {
     
     target_mat <- eigen(stats::cov(latent_mat))$vectors[,1:K]
     
-    epca_res <- epca(obs_mat, K = K)
+    epca_res <- epca(obs_mat, K = K, verbose = F)
     naive_res <- eigen(stats::cov(obs_mat))$vectors[,1:K]
     
     c(sum(svd(t(target_mat)%*%epca_res)$d), sum(svd(t(target_mat)%*%naive_res)$d))

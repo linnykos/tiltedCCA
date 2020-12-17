@@ -8,14 +8,16 @@
 #'
 #' @return set of \code{K} eigenvectors
 #' @export
-epca <- function(mat, K, mean_var_func = function(x){x}){
+epca <- function(mat, K, mean_var_func = function(x){x}, verbose = T){
   stopifnot(K >= 1, all(dim(mat) >= K))
   
   # compute mean and cov
+  if(verbose) print("ePCA: Compute mean and covariance")
   p <- ncol(mat); n <- nrow(mat)
   mean_vec <- colMeans(mat); cov_mat <- stats::cov(mat)
   
   # whiten and diagonally debias
+  if(verbose) print("ePCA: Whiten and diagonally debias")
   diag_vec <- sapply(mean_vec, mean_var_func)
   stopifnot(all(diag_vec > 0))
   tmp <- (1/diag_vec)^(1/2)
@@ -23,6 +25,7 @@ epca <- function(mat, K, mean_var_func = function(x){x}){
   diag(cov_mat) <- diag(cov_mat) - 1
   
   # shrink eigen
+  if(verbose) print("ePCA: Shrink eigenvalues")
   gamma <- p/n
   svd_res <- .svd_truncated(cov_mat, K)
   shrunk_eig <- sapply(svd_res$d, function(x){
@@ -32,9 +35,14 @@ epca <- function(mat, K, mean_var_func = function(x){x}){
       x + sqrt(gamma)
     }
   })
-  cov_mat <- tcrossprod(svd_res$u %*% .diag_matrix(shrunk_eig), svd_res$v)
+  
+  if(verbose) print("ePCA: Recompute covariance")
+  cov_mat <- tcrossprod(.mult_mat_vec(svd_res$u, shrunk_eig), svd_res$v)
   
   # recolor
+  if(verbose) print("ePCA: Recolor covariance")
   tmp <- diag_vec^(1/2)
-  eigen(.mult_mat_vec(.mult_vec_mat(tmp, cov_mat), tmp))$vectors[,1:K, drop = F]
+  cov_mat <- .mult_mat_vec(.mult_vec_mat(tmp, cov_mat), tmp)
+  
+  RSpectra::svds(cov_mat, k = K)$u
 }
