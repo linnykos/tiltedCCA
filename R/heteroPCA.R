@@ -26,6 +26,7 @@ heteroPCA <- function(mat, K, max_iter = 25, tol = 1e-4, verbose = T){
     diag(cov_mat) <- diag(tmp_mat)
     
     sing_vec <- svd_res$d
+    iter <- iter + 1
   }
   
   if(verbose) print("heteroPCA: Final iteration")
