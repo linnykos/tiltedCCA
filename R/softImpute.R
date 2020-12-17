@@ -1,4 +1,14 @@
-softImpute_diagnostic <- function(mat, K, num_val = ceiling(min(c(4, dim(mat)/10)))){
+#' softImpute diagnostic
+#'
+#' @param mat data matrix
+#' @param K desired rank
+#' @param num_val number to omit per row or per column
+#' @param lambda numeric
+#'
+#' @return list
+#' @export
+softImpute_diagnostic <- function(mat, K, num_val = ceiling(min(c(4, dim(mat)/10))),
+                                  lambda = NA){
   stopifnot(K > 1)
   
   n <- nrow(mat); p <- ncol(mat)
@@ -6,8 +16,11 @@ softImpute_diagnostic <- function(mat, K, num_val = ceiling(min(c(4, dim(mat)/10
   mat2 <- mat
   mat2[idx] <- NA
   
-  lambda0_val <- softImpute::lambda0(mat)
-  res <- softImpute::softImpute(mat2, rank.max = K, lambda = min(30, lambda0_val/100))
+  if(is.na(lambda)){
+    lambda0_val <- softImpute::lambda0(mat)
+    lambda <- min(30, lambda0_val/100)
+  }
+  res <- softImpute::softImpute(mat2, rank.max = K, lambda = lambda)
   
   pred_val <- res$u %*% diag(res$d) %*% t(res$v)
   

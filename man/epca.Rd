@@ -6,7 +6,7 @@
 \usage{
 epca(mat, K, mean_var_func = function(x) {
     x
-})
+}, verbose = T)
 }
 \arguments{
 \item{mat}{data matrix}
@@ -14,6 +14,8 @@ epca(mat, K, mean_var_func = function(x) {
 \item{K}{desired rank}
 
 \item{mean_var_func}{function relating mean to variance (depends on the distribution family being assumed)}
+
+\item{verbose}{boolean}
 }
 \value{
 set of \code{K} eigenvectors
