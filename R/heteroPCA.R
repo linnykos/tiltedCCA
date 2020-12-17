@@ -22,7 +22,7 @@ heteroPCA <- function(mat, K, max_iter = 25, tol = 1e-4, verbose = T){
     svd_res <- .svd_truncated(cov_mat, K)
     if(all(abs(sing_vec - svd_res$d)/svd_res$d < tol)) break()
     
-    tmp_mat <- tcrossprod(svd_res$u %*% diag(svd_res$d), svd_res$v)
+    tmp_mat <- tcrossprod(.mult_mat_vec(svd_res$u, svd_res$d), svd_res$v)
     diag(cov_mat) <- diag(tmp_mat)
     
     sing_vec <- svd_res$d
@@ -30,5 +30,5 @@ heteroPCA <- function(mat, K, max_iter = 25, tol = 1e-4, verbose = T){
   
   if(verbose) print("heteroPCA: Final iteration")
   res <- .svd_truncated(cov_mat, K)
-  tcrossprod(res$u %*% .diag_matrix(res$d), res$v)
+  tcrossprod(.mult_mat_vec(res$u, res$d), res$v)
 }
