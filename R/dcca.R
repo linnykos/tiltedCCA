@@ -6,13 +6,13 @@
 #' @param mat_2 data matrix 2
 #' @param rank_1 desired rank of data matrix 1
 #' @param rank_2 desired rank of data matrix 1
-#' @param rank_12 desired rank of cross-covariance matrix
 #' @param enforce_rank boolean 
 #' @param verbose boolean
 #'
 #' @return list
 #' @export
-dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T, verbose = T){
+dcca_factor <- function(mat_1, mat_2, rank_1, rank_2,
+                 enforce_rank = T, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), rank_12 <= min(c(rank_1, rank_2)), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
   n <- nrow(mat_1)
@@ -20,31 +20,46 @@ dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T, verbos
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   if(verbose) print("D-CCA: Starting matrix shrinkage")
-  if(enforce_rank | nrow(mat_1) < 2*ncol(mat_1)) mat_1 <- .spoet(mat_1, rank_1)
-  if(enforce_rank | nrow(mat_2) < 2*ncol(mat_2)) mat_2 <- .spoet(mat_2, rank_2)
-  
-  if(verbose) print("D-CCA: Computing covariance matrices")
-  cov_1 <- stats::cov(mat_1) * (n-1)/n
-  cov_2 <- stats::cov(mat_2) * (n-1)/n
-  cov_12 <- crossprod(mat_1, mat_2)/n
-  full_rank <- Matrix::rankMatrix(cov_12)
+  if(enforce_rank | nrow(mat_1) < 2*ncol(mat_1)) svd_1 <- .spoet(mat_1, rank_1)
+  if(enforce_rank | nrow(mat_2) < 2*ncol(mat_2)) svd_2 <- .spoet(mat_2, rank_2)
   
   if(verbose) print("D-CCA: Computing CCA")
-  cca_res <- .cca(cov_1, cov_2, cov_12, K = full_rank)
-  score_1 <- mat_1 %*% cca_res$factor_1 #note: this is unnormalized
-  score_2 <- mat_2 %*% cca_res$factor_2
+  cca_res <- .cca(svd_1, svd_2)
   
+  if(verbose) print("D-CCA: Computing unnormalized scores")
+  tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
+  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  
+  if(verbose) print("D-CCA: Computing common factors")
   R_vec <- sapply(cca_res$obj_vec, function(x){1-sqrt((1-x)/(1+x))})
+  common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
+  
+  if(verbose) print("D-CCA: Done")
+  structure(list(common_factors = common_factors, cca_obj = cca_res$obj_vec,
+       rank_1 = rank_1, rank_2 = rank_2, 
+       score_1 = score_1, score_2 = score_2, 
+       svd_1 = svd_1, svd_2 = svd_2), class = "dcca")
+}
+
+dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
+  stopifnot(class(dcca_res) == "dcca")
+  n <- nrow(dcca_res$svd_1$u)
+  full_rank <- length(dcca_res$cca_obj)
+  
+  if(verbose) print("D-CCA: Form denoised observation matrices")
+  mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d) , dcca_res$svd_1$v)
+  mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
   
   if(verbose) print("D-CCA: Computing common matrices")
-  common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
-  common_mat_1 <- common_factors[,1:rank_12, drop = F] %*% crossprod(score_1[,1:rank_12, drop = F], mat_1)/n
-  common_mat_2 <- common_factors[,1:rank_12, drop = F] %*% crossprod(score_2[,1:rank_12, drop = F], mat_2)/n
+  common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
+  common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
   
   if(verbose) print("D-CCA: Computing distinctive matrices")
   if(full_rank > rank_12){
-    common_mat_1_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% crossprod(score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
-    common_mat_2_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% crossprod(score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
+    common_mat_1_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+      crossprod(dcca_res$score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
+    common_mat_2_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+      crossprod(dcca_res$score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
     distinct_mat_1 <- mat_1 - common_mat_1 - common_mat_1_rem
     distinct_mat_2 <- mat_2 - common_mat_2 - common_mat_2_rem
   } else {
@@ -52,8 +67,9 @@ dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T, verbos
     distinct_mat_2 <- mat_2 - common_mat_2
   }
   
-  list(common_factors = common_factors, cca_obj = cca_res$obj_vec,
-       common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
+  if(verbose) print("D-CCA: Done")
+  list(common_factors = common_factors[,1:rank_12, drop = F],
+       common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2)
 }
 
@@ -68,24 +84,36 @@ dcca <- function(mat_1, mat_2, rank_1, rank_2, rank_12, enforce_rank = T, verbos
     sqrt(max(c(x^2-tau*p, 0)))
   })
   
-  tcrossprod(svd_res$u[,1:K] %*% .diag_matrix(sing_vec), svd_res$v[,1:K])
+  svd_res$d <- sing_vec
+  svd_res$u <- svd_res$u[,1:K,drop = F]
+  svd_res$v <- svd_res$v[,1:K,drop = F]
+  
+  svd_res
 }
 
-.cca <- function(cov_1, cov_2, cov_12, K){
-  stopifnot(nrow(cov_1) == ncol(cov_1), nrow(cov_2) == ncol(cov_2),
-            nrow(cov_1) == nrow(cov_12), nrow(cov_2) == ncol(cov_12))
+.cca <- function(svd_1, svd_2){
+  stopifnot(all(svd_1$d >= 0), all(svd_2$d >= 0), nrow(svd_1$u) == nrow(svd_2$u),
+            rank_12 <= min(c(length(svd_1$d), length(svd_2$d))))
   
-  svd_1 <- .svd_truncated(cov_1, nrow(cov_1))
-  svd_2 <- .svd_truncated(cov_2, nrow(cov_2))
-  stopifnot(all(svd_1$d >= 0), all(svd_2$d >= 0))
-  
-  cov_1_invhalf <- .inverse_onehalf(cov_1)
-  cov_2_invhalf <- .inverse_onehalf(cov_2)
-  
-  agg_mat <-  crossprod(cov_1_invhalf, cov_12) %*% cov_2_invhalf
-  svd_res <- .svd_truncated(agg_mat, K)
+  cov_1_invhalf <- .mult_mat_vec(svd_1$v, 1/svd_1$d)
+  cov_2_invhalf <- .mult_mat_vec(svd_2$v, 1/svd_2$d)
+                                    
+  agg_mat <-  .compute_cca_aggregate_matrix(svd_1, svd_2)
+  svd_res <- svd(mat)
   
   list(factor_1 = cov_1_invhalf %*% svd_res$u,
        factor_2 = cov_2_invhalf %*% svd_res$v,
        obj_vec = svd_res$d)
+}
+
+.compute_cca_aggregate_matrix <- function(svd_1, svd_2){
+  crossprod(svd_1$u, svd_2$u)
+}
+
+# unnoramlized means that while score_1 is orthogonal, it is not orthonormal
+.compute_unnormalized_scores <- function(svd_1, svd_2, cca_res){
+  score_1 <- .mult_mat_vec(svd_1$u, svd_1$d) %*% crossprod(svd_1$v, cca_res$factor_1) #note: this is unnormalized
+  score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, cca_res$factor_2)
+  
+  list(score_1 = score_1, score_2 = score_2)
 }

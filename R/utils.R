@@ -20,47 +20,6 @@
   res
 }
 
-#' Do an SVD projection
-#'
-#' Uses \code{RSpectra::svds} to compute the \code{k} leading singular vectors, but
-#' sometimes there are numerical instability issues. In case of crashes, the code
-#' then uses the default \code{svd} function.
-#'
-#' @param mat numeric matrix with \code{n} rows and \code{n} columns
-#' @param K positive integer less than \code{n}
-#' @param weighted boolean
-#'
-#' @return numeric matrix
-.svd_projection <- function(mat, K, weighted = F){
-  res <- .svd_truncated(mat, K)
-  
-  if(weighted){
-    diag_mat <- .diag_matrix(sqrt(abs(res$d[1:K])))
-    res$u[,1:K, drop = F] %*% diag_mat
-  } else {
-    res$u[,1:K,drop = F]
-  }
-  
-  res
-}
-
-.diag_matrix <- function(vec){
-  K <- length(vec)
-  if(K == 1) {
-    matrix(vec, 1, 1)
-  } else {
-    diag(vec)
-  }
-}
-
-# given symmetric mat, return res such that t(res) %*% mat %*% res == diag(nrow(mat))
-.inverse_onehalf <- function(mat){
-  stopifnot(sum(abs(mat - t(mat))) == 0)
-  K <- Matrix::rankMatrix(mat)
-  
-  svd_res <- .svd_truncated(mat, K = K)
-  svd_res$u %*% .diag_matrix(svd_res$d^(-1/2))
-}
 
 #######################
 
