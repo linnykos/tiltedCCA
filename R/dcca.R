@@ -13,15 +13,17 @@
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2,
                  enforce_rank = T, verbose = T){
-  stopifnot(nrow(mat_1) == nrow(mat_2), rank_12 <= min(c(rank_1, rank_2)), 
+  stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
   n <- nrow(mat_1)
   mat_1 <- scale(mat_1, center = T, scale = F)
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   if(verbose) print("D-CCA: Starting matrix shrinkage")
-  if(enforce_rank | nrow(mat_1) < 2*ncol(mat_1)) svd_1 <- .spoet(mat_1, rank_1)
-  if(enforce_rank | nrow(mat_2) < 2*ncol(mat_2)) svd_2 <- .spoet(mat_2, rank_2)
+  if(enforce_rank | nrow(mat_1) < 2*ncol(mat_1)) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1)
+  if(enforce_rank | nrow(mat_2) < 2*ncol(mat_2)) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2)
+  
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
   if(verbose) print("D-CCA: Computing CCA")
   cca_res <- .cca(svd_1, svd_2)
@@ -56,9 +58,9 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   
   if(verbose) print("D-CCA: Computing distinctive matrices")
   if(full_rank > rank_12){
-    common_mat_1_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+    common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
       crossprod(dcca_res$score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
-    common_mat_2_rem <- common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+    common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
       crossprod(dcca_res$score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
     distinct_mat_1 <- mat_1 - common_mat_1 - common_mat_1_rem
     distinct_mat_2 <- mat_2 - common_mat_2 - common_mat_2_rem
@@ -68,7 +70,7 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   }
   
   if(verbose) print("D-CCA: Done")
-  list(common_factors = common_factors[,1:rank_12, drop = F],
+  list(common_factors = dcca_res$common_factors[,1:rank_12, drop = F],
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2)
 }
@@ -92,14 +94,14 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
 }
 
 .cca <- function(svd_1, svd_2){
-  stopifnot(all(svd_1$d >= 0), all(svd_2$d >= 0), nrow(svd_1$u) == nrow(svd_2$u),
-            rank_12 <= min(c(length(svd_1$d), length(svd_2$d))))
+  stopifnot(all(svd_1$d >= 0), all(svd_2$d >= 0), nrow(svd_1$u) == nrow(svd_2$u))
+  n <- nrow(svd_1$u)
   
-  cov_1_invhalf <- .mult_mat_vec(svd_1$v, 1/svd_1$d)
-  cov_2_invhalf <- .mult_mat_vec(svd_2$v, 1/svd_2$d)
+  cov_1_invhalf <- .mult_mat_vec(svd_1$v, sqrt(n)/svd_1$d)
+  cov_2_invhalf <- .mult_mat_vec(svd_2$v, sqrt(n)/svd_2$d)
                                     
   agg_mat <-  .compute_cca_aggregate_matrix(svd_1, svd_2)
-  svd_res <- svd(mat)
+  svd_res <- svd(agg_mat)
   
   list(factor_1 = cov_1_invhalf %*% svd_res$u,
        factor_2 = cov_2_invhalf %*% svd_res$v,

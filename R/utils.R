@@ -20,6 +20,17 @@
   res
 }
 
+.check_svd <- function(svd_res, tol = 1e-6){
+  idx <- which(svd_res$d > tol)
+  if(length(idx) == length(svd_res$d)) return(svd_res)
+  
+  svd_res$u <- svd_res$u[, idx, drop = F]
+  svd_res$v <- svd_res$v[, idx, drop = F]
+  svd_res$d <- svd_res$d[idx]
+  
+  svd_res
+}
+
 
 #######################
 
