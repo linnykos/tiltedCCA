@@ -2,7 +2,7 @@
 % Please edit documentation in R/dcca.R
 \name{dcca_factor}
 \alias{dcca_factor}
-\title{D-CCA}
+\title{D-CCA Factorization}
 \usage{
 dcca_factor(mat_1, mat_2, rank_1, rank_2, enforce_rank = T, verbose = T)
 }
@@ -23,5 +23,5 @@ dcca_factor(mat_1, mat_2, rank_1, rank_2, enforce_rank = T, verbose = T)
 list
 }
 \description{
-D-CCA
+D-CCA Factorization
 }

@@ -1,6 +1,6 @@
 # from Shu, Hai, Xiao Wang, and Hongtu Zhu. "D-CCA: A decomposition-based canonical correlation analysis for high-dimensional datasets." Journal of the American Statistical Association 115.529 (2020): 292-306.
 
-#' D-CCA
+#' D-CCA Factorization
 #'
 #' @param mat_1 data matrix 1
 #' @param mat_2 data matrix 2
@@ -43,6 +43,14 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2,
        svd_1 = svd_1, svd_2 = svd_2), class = "dcca")
 }
 
+#' D-CCA Decomposition
+#'
+#' @param dcca_res output from \code{dcca_factor}
+#' @param rank_12 desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
+#' @param verbose boolean
+#'
+#' @return list
+#' @export
 dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
   n <- nrow(dcca_res$svd_1$u)
