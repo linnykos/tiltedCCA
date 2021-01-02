@@ -15,6 +15,7 @@ test_that(".spoet works", {
   
   expect_true(all(dim(mat) == c(nrow(res$u), nrow(res$v))))
   expect_true(length(res$d) == 2)
+  expect_true(all(sort(names(res)) == sort(c("d", "d_original", "u", "v"))))
 })
 
 ################################
@@ -118,9 +119,9 @@ test_that(".cca works", {
   res <- .cca(svd_1, svd_2)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("factor_1", "factor_2", "obj_vec"))))
-  expect_true(all(dim(res$factor_1) == c(p1, length(svd_1$d))))
-  expect_true(all(dim(res$factor_2) == c(p2, length(svd_2$d))))
+  expect_true(all(sort(names(res)) == sort(c("loading_1", "loading_2", "obj_vec"))))
+  expect_true(all(dim(res$loading_1) == c(p1, length(svd_1$d))))
+  expect_true(all(dim(res$loading_2) == c(p2, length(svd_2$d))))
   expect_true(length(res$obj_vec) <= min(c(length(svd_1$d), length(svd_2$d))))
 })
 
@@ -144,8 +145,8 @@ test_that(".cca yields empirically uncorrelated canoncical scores", {
     
     res <- .cca(svd_1, svd_2)
     
-    bool1 <- sum(abs(t(res$factor_1) %*% (stats::cov(mat_1)*(n-1)/n) %*% res$factor_1 - diag(min(p1,p2)))) <= 1e-4
-    bool2 <- sum(abs(t(res$factor_2) %*% (stats::cov(mat_2)*(n-1)/n) %*% res$factor_2 - diag(min(p1,p2)))) <= 1e-4
+    bool1 <- sum(abs(t(res$loading_1) %*% (stats::cov(mat_1)*(n-1)/n) %*% res$loading_1 - diag(min(p1,p2)))) <= 1e-4
+    bool2 <- sum(abs(t(res$loading_2) %*% (stats::cov(mat_2)*(n-1)/n) %*% res$loading_2 - diag(min(p1,p2)))) <= 1e-4
     
     bool1 & bool2
   })
@@ -173,10 +174,10 @@ test_that(".cca obtains the correlation that is the same value as the objective"
     cca_res <- .cca(svd_1, svd_2)
     
     cov_12 <- crossprod(mat_1, mat_2)/n
-    res1 <- t(cca_res$factor_1) %*% cov_12 %*% cca_res$factor_2 
+    res1 <- t(cca_res$loading_1) %*% cov_12 %*% cca_res$loading_2 
     
-    score_1 <- mat_1 %*% cca_res$factor_1
-    score_2 <- mat_2 %*% cca_res$factor_2
+    score_1 <- mat_1 %*% cca_res$loading_1
+    score_2 <- mat_2 %*% cca_res$loading_2
     
     res2 <- stats::cor(score_1, score_2) 
     
@@ -207,8 +208,8 @@ test_that(".cca obtains the maximum correlation", {
 
   cca_res <- .cca(svd_1, svd_2)
   
-  score_1 <- mat_1 %*% cca_res$factor_1
-  score_2 <- mat_2 %*% cca_res$factor_2
+  score_1 <- mat_1 %*% cca_res$loading_1
+  score_2 <- mat_2 %*% cca_res$loading_2
   
   target_cor <- stats::cor(score_1, score_2)[1]
   
@@ -216,11 +217,11 @@ test_that(".cca obtains the maximum correlation", {
   trials <- 100
   bool_vec <- sapply(1:trials, function(x){
     set.seed(x)
-    rand_factor_1 <- stats::runif(p1, min = -1, max = 1)
-    rand_factor_2 <- stats::runif(p2, min = -1, max = 1)
+    rand_loading_1 <- stats::runif(p1, min = -1, max = 1)
+    rand_loading_2 <- stats::runif(p2, min = -1, max = 1)
     
-    rand_score_1 <- mat_1 %*% rand_factor_1
-    rand_score_2 <- mat_2 %*% rand_factor_2
+    rand_score_1 <- mat_1 %*% rand_loading_1
+    rand_score_2 <- mat_2 %*% rand_loading_2
     
     rand_cor <- stats::cor(rand_score_1, rand_score_2)
     
@@ -265,6 +266,31 @@ test_that(".compute_unnormalized_scores computes the correct scores", {
   expect_true(all(bool_vec))
 })
 
+##################################
+
+## .dcca is correct
+
+test_that(".dcca works", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  
+  res <- .dcca(mat_1, mat_2, rank_1 = K, rank_2 = K, 
+               apply_shrinkage = T, compute_common_factors = T, verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_factors", "score_1", "score_2",
+                                             "svd_1", "svd_2", "cca_obj"))))
+  
+})
+
 #################################3
 
 ## dcca_factor is correct
@@ -286,9 +312,45 @@ test_that("dcca_factor works", {
   expect_true(is.list(res))
   expect_true(class(res) == "dcca")
   expect_true(all(sort(names(res)) == sort(c("common_factors", "score_1", "score_2",
-                                             "svd_1", "svd_2", "cca_obj", 
-                                             "rank_1", "rank_2"))))
+                                             "svd_1", "svd_2", "cca_obj"))))
   expect_true(all(dim(res$common_factors) == c(n, K)))
+})
+
+test_that("dcca_factor works with meta-cells", {
+  set.seed(5)
+  n <- 200; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  nc <- 20
+  meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+  
+  res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
+                     apply_shrinkage = F, verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(class(res) == "dcca_meta")
+  expect_true(all(sort(names(res)) == sort(c("common_factors", "score_1", "score_2",
+                                             "svd_1", "svd_2", "cca_obj", "meta_score_1",
+                                             "meta_score_2", "meta_svd_1", "meta_svd_2"))))
+  expect_true(all(dim(res$common_factors) == c(n, K)))
+  expect_true(all(dim(res$meta_svd_1$u) == c(nc, K)))
+  expect_true(all(dim(res$meta_svd_2$u) == c(nc, K)))
+  expect_true(all(dim(res$svd_1$u) == c(n, K)))
+  expect_true(all(dim(res$svd_2$u) == c(n, K)))
+  expect_true(all(dim(res$meta_svd_1$v) == c(p1, K)))
+  expect_true(all(dim(res$meta_svd_2$v) == c(p2, K)))
+  expect_true(all(dim(res$svd_1$v) == c(p1, K)))
+  expect_true(all(dim(res$svd_2$v) == c(p2, K)))
+  expect_true(all(dim(res$meta_score_1) == c(p1, K)))
+  expect_true(all(dim(res$meta_score_2) == c(p2, K)))
+  expect_true(all(dim(res$score_1) == c(p1, K)))
+  expect_true(all(dim(res$score_2) == c(p2, K)))
 })
 
 ####################################

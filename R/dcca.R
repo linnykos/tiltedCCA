@@ -6,41 +6,74 @@
 #' @param mat_2 data matrix 2
 #' @param rank_1 desired rank of data matrix 1
 #' @param rank_2 desired rank of data matrix 1
-#' @param enforce_rank boolean 
+#' @param apply_shrinkage boolean 
 #' @param verbose boolean
 #'
 #' @return list
 #' @export
-dcca_factor <- function(mat_1, mat_2, rank_1, rank_2,
-                 enforce_rank = T, verbose = T){
+dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
+                        apply_shrinkage = T, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
   n <- nrow(mat_1)
+  if(verbose) print("D-CCA: Rescaling matrices")
   mat_1 <- scale(mat_1, center = T, scale = F)
   mat_2 <- scale(mat_2, center = T, scale = F)
   
-  if(verbose) print("D-CCA: Starting matrix shrinkage")
-  if(enforce_rank | nrow(mat_1) < 2*ncol(mat_1)) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1)
-  if(enforce_rank | nrow(mat_2) < 2*ncol(mat_2)) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2)
+  if(verbose) print(paste0("D-CCA: Starting matrix shrinkage"))
+  if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1)
+  if(apply_shrinkage) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2)
   
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  if(verbose) print("D-CCA: Computing CCA")
-  cca_res <- .cca(svd_1, svd_2)
+  if(all(!is.na(meta_clustering))){
+    # apply D-CCA to meta-cells
+    msg <- " (meta-cells)"
+    
+    stopifnot(all(meta_clustering > 0), all(meta_clustering %% 1 == 0),
+              max(meta_clustering) == length(unique(meta_clustering)),
+              length(meta_clustering) == nrow(mat_1))
+    num_meta <- max(meta_clustering)
+    
+    if(verbose) print(paste0("D-CCA", msg, ": Constructing meta-cells"))
+    mat_1_meta <- t(sapply(1:num_meta, function(x){
+      idx <- which(meta_clustering == x)
+      apply(mat_1[idx,,drop = F], 2, mean)
+    }))
+    
+    mat_2_meta <- t(sapply(1:num_meta, function(x){
+      idx <- which(meta_clustering == x)
+      apply(mat_2[idx,,drop = F], 2, mean)
+    }))
+    
+    if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
+    cca_res <- .cca(mat_1_meta, mat_2_meta, 
+                      rank_1 = rank_1, rank_2 = rank_2)
+  } else {
+    # alternatively, apply D-CCA to all cells
+    msg <- " (all cells)"
+    
+    if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
+    cca_res <- .cca(svd_1, svd_2, rank_1 = rank_1, rank_2 = rank_2)
+
+    # res <- .dcca(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2, 
+    #              apply_shrinkage = apply_shrinkage, 
+    #              compute_common_factors = T, 
+    #              verbose = verbose, msg = " (all cells)")
+  }
   
-  if(verbose) print("D-CCA: Computing unnormalized scores")
-  tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  res <- .dcca_common_factors(svd_1, svd_2, dcca_res, 
+                              check_alignment = all(!is.na(meta_clustering)),
+                              verbose = verbose, msg = msg)
   
-  if(verbose) print("D-CCA: Computing common factors")
-  R_vec <- sapply(cca_res$obj_vec, function(x){1-sqrt((1-x)/(1+x))})
-  common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
+  # # mix and match for output
+  # if(all(!is.na(meta_clustering))){
+  #   res$meta_score_1 <- res_meta$score_1; res$meta_score_2 <- res_meta$score_2
+  #   res$meta_svd_1 <- res_meta$svd_1; res$meta_svd_2 <- res_meta$svd_2
+  #   class(res) <- "dcca_meta"
+  # }
   
-  if(verbose) print("D-CCA: Done")
-  structure(list(common_factors = common_factors, cca_obj = cca_res$obj_vec,
-       rank_1 = rank_1, rank_2 = rank_2, 
-       score_1 = score_1, score_2 = score_2, 
-       svd_1 = svd_1, svd_2 = svd_2), class = "dcca")
+  res
 }
 
 #' D-CCA Decomposition
@@ -52,24 +85,42 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2,
 #' @return list
 #' @export
 dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
-  stopifnot(class(dcca_res) == "dcca")
+  stopifnot(class(dcca_res) %in% c("dcca", "dcca_meta"))
   n <- nrow(dcca_res$svd_1$u)
   full_rank <- length(dcca_res$cca_obj)
   
   if(verbose) print("D-CCA: Form denoised observation matrices")
   mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d) , dcca_res$svd_1$v)
   mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
+  if(class(dcca_res) == "dcca_meta"){
+    meta_mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$meta_svd_1$u, dcca_res$meta_svd_1$d) , dcca_res$meta_svd_1$v)
+    meta_mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$meta_svd_2$u, dcca_res$meta_svd_2$d) , dcca_res$meta_svd_2$v)
+    nc <- nrow(meta_mat_1)
+  }
   
   if(verbose) print("D-CCA: Computing common matrices")
-  common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
-  common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
-  
+  if(class(dcca_res) == "dcca"){
+    common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
+    common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
+  } else {
+    common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$meta_score_1[,1:rank_12, drop = F], meta_mat_1)/nc
+    common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$meta_score_2[,1:rank_12, drop = F], meta_mat_2)/nc
+  }
+   
   if(verbose) print("D-CCA: Computing distinctive matrices")
   if(full_rank > rank_12){
-    common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
-      crossprod(dcca_res$score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
-    common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
-      crossprod(dcca_res$score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
+    if(class(dcca_res) == "dcca"){
+      common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+        crossprod(dcca_res$score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
+      common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+        crossprod(dcca_res$score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
+    } else {
+      common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+        crossprod(dcca_res$meta_score_1[,(rank_12+1):full_rank, drop = F], meta_mat_1)/nc
+      common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
+        crossprod(dcca_res$meta_score_2[,(rank_12+1):full_rank, drop = F], meta_mat_2)/nc
+    }
+    
     distinct_mat_1 <- mat_1 - common_mat_1 - common_mat_1_rem
     distinct_mat_2 <- mat_2 - common_mat_2 - common_mat_2_rem
   } else {
@@ -85,6 +136,54 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
 
 #################################
 
+# .shrink_and_cca <- function(mat_1, mat_2, rank_1, rank_2,
+#                   apply_shrinkage = T, verbose = T, msg = ""){
+#  
+#   if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
+#   cca_res <- .cca(svd_1, svd_2)
+#   
+#   cca_res
+#  
+#   # if(verbose) print(paste0("D-CCA", msg, ": Done"))
+#   # res <- structure(list(common_factors = common_factors, cca_obj = cca_res$obj_vec,
+#   #                score_1 = score_1, score_2 = score_2, 
+#   #                svd_1 = svd_1, svd_2 = svd_2), class = "dcca")
+#   # if(return_loadings){
+#   #   res$loading_1 <- cca_res$loading_1; res$loading_2 <- cca_res$loading_2
+#   # } else {
+#   #   res$loading_1 <- NA; res$loading_2 <- NA
+#   # }
+#   # 
+#   # res
+# }
+
+.dcca_common_factors <- function(svd_1, svd_2, cca_res, check_alignment = T,
+                                 verbose = T, msg = ""){
+  
+  if(verbose) print(paste0("D-CCA", msg, ": Computing unnormalized scores"))
+  tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
+  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+
+  if(verbose) print(paste0("D-CCA", msg, ": Computing common factors"))
+  if(check_alignment){
+    tmp <- .reparameterize(score_1, score_2)
+    score_1 <- tmp$mat_1; score_2 <- tmp$mat_2
+    obj_vec <- tmp$diag_vec
+  } else {
+    obj_vec <- cca_res$obj_vec
+  }
+  
+  R_vec <- sapply(obj_vec, function(x){1-sqrt((1-x)/(1+x))})
+  common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
+  
+  if(verbose) print("D-CCA: Done")
+  list(common_factors = common_factors, 
+       svd_1 = svd_1, svd_2 = svd_2,
+       score_1 = score_1, score_2 = score_2, obj_vec = obj_vec)
+}
+
+##############################################
+
 .spoet <- function(mat, K){
   n <- nrow(mat); p <- ncol(mat); m <- min(n, p)
   target_full_dim <- min(c(nrow(mat), ncol(mat), K*10))
@@ -94,6 +193,7 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
     sqrt(max(c(x^2-tau*p, 0)))
   })
   
+  svd_res$d_original <- svd_res$d[1:K]
   svd_res$d <- sing_vec
   svd_res$u <- svd_res$u[,1:K,drop = F]
   svd_res$v <- svd_res$v[,1:K,drop = F]
@@ -101,8 +201,23 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   svd_res
 }
 
-.cca <- function(svd_1, svd_2){
-  stopifnot(all(svd_1$d >= 0), all(svd_2$d >= 0), nrow(svd_1$u) == nrow(svd_2$u))
+# takes either two matrices or two SVDs
+.cca <- function(input_1, input_2, rank_1 = NA, rank_2 = NA){
+  if(is.matrix(input_1) & is.matrix(input_2)){
+    stopifnot(ncol(input_1) == ncol(input_2))
+    svd_1 <- .svd_truncated(mat_1, rank_1)
+    svd_2 <- .svd_truncated(mat_2, rank_2)
+    
+    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  } else {
+    stopifnot(is.list(input_1), is.list(input_2), 
+              all(c("u","d","v") %in% names(input_1)),
+              all(c("u","d","v") %in% names(input_2)),
+              all(input_1$d >= 0), all(input_2$d >= 0), 
+              all(dim(input_1$u) == dim(input_2$u)))
+    svd_1 <- input_1; svd_2 <- input_2
+  }
+  
   n <- nrow(svd_1$u)
   
   cov_1_invhalf <- .mult_mat_vec(svd_1$v, sqrt(n)/svd_1$d)
@@ -111,8 +226,8 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   agg_mat <-  .compute_cca_aggregate_matrix(svd_1, svd_2)
   svd_res <- svd(agg_mat)
   
-  list(factor_1 = cov_1_invhalf %*% svd_res$u,
-       factor_2 = cov_2_invhalf %*% svd_res$v,
+  list(loading_1 = cov_1_invhalf %*% svd_res$u,
+       loading_2 = cov_2_invhalf %*% svd_res$v,
        obj_vec = svd_res$d)
 }
 
@@ -122,8 +237,8 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
 
 # unnoramlized means that while score_1 is orthogonal, it is not orthonormal
 .compute_unnormalized_scores <- function(svd_1, svd_2, cca_res){
-  score_1 <- .mult_mat_vec(svd_1$u, svd_1$d) %*% crossprod(svd_1$v, cca_res$factor_1) #note: this is unnormalized
-  score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, cca_res$factor_2)
+  score_1 <- .mult_mat_vec(svd_1$u, svd_1$d) %*% crossprod(svd_1$v, cca_res$loading_1) 
+  score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, cca_res$loading_2)
   
   list(score_1 = score_1, score_2 = score_2)
 }
