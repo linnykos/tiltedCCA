@@ -725,5 +725,3 @@ test_that("dcca_decomposition is a decomposition under no noise with meta-cells"
   
   expect_true(all(bool_vec))
 })
-
-

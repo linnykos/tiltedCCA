@@ -80,34 +80,17 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   if(verbose) print("D-CCA: Form denoised observation matrices")
   mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d) , dcca_res$svd_1$v)
   mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
-  # if(class(dcca_res) == "dcca_meta"){
-  #   meta_mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$meta_svd_1$u, dcca_res$meta_svd_1$d) , dcca_res$meta_svd_1$v)
-  #   meta_mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$meta_svd_2$u, dcca_res$meta_svd_2$d) , dcca_res$meta_svd_2$v)
-  #   nc <- nrow(meta_mat_1)
-  # }
   
   if(verbose) print("D-CCA: Computing common matrices")
-  # if(class(dcca_res) == "dcca"){
   common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
   common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
-  # } else {
-  #   common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$meta_score_1[,1:rank_12, drop = F], meta_mat_1)/nc
-  #   common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$meta_score_2[,1:rank_12, drop = F], meta_mat_2)/nc
-  # }
    
   if(verbose) print("D-CCA: Computing distinctive matrices")
   if(full_rank > rank_12){
-    # if(class(dcca_res) == "dcca"){
     common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
       crossprod(dcca_res$score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
     common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
       crossprod(dcca_res$score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
-    # } else {
-    #   common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
-    #     crossprod(dcca_res$meta_score_1[,(rank_12+1):full_rank, drop = F], meta_mat_1)/nc
-    #   common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
-    #     crossprod(dcca_res$meta_score_2[,(rank_12+1):full_rank, drop = F], meta_mat_2)/nc
-    # }
     
     distinct_mat_1 <- mat_1 - common_mat_1 - common_mat_1_rem
     distinct_mat_2 <- mat_2 - common_mat_2 - common_mat_2_rem
