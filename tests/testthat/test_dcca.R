@@ -295,7 +295,8 @@ test_that(".dcca_common_factors works", {
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_factors", "score_1", "score_2",
-                                             "svd_1", "svd_2", "cca_obj"))))
+                                             "svd_1", "svd_2", "cca_obj", "distinct_factor_1", 
+                                             "distinct_factor_2"))))
   expect_true(all(dim(res$common_factors) == c(n, K)))
 })
 
@@ -325,15 +326,7 @@ test_that(".dcca_common_factors yields uncorrelated residuals", {
     
     res <- .dcca_common_factors(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
     
-    ####
-    
-    tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    
-    residual_1 <- score_1 - res$common_factors
-    residual_2 <- score_2 - res$common_factors
-    
-    prod_mat <- t(residual_1) %*% residual_2
+    prod_mat <- t(res$distinct_factor_1) %*% res$distinct_factor_2
     
     sum(abs(prod_mat)) <= 1e-6
   })
@@ -380,18 +373,7 @@ test_that(".dcca_common_factors yields uncorrelated residuals with meta-cells", 
     
     res <- .dcca_common_factors(svd_1, svd_2, cca_res, check_alignment = T, verbose = F)
     
-    ## 
-    
-    full_rank <- length(cca_res$obj_vec)
-    tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    tmp <- .reparameterize(score_1, score_2)
-    score_1 <- tmp$mat_1; score_2 <- tmp$mat_2
-    
-    residual_1 <- score_1 - res$common_factors
-    residual_2 <- score_2 - res$common_factors
-    
-    prod_mat <- t(residual_1) %*% residual_2
+    prod_mat <- t(res$distinct_factor_1) %*% res$distinct_factor_2
     
     sum(abs(prod_mat)) <= 1e-6
   })
@@ -420,7 +402,8 @@ test_that("dcca_factor works", {
   expect_true(is.list(res))
   expect_true(class(res) == "dcca")
   expect_true(all(sort(names(res)) == sort(c("common_factors", "score_1", "score_2",
-                                             "svd_1", "svd_2", "cca_obj"))))
+                                             "svd_1", "svd_2", "cca_obj", "distinct_factor_1", 
+                                             "distinct_factor_2"))))
   expect_true(all(dim(res$common_factors) == c(n, K)))
 })
 
@@ -463,7 +446,8 @@ test_that("dcca_factor works with meta-cells", {
   expect_true(is.list(res))
   expect_true(class(res) == "dcca")
   expect_true(all(sort(names(res)) == sort(c("common_factors", "score_1", "score_2",
-                                             "svd_1", "svd_2", "cca_obj"))))
+                                             "svd_1", "svd_2", "cca_obj", "distinct_factor_1", 
+                                             "distinct_factor_2"))))
   expect_true(all(dim(res$common_factors) == c(n, K)))
 })
 

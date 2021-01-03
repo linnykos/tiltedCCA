@@ -85,22 +85,15 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
   
   if(verbose) print("D-CCA: Computing common matrices")
-  common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
-  common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
+  coef_mat_1 <- crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
+  coef_mat_2 <- crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
+  
+  common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% coef_mat_1[1:rank_12,,drop = F]
+  common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% coef_mat_2[1:rank_12,,drop = F]
    
   if(verbose) print("D-CCA: Computing distinctive matrices")
-  if(full_rank > rank_12){
-    common_mat_1_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
-      crossprod(dcca_res$score_1[,(rank_12+1):full_rank, drop = F], mat_1)/n
-    common_mat_2_rem <- dcca_res$common_factors[,(rank_12+1):full_rank, drop = F] %*% 
-      crossprod(dcca_res$score_2[,(rank_12+1):full_rank, drop = F], mat_2)/n
-    
-    distinct_mat_1 <- mat_1 - common_mat_1 - common_mat_1_rem
-    distinct_mat_2 <- mat_2 - common_mat_2 - common_mat_2_rem
-  } else {
-    distinct_mat_1 <- mat_1 - common_mat_1
-    distinct_mat_2 <- mat_2 - common_mat_2
-  }
+  distinct_mat_1 <- dcca_res$distinct_factor_1 %*% coef_mat_1
+  distinct_mat_2 <- dcca_res$distinct_factor_2 %*% coef_mat_2
   
   if(verbose) print("D-CCA: Done")
   list(common_factors = dcca_res$common_factors[,1:rank_12, drop = F],
@@ -136,8 +129,13 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
   stopifnot(all(dim(common_factors) == dim(score_1)))
   
+  distinct_factor_1 <- score_1 - common_factors
+  distinct_factor_2 <- score_2 - common_factors
+  
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
   list(common_factors = common_factors, 
+       distinct_factor_1 = distinct_factor_1,
+       distinct_factor_2 = distinct_factor_2,
        svd_1 = svd_1, svd_2 = svd_2,
        score_1 = score_1, score_2 = score_2, cca_obj = obj_vec)
 }
