@@ -32,17 +32,17 @@
 }
 
 # reparameterize according to CCA: so t(mat_1) %*% mat_2 is diagonal with descending values,
-# and t(mat_1)%*%mat_1 and t(mat_2)%*%mat_2 are diagonal and equal
+# and t(mat_1)%*%mat_1 and t(mat_2)%*%mat_2 are the identity
+# this essentially runs CCA
+# we should move/integrate this into a more appropriate function later
 .reparameterize <- function(mat_1, mat_2){
-  stopifnot(ncol(mat_1) == ncol(mat_2))
+  stopifnot(all(dim(mat_1) == dim(mat_2)))
   n <- nrow(mat_1); p <- nrow(mat_2)
   
-  svd_res <- svd(crossprod(mat_1), crossprod(mat_2))
+  res <- .cca(mat_1, mat_2, rank_1 = ncol(mat_1), rank_2 = ncol(mat_2))
+  mat_1b <- mat_1 %*% res$loading_1; mat_2b <- mat_2 %*% res$loading_2
   
-  mat_1b <- .mult_mat_vec(svd_res$u, sqrt(svd_res$d))
-  mat_2b <- .mult_mat_vec(svd_res$v, sqrt(svd_res$d))
-  
-  list(mat_1 = mat_1b, mat_2 = mat_2b, diag_vec <- svd_res$d)
+  list(mat_1 = mat_1b, mat_2 = mat_2b, diag_vec = res$obj_vec)
 }
 
 #######################

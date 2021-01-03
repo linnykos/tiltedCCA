@@ -59,3 +59,105 @@ test_that(".mult_mat_vec can be used to compute inv_onehalf", {
   
   expect_true(all(bool_vec))
 })
+
+#######################################
+
+## .reparameterize is correct
+
+test_that(".reparameterize works", {
+  set.seed(10)
+  mat_1 <- matrix(rnorm(200), 20, 5)
+  mat_2 <- matrix(rnorm(200), 20, 5)
+  
+  res <- .reparameterize(mat_1, mat_2)
+  
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2", "diag_vec"))))
+})
+
+test_that(".reparameterize yields diagonal crossproducts", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    mat_1 <- matrix(rnorm(200), 20, 5)
+    mat_2 <- matrix(rnorm(200), 20, 5)
+    
+    res <- .reparameterize(mat_1, mat_2)
+    
+    prod_mat <- crossprod(res$mat_1, res$mat_2)
+    
+    abs(sum(abs(prod_mat)) - sum(abs(diag(prod_mat)))) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that(".reparameterize yields diagonal covariances", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    mat_1 <- matrix(rnorm(200), 20, 5)
+    mat_2 <- matrix(rnorm(200), 20, 5)
+    
+    res <- .reparameterize(mat_1, mat_2)
+    
+    cov_1 <- crossprod(res$mat_1)
+    cov_2 <- crossprod(res$mat_2)
+    
+    bool1 <- abs(sum(abs(cov_1)) - sum(abs(diag(cov_1)))) <= 1e-6
+    bool2 <- abs(sum(abs(cov_2)) - sum(abs(diag(cov_2)))) <= 1e-6
+    
+    bool1 & bool2
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that(".reparameterize preserves the column space", {
+  trials <- 20
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    mat_1 <- matrix(rnorm(200), 20, 5)
+    mat_2 <- matrix(rnorm(200), 20, 5)
+    
+    res <- .reparameterize(mat_1, mat_2)
+    weight_1 <- runif(ncol(res$mat_1)); weight_2 <- runif(ncol(res$mat_2))
+    
+    vec_1 <- res$mat_1 %*% weight_1; vec_2 <- res$mat_2 %*% weight_2
+    
+    # if vec_1 were in the column space of mat_1, then the vector should be unchanged
+    #  after projection
+    tmp_1 <- mat_1 %*% solve(crossprod(mat_1)) %*% t(mat_1) %*% vec_1
+    tmp_2 <- mat_2 %*% solve(crossprod(mat_2)) %*% t(mat_2) %*% vec_2
+    
+    sum(abs(vec_1 - tmp_1)) <= 1e-6 & sum(abs(vec_2 - tmp_2)) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+
+test_that(".reparameterize preserves the column space (2nd test)", {
+  trials <- 20
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    mat_1 <- matrix(rnorm(200), 20, 5)
+    mat_2 <- matrix(rnorm(200), 20, 5)
+    
+    res <- .reparameterize(mat_1, mat_2)
+    
+    # if the column space were the same, the projection matrices should be the same
+    proj_1 <- mat_1 %*% solve(crossprod(mat_1)) %*% t(mat_1)
+    proj_2 <- mat_2 %*% solve(crossprod(mat_2)) %*% t(mat_2)
+    proj_1b <- res$mat_1 %*% solve(crossprod(res$mat_1)) %*% t(res$mat_1)
+    proj_2b <- res$mat_2 %*% solve(crossprod(res$mat_2)) %*% t(res$mat_2)
+    
+    sum(abs(proj_1 - proj_1b)) <= 1e-6 & sum(abs(proj_2 - proj_2b)) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
