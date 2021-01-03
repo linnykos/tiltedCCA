@@ -35,13 +35,16 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
               length(meta_clustering) == nrow(mat_1))
     num_meta <- max(meta_clustering)
     
-    if(verbose) print(paste0("D-CCA", msg, ": Constructing meta-cells"))
+    if(verbose) print(paste0("D-CCA", msg, ": Constructing meta-cells for matrix 1"))
     mat_1_meta <- t(sapply(1:num_meta, function(x){
+      if(verbose & x %% floor(num_meta/10) == 0) cat('*')
       idx <- which(meta_clustering == x)
       apply(mat_1[idx,,drop = F], 2, mean)
     }))
     
+    if(verbose) print(paste0("D-CCA", msg, ": Constructing meta-cells for matrix 2"))
     mat_2_meta <- t(sapply(1:num_meta, function(x){
+      if(verbose & x %% floor(num_meta/10) == 0) cat('*')
       idx <- which(meta_clustering == x)
       apply(mat_2[idx,,drop = F], 2, mean)
     }))
