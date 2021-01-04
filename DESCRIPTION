@@ -12,7 +12,8 @@ Imports:
     MASS,
     RSpectra,
     Matrix,
-    softImpute
+    softImpute,
+    Seurat
 Suggests:
     testthat
 RoxygenNote: 7.1.1

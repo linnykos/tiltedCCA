@@ -59,7 +59,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     cca_res <- .cca(svd_1, svd_2)
   }
   
-  res <- .dcca_common_factors(svd_1, svd_2, cca_res, 
+  res <- .dcca_common_loading(svd_1, svd_2, cca_res, 
                               check_alignment = all(!is.na(meta_clustering)),
                               verbose = verbose, msg = msg)
 
@@ -88,22 +88,55 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   coef_mat_1 <- crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
   coef_mat_2 <- crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
   
-  common_mat_1 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% coef_mat_1[1:rank_12,,drop = F]
-  common_mat_2 <- dcca_res$common_factors[,1:rank_12, drop = F] %*% coef_mat_2[1:rank_12,,drop = F]
+  common_mat_1 <- dcca_res$common_loading[,1:rank_12, drop = F] %*% coef_mat_1[1:rank_12,,drop = F]
+  common_mat_2 <- dcca_res$common_loading[,1:rank_12, drop = F] %*% coef_mat_2[1:rank_12,,drop = F]
    
   if(verbose) print("D-CCA: Computing distinctive matrices")
-  distinct_mat_1 <- dcca_res$distinct_factor_1 %*% coef_mat_1
-  distinct_mat_2 <- dcca_res$distinct_factor_2 %*% coef_mat_2
+  distinct_mat_1 <- dcca_res$distinct_loading_1 %*% coef_mat_1
+  distinct_mat_2 <- dcca_res$distinct_loading_2 %*% coef_mat_2
   
   if(verbose) print("D-CCA: Done")
-  list(common_factors = dcca_res$common_factors[,1:rank_12, drop = F],
+  structure(list(common_loading = dcca_res$common_loading[,1:rank_12, drop = F],
+       distinct_loading_1 = dcca_res$distinct_loading_1,
+       distinct_loading_2 = dcca_res$distinct_loading_2,
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
-       distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2)
+       distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
+       cca_obj = dcca_res$cca_obj), class = "dcca_decomp")
 }
+
+extract_embedding <- function(obj, common = T, distinct_1 = T,
+                              distinct_2 = T){
+  stopifnot(class(obj) == "dcca_decomp")
+  rank_12 <- ifelse(common, ncol(obj$common_loading), 1)
+  rank_1 <- ifelse(distinct_1, ncol(obj$distinct_loading_1), 1)
+  rank_2 <- ifelse(distinct_2, ncol(obj$distinct_loading_2), 1)
+  
+  svd_list <- vector("list", 0)
+  len <- length(svd_list)
+  
+  tmp1 <- .svd_truncated(obj$common_mat_1, rank_12); c1 <- tmp1$d[1]
+  tmp2 <- .svd_truncated(obj$common_mat_2, rank_12); c2 <- tmp2$d[1]
+  tmp3 <- .svd_truncated(obj$distinct_mat_1, rank_1); d1 <- tmp3$d[1]
+  tmp4 <- .svd_truncated(obj$distinct_mat_2, rank_2); d2 <- tmp4$d[1]
+  
+  if(common){
+    tmp1$d <- tmp1$d/(c1 + d1); svd_list[[len+1]] <- tmp1; len <- len + 1
+    tmp2$d <- tmp2$d/(c2 + d2); svd_list[[len+1]] <- tmp2; len <- len + 1
+  }
+  if(distinct_1){ tmp3$d <- tmp3$d/(c1 + d1); svd_list[[len+1]] <- tmp3; len <- len + 1 }
+  if(distinct_2){ tmp4$d <- tmp4$d/(c2 + d2); svd_list[[len+1]] <- tmp4; len <- len + 1 }
+
+  tmp <- do.call(cbind, lapply(svd_list, function(res){
+    .mult_mat_vec(res$u, res$d)
+  }))
+  
+  Seurat::RunUMAP(tmp, verbose = F)@cell.embeddings
+}
+
 
 #################################
 
-.dcca_common_factors <- function(svd_1, svd_2, cca_res, check_alignment = T,
+.dcca_common_loading <- function(svd_1, svd_2, cca_res, check_alignment = T,
                                  verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
@@ -126,18 +159,18 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   
   # threshold x for numerical stability
   R_vec <- sapply(obj_vec, function(x){x <- min(1,max(x,0)); 1-sqrt((1-x)/(1+x))})
-  common_factors <- .mult_mat_vec((score_1+score_2)/2, R_vec)
-  stopifnot(all(dim(common_factors) == dim(score_1)))
+  common_loading <- .mult_mat_vec((score_1+score_2)/2, R_vec)
+  stopifnot(all(dim(common_loading) == dim(score_1)))
   
-  distinct_factor_1 <- score_1 - common_factors
-  distinct_factor_2 <- score_2 - common_factors
+  distinct_loading_1 <- score_1 - common_loading
+  distinct_loading_2 <- score_2 - common_loading
   
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
-  list(common_factors = common_factors, 
-       distinct_factor_1 = distinct_factor_1,
-       distinct_factor_2 = distinct_factor_2,
-       svd_1 = svd_1, svd_2 = svd_2,
-       score_1 = score_1, score_2 = score_2, cca_obj = obj_vec)
+  list(common_loading = common_loading, 
+       distinct_loading_1 = distinct_loading_1,
+       distinct_loading_2 = distinct_loading_2,
+       score_1 = score_1, score_2 = score_2, 
+       svd_1 = svd_1, svd_2 = svd_2, cca_obj = obj_vec)
 }
 
 ##############################################
