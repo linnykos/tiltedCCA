@@ -98,8 +98,9 @@ test_that(".reparameterize yields diagonal covariances", {
   
   bool_vec <- sapply(1:trials, function(x){
     set.seed(x)
-    mat_1 <- matrix(rnorm(200), 20, 5)
-    mat_2 <- matrix(rnorm(200), 20, 5)
+    n <- 20; p <- 5
+    mat_1 <- matrix(rnorm(n*p), n, p)
+    mat_2 <- matrix(rnorm(n*p), n, p)
     
     res <- .reparameterize(mat_1, mat_2)
     
@@ -108,8 +109,10 @@ test_that(".reparameterize yields diagonal covariances", {
     
     bool1 <- abs(sum(abs(cov_1)) - sum(abs(diag(cov_1)))) <= 1e-6
     bool2 <- abs(sum(abs(cov_2)) - sum(abs(diag(cov_2)))) <= 1e-6
+    bool3 <- all(abs(diag(cov_1) - n) <= 1e-6)
+    bool4 <- all(abs(diag(cov_2) - n) <= 1e-6)
     
-    bool1 & bool2
+    bool1 & bool2 & bool3 & bool4
   })
   
   expect_true(all(bool_vec))
@@ -161,3 +164,100 @@ test_that(".reparameterize preserves the column space (2nd test)", {
   
   expect_true(all(bool_vec))
 })
+
+test_that(".reparameterize can preserve the spectrum", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    n <- 20; p <- 5
+    mat_1 <- matrix(rnorm(n*p), n, p)
+    mat_2 <- matrix(rnorm(n*p), n, p)
+    
+    res <- .reparameterize(mat_1, mat_2, preserve_spectrum = T)
+    
+    d_1 <- svd(crossprod(mat_1))$d
+    d_2 <- svd(crossprod(mat_2))$d
+    d_1b <- svd(crossprod(res$mat_1))$d
+    d_2b <- svd(crossprod(res$mat_2))$d
+    
+    bool1 <- all(abs(d_1 - d_1b) <= 1e-6)
+    bool2 <- all(abs(d_2 - d_2b) <= 1e-6)
+    
+    bool1 & bool2
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+############################
+
+## .projection is correct
+
+test_that(".projection works", {
+  set.seed(10)
+  vec1 <- rnorm(10); vec2 <- rnorm(10)
+  res <- .projection(vec1, vec2)
+  
+  expect_true(is.numeric(res))
+  expect_true(!is.matrix(res))
+  expect_true(length(res) == 10)
+})
+
+test_that(".projection preserves orthogonal vectors", {
+  set.seed(1)
+  vec1 <- rnorm(10); vec2 <- rnorm(10)
+  res <- .projection(vec1, vec2)
+  res2 <- .projection(res, vec2)
+  
+  expect_true(sum(abs(res - res2)) < 1e-6)
+})
+
+test_that(".projection removes parallel vectors", {
+  set.seed(1)
+  vec1 <- rnorm(10); vec2 <- 2*vec1
+  res <- .projection(vec1, vec2)
+  
+  expect_true(sum(abs(res)) < 1e-6)
+})
+
+test_that(".projection reduces the norm", {
+  set.seed(1)
+  vec1 <- rnorm(10); vec2 <- rnorm(10)
+  res <- .projection(vec1, vec2)
+  
+  expect_true(.l2norm(vec1) >= .l2norm(res))
+})
+
+
+################################
+
+## .orthogonal_vector is correct
+test_that(".orthogonal_vector reduces the norm", {
+  set.seed(10)
+  mat <- matrix(rnorm(30), nrow = 10, ncol = 3)
+  vec <- rnorm(10)
+  res <- .orthogonal_vector(vec, mat)
+  
+  expect_true(.l2norm(vec) >= .l2norm(res))
+})
+
+test_that(".orthogonal_vector preserves orthogonal vectors", {
+  set.seed(10)
+  mat <- matrix(rnorm(30), nrow = 10, ncol = 3)
+  vec <- rnorm(10)
+  res <- .orthogonal_vector(vec, mat)
+  res2 <- .orthogonal_vector(res, mat)
+  
+  expect_true(sum(abs(res - res2)) < 1e-6)
+})
+
+test_that(".orthogonal_vector removes parallel vectors", {
+  set.seed(10)
+  mat <- matrix(rnorm(30), nrow = 10, ncol = 3)
+  vec <- 2*mat[,1]
+  res <- .orthogonal_vector(vec, mat)
+  
+  expect_true(sum(abs(res)) < 1e-6)
+})
+

@@ -268,9 +268,9 @@ test_that(".compute_unnormalized_scores computes the correct scores", {
 
 ###################################
 
-## .dcca_common_loading is correct
+## .dcca_common_score is correct
 
-test_that(".dcca_common_loading works", {
+test_that(".dcca_common_score works", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -291,17 +291,17 @@ test_that(".dcca_common_loading works", {
   
   cca_res <- .cca(svd_1, svd_2)
   
-  res <- .dcca_common_loading(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_loading", "svd_1", "svd_2", 
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
                                              "score_1", "score_2", 
-                                             "cca_obj", "distinct_loading_1", 
-                                             "distinct_loading_2"))))
-  expect_true(all(dim(res$common_loading) == c(n, K)))
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2"))))
+  expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
-test_that(".dcca_common_loading yields uncorrelated residuals", {
+test_that(".dcca_common_score yields uncorrelated residuals", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -325,9 +325,9 @@ test_that(".dcca_common_loading yields uncorrelated residuals", {
     
     cca_res <- .cca(svd_1, svd_2)
     
-    res <- .dcca_common_loading(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
+    res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
     
-    prod_mat <- t(res$distinct_loading_1) %*% res$distinct_loading_2
+    prod_mat <- t(res$distinct_score_1) %*% res$distinct_score_2
     
     sum(abs(prod_mat)) <= 1e-6
   })
@@ -335,7 +335,7 @@ test_that(".dcca_common_loading yields uncorrelated residuals", {
   expect_true(all(bool_vec))
 })
 
-test_that(".dcca_common_loading yields uncorrelated residuals with meta-cells", {
+test_that(".dcca_common_score yields uncorrelated residuals with meta-cells", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -372,9 +372,9 @@ test_that(".dcca_common_loading yields uncorrelated residuals with meta-cells", 
     
     cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = K, rank_2 = K)
     
-    res <- .dcca_common_loading(svd_1, svd_2, cca_res, check_alignment = T, verbose = F)
+    res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = T, verbose = F)
     
-    prod_mat <- t(res$distinct_loading_1) %*% res$distinct_loading_2
+    prod_mat <- t(res$distinct_score_1) %*% res$distinct_score_2
     
     sum(abs(prod_mat)) <= 1e-6
   })
@@ -402,11 +402,11 @@ test_that("dcca_factor works", {
   
   expect_true(is.list(res))
   expect_true(class(res) == "dcca")
-  expect_true(all(sort(names(res)) == sort(c("common_loading", "svd_1", "svd_2",
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2",
                                              "score_1", "score_2", 
-                                             "cca_obj", "distinct_loading_1", 
-                                             "distinct_loading_2"))))
-  expect_true(all(dim(res$common_loading) == c(n, K)))
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2"))))
+  expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
 test_that("dcca_factor does not require rank_1 = rank_2", {
@@ -447,11 +447,11 @@ test_that("dcca_factor works with meta-cells", {
   
   expect_true(is.list(res))
   expect_true(class(res) == "dcca")
-  expect_true(all(sort(names(res)) == sort(c("common_loading", "svd_1", "svd_2", 
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
                                              "score_1", "score_2", 
-                                             "cca_obj", "distinct_loading_1", 
-                                             "distinct_loading_2"))))
-  expect_true(all(dim(res$common_loading) == c(n, K)))
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2"))))
+  expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
 ####################################
@@ -471,15 +471,15 @@ test_that("dcca_decomposition works", {
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
   dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
-  res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+  res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_loading", "cca_obj", 
-                                             "distinct_loading_1", 
-                                             "distinct_loading_2",
+  expect_true(all(sort(names(res)) == sort(c("common_score", "cca_obj", 
+                                             "distinct_score_1", 
+                                             "distinct_score_2",
                                              "common_mat_1", "common_mat_2",
                                              "distinct_mat_1", "distinct_mat_2"))))
-  expect_true(all(dim(res$common_loading) == c(n, K)))
+  expect_true(all(dim(res$common_score) == c(n, K)))
   
 })
 
@@ -499,7 +499,7 @@ test_that("dcca_decomposition yields uncorrelated distinct matrices", {
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     tmp <- crossprod(res$distinct_mat_1, res$distinct_mat_2)
     
@@ -528,7 +528,7 @@ test_that("dcca_decomposition yields uncorrelated distinct matrices with meta-ce
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
                             verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     tmp <- crossprod(res$distinct_mat_1, res$distinct_mat_2)
     
@@ -554,7 +554,7 @@ test_that("dcca_decomposition yields a low-rank matrix", {
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     bool1 <- Matrix::rankMatrix(res$common_mat_1) == K
     bool2 <- Matrix::rankMatrix(res$common_mat_2) == K
@@ -588,7 +588,7 @@ test_that("dcca_decomposition yields a low-rank matrix with meta-cells", {
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
                             verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     bool1 <- Matrix::rankMatrix(res$common_mat_1) == K
     bool2 <- Matrix::rankMatrix(res$common_mat_2) == K
@@ -619,7 +619,7 @@ test_that("dcca_decomposition yields common matrices with the same column space"
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     svd_1 <- svd(res$common_mat_1)$u[,1:K]
     svd_2 <- svd(res$common_mat_2)$u[,1:K]
@@ -649,7 +649,7 @@ test_that("dcca_decomposition yields common matrices with the same column space 
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
                             verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     svd_1 <- svd(res$common_mat_1)$u[,1:K]
     svd_2 <- svd(res$common_mat_2)$u[,1:K]
@@ -676,12 +676,12 @@ test_that("dcca_decomposition is a decomposition under no noise", {
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, 
                             apply_shrinkage = F, verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     # correct common_space
     proj_1 <- common_space %*% solve(crossprod(common_space)) %*% t(common_space)
-    Ktmp <- Matrix::rankMatrix(res$common_loading)
-    proj_2 <- res$common_loading[,1:Ktmp] %*% solve(crossprod(res$common_loading[,1:Ktmp])) %*% t(res$common_loading[,1:Ktmp])
+    Ktmp <- Matrix::rankMatrix(res$common_score)
+    proj_2 <- res$common_score[,1:Ktmp] %*% solve(crossprod(res$common_score[,1:Ktmp])) %*% t(res$common_score[,1:Ktmp])
     bool1 <- sum(abs(proj_1 - proj_2)) <= 1e-6
     
     # no distinctive componet
@@ -716,12 +716,12 @@ test_that("dcca_decomposition is a decomposition under no noise with meta-cells"
     
     dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
                             apply_shrinkage = F, verbose = F)
-    res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     # correct common_space
     proj_1 <- common_space %*% solve(crossprod(common_space)) %*% t(common_space)
-    Ktmp <- Matrix::rankMatrix(res$common_loading)
-    proj_2 <- res$common_loading[,1:Ktmp] %*% solve(crossprod(res$common_loading[,1:Ktmp])) %*% t(res$common_loading[,1:Ktmp])
+    Ktmp <- Matrix::rankMatrix(res$common_score)
+    proj_2 <- res$common_score[,1:Ktmp] %*% solve(crossprod(res$common_score[,1:Ktmp])) %*% t(res$common_score[,1:Ktmp])
     bool1 <- sum(abs(proj_1 - proj_2)) <= 1e-6
     
     # no distinctive componet
@@ -738,42 +738,42 @@ test_that("dcca_decomposition is a decomposition under no noise with meta-cells"
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition can obtain the same result when fed into itself (i.e., stability/identifiability)", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                    0.4, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3)
-  K <- ncol(B_mat)
-  membership_vec <- c(rep(1, 2*n_clust), rep(2, 2*n_clust), rep(3, n_clust))
-  n <- length(membership_vec)
-  rho <- 0.25
-  common_loading <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  distinct_loading_1 <- generate_random_orthogonal(n, K)
-  distinct_loading_2 <- generate_random_orthogonal(n, K)
-  
-  distinct_loading_1 <- equalize_norm(distinct_loading_1, common_loading)/4
-  distinct_loading_2 <- equalize_norm(distinct_loading_2, common_loading)/4
-  
-  p_1 <- 20; p_2 <- 40
-  coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-  coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
-  
-  dat <- generate_data(common_loading, distinct_loading_1, distinct_loading_2,
-                       coef_mat_1, coef_mat_2)
-  
-  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K, 
-                          apply_shrinkage = F, verbose = F)
-  res <- dcca_decomposition(dcca_res, rank_12 = K, verbose = F)
-  
-  dcca_res2 <- dcca_factor(res$common_mat_1 + res$distinct_mat_1, 
-                           res$common_mat_2 + res$distinct_mat_2, 
-                           rank_1 = K, rank_2 = K, apply_shrinkage = F, verbose = F)
-  res2 <- dcca_decomposition(dcca_res2, rank_12 = K, verbose = F)
-  
-  expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)
-  expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
-  expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
-  expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
-})
+# test_that("dcca_decomposition can obtain the same result when fed into itself (i.e., stability/identifiability)", {
+#   set.seed(10)
+#   n_clust <- 100
+#   B_mat <- matrix(c(0.9, 0.4, 0.1, 
+#                     0.4, 0.9, 0.1,
+#                     0.1, 0.1, 0.5), 3, 3)
+#   K <- ncol(B_mat)
+#   membership_vec <- c(rep(1, 2*n_clust), rep(2, 2*n_clust), rep(3, n_clust))
+#   n <- length(membership_vec)
+#   rho <- 0.25
+#   common_score <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+#   distinct_score_1 <- generate_random_orthogonal(n, K)
+#   distinct_score_2 <- generate_random_orthogonal(n, K)
+#   
+#   distinct_score_1 <- equalize_norm(distinct_score_1, common_score)/4
+#   distinct_score_2 <- equalize_norm(distinct_score_2, common_score)/4
+#   
+#   p_1 <- 20; p_2 <- 40
+#   coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
+#   coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+#   
+#   dat <- generate_data(common_score, distinct_score_1, distinct_score_2,
+#                        coef_mat_1, coef_mat_2)
+#   
+#   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K, 
+#                           apply_shrinkage = F, verbose = F)
+#   res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+#   
+#   dcca_res2 <- dcca_factor(res$common_mat_1 + res$distinct_mat_1, 
+#                            res$common_mat_2 + res$distinct_mat_2, 
+#                            rank_1 = K, rank_2 = K, apply_shrinkage = F, verbose = F)
+#   res2 <- dcca_decomposition(dcca_res2, rank_c = K, verbose = F)
+#   
+#   expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)
+#   expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
+#   expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
+#   expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
+# })
 

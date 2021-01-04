@@ -59,7 +59,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     cca_res <- .cca(svd_1, svd_2)
   }
   
-  res <- .dcca_common_loading(svd_1, svd_2, cca_res, 
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               check_alignment = all(!is.na(meta_clustering)),
                               verbose = verbose, msg = msg)
 
@@ -70,12 +70,12 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
 #' D-CCA Decomposition
 #'
 #' @param dcca_res output from \code{dcca_factor}
-#' @param rank_12 desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
+#' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
 #' @param verbose boolean
 #'
 #' @return list
 #' @export
-dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
+dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
   n <- nrow(dcca_res$svd_1$u)
   full_rank <- length(dcca_res$cca_obj)
@@ -85,20 +85,20 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
   mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
   
   if(verbose) print("D-CCA: Computing common matrices")
-  coef_mat_1 <- crossprod(dcca_res$score_1[,1:rank_12, drop = F], mat_1)/n
-  coef_mat_2 <- crossprod(dcca_res$score_2[,1:rank_12, drop = F], mat_2)/n
+  coef_mat_1 <- crossprod(dcca_res$score_1[,1:rank_c, drop = F], mat_1)/n
+  coef_mat_2 <- crossprod(dcca_res$score_2[,1:rank_c, drop = F], mat_2)/n
   
-  common_mat_1 <- dcca_res$common_loading[,1:rank_12, drop = F] %*% coef_mat_1[1:rank_12,,drop = F]
-  common_mat_2 <- dcca_res$common_loading[,1:rank_12, drop = F] %*% coef_mat_2[1:rank_12,,drop = F]
+  common_mat_1 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
+  common_mat_2 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
    
   if(verbose) print("D-CCA: Computing distinctive matrices")
-  distinct_mat_1 <- dcca_res$distinct_loading_1 %*% coef_mat_1
-  distinct_mat_2 <- dcca_res$distinct_loading_2 %*% coef_mat_2
+  distinct_mat_1 <- dcca_res$distinct_score_1 %*% coef_mat_1
+  distinct_mat_2 <- dcca_res$distinct_score_2 %*% coef_mat_2
   
   if(verbose) print("D-CCA: Done")
-  structure(list(common_loading = dcca_res$common_loading[,1:rank_12, drop = F],
-       distinct_loading_1 = dcca_res$distinct_loading_1,
-       distinct_loading_2 = dcca_res$distinct_loading_2,
+  structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],
+       distinct_score_1 = dcca_res$distinct_score_1,
+       distinct_score_2 = dcca_res$distinct_score_2,
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
        cca_obj = dcca_res$cca_obj), class = "dcca_decomp")
@@ -107,15 +107,15 @@ dcca_decomposition <- function(dcca_res, rank_12, verbose = T){
 extract_embedding <- function(obj, common = T, distinct_1 = T,
                               distinct_2 = T){
   stopifnot(class(obj) == "dcca_decomp")
-  rank_12 <- ifelse(common, ncol(obj$common_loading), 1)
-  rank_1 <- ifelse(distinct_1, ncol(obj$distinct_loading_1), 1)
-  rank_2 <- ifelse(distinct_2, ncol(obj$distinct_loading_2), 1)
+  rank_c <- ifelse(common, ncol(obj$common_score), 1)
+  rank_1 <- ifelse(distinct_1, ncol(obj$distinct_score_1), 1)
+  rank_2 <- ifelse(distinct_2, ncol(obj$distinct_score_2), 1)
   
   svd_list <- vector("list", 0)
   len <- length(svd_list)
   
-  tmp1 <- .svd_truncated(obj$common_mat_1, rank_12); c1 <- tmp1$d[1]
-  tmp2 <- .svd_truncated(obj$common_mat_2, rank_12); c2 <- tmp2$d[1]
+  tmp1 <- .svd_truncated(obj$common_mat_1, rank_c); c1 <- tmp1$d[1]
+  tmp2 <- .svd_truncated(obj$common_mat_2, rank_c); c2 <- tmp2$d[1]
   tmp3 <- .svd_truncated(obj$distinct_mat_1, rank_1); d1 <- tmp3$d[1]
   tmp4 <- .svd_truncated(obj$distinct_mat_2, rank_2); d2 <- tmp4$d[1]
   
@@ -136,7 +136,7 @@ extract_embedding <- function(obj, common = T, distinct_1 = T,
 
 #################################
 
-.dcca_common_loading <- function(svd_1, svd_2, cca_res, check_alignment = T,
+.dcca_common_score <- function(svd_1, svd_2, cca_res, check_alignment = T,
                                  verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
@@ -158,19 +158,34 @@ extract_embedding <- function(obj, common = T, distinct_1 = T,
   }
   
   # threshold x for numerical stability
-  R_vec <- sapply(obj_vec, function(x){x <- min(1,max(x,0)); 1-sqrt((1-x)/(1+x))})
-  common_loading <- .mult_mat_vec((score_1+score_2)/2, R_vec)
-  stopifnot(all(dim(common_loading) == dim(score_1)))
+  common_score <- .compute_common_score(score_1, score_2, obj_vec = obj_vec)
+  stopifnot(all(dim(common_score) == dim(score_1)))
   
-  distinct_loading_1 <- score_1 - common_loading
-  distinct_loading_2 <- score_2 - common_loading
+  distinct_score_1 <- score_1 - common_score
+  distinct_score_2 <- score_2 - common_score
   
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
-  list(common_loading = common_loading, 
-       distinct_loading_1 = distinct_loading_1,
-       distinct_loading_2 = distinct_loading_2,
+  list(common_score = common_score, 
+       distinct_score_1 = distinct_score_1,
+       distinct_score_2 = distinct_score_2,
        score_1 = score_1, score_2 = score_2, 
        svd_1 = svd_1, svd_2 = svd_2, cca_obj = obj_vec)
+}
+
+# score is a matrix with n rows. loadings is a mat with p rows
+.compute_common_score <- function(score_1, score_2, obj_vec = NA){
+  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) >= ncol(score_1),
+            nrow(score_2) >= ncol(score_2))
+  
+  n <- nrow(score_1)
+  if(all(is.na(obj_vec))){
+    obj_vec <- diag(crossprod(score_1, score_2))/n
+  }
+  
+  R_vec <- sapply(obj_vec, function(x){x <- min(1,max(x,0)); 1-sqrt((1-x)/(1+x))})
+  common_score <- .mult_mat_vec((score_1+score_2)/2, R_vec)
+  
+  common_score
 }
 
 ##############################################
