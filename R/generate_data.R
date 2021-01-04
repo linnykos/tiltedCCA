@@ -1,3 +1,4 @@
+# WARNING: currently requires the latent dimension to be same, ie: ncol(score_1) == ncol(score_2)
 #' Generate data
 #'
 #' @param score_1 \code{n} by \code{rank_1} orthogonal matrix
@@ -11,12 +12,12 @@
 generate_data <- function(score_1, score_2,
                           coef_mat_1, coef_mat_2, 
                           noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
-  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) <= ncol(score_1),
-            nrow(score_2) <= ncol(score_2))
+  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
+            nrow(score_2) > ncol(score_2))
   
-  tmp <- .reparameterize(score_1, score_2, preserve_spectrum = T)
+  tmp <- .reparameterize(score_1, score_2)
   score_1 <- tmp$mat_1; score_2 <- tmp$mat_2
-  common_score <- .compute_common_score(score_1, score_2, obj_vec = NA)
+  common_score <- .compute_common_score(score_1, score_2, obj_vec = tmp$diag_vec)
   distinct_score_1 <- score_1 - common_score; distinct_score_2 <- score_2 - common_score
   
   tmp1 <- crossprod(common_score); tmp2 <- crossprod(distinct_score_1); tmp3 <- crossprod(distinct_score_2)

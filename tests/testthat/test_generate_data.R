@@ -1,58 +1,33 @@
 context("Test generate data")
 
-# test_that("generate_data works", {
-#   set.seed(10)
-#   n <- 100; rank_12 <- 2; rank_1 <- 2; rank_2 <- 2; p_1 <- 20; p_2 <- 40
-#   common_loading <- matrix(0, n, rank_12)
-#   diag(common_loading) <- 1
-#   distinct_loading_1 <- matrix(0, n, rank_1)
-#   for(i in 1:2){
-#     distinct_loading_1[i+2,i] <- 1
-#   }
-#   distinct_loading_2 <- matrix(0, n, rank_2)
-#   for(i in 1:2){
-#     distinct_loading_2[i+4,i] <- 1
-#   }
-#   coef_mat_1 <- matrix(runif(rank_1*p_1), rank_1, p_1)
-#   coef_mat_2 <- matrix(runif(rank_2*p_2), rank_2, p_2)
-#   noise_func <- function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}
-#   
-#   res <- generate_data(common_loading, distinct_loading_1, distinct_loading_2,
-#                        coef_mat_1, coef_mat_2, noise_func = noise_func)
-#   
-#   expect_true(is.list(res))
-#   expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2"))))
-#   expect_true(all(sapply(res, is.matrix)))
-#   expect_true(all(dim(res$mat_1) == c(n, p_1)))
-#   expect_true(all(dim(res$mat_2) == c(n, p_2)))
-# })
-# 
-# test_that("generate_data can handle different ranks", {
-#   set.seed(10)
-#   n <- 100; rank_12 <- 2; rank_1 <- 4; rank_2 <- 5; p_1 <- 20; p_2 <- 40
-#   common_loading <- matrix(0, n, rank_12)
-#   diag(common_loading) <- 1
-#   distinct_loading_1 <- matrix(0, n, rank_1)
-#   for(i in 1:rank_1){
-#     distinct_loading_1[i+rank_12,i] <- 1
-#   }
-#   distinct_loading_2 <- matrix(0, n, rank_2)
-#   for(i in 1:rank_2){
-#     distinct_loading_2[i+rank_12+rank_1,i] <- 1
-#   }
-#   coef_mat_1 <- matrix(runif(rank_1*p_1), rank_1, p_1)
-#   coef_mat_2 <- matrix(runif(rank_2*p_2), rank_2, p_2)
-#   noise_func <- function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}
-#   
-#   res <- generate_data(common_loading, distinct_loading_1, distinct_loading_2,
-#                        coef_mat_1, coef_mat_2, noise_func = noise_func)
-#   
-#   expect_true(is.list(res))
-#   expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2"))))
-#   expect_true(all(sapply(res, is.matrix)))
-#   expect_true(all(dim(res$mat_1) == c(n, p_1)))
-#   expect_true(all(dim(res$mat_2) == c(n, p_2)))
-# })
+test_that("generate_data works", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  set.seed(10)
+  p_1 <- 20; p_2 <- 40
+  coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
+  coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+  
+  set.seed(10)
+  res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
+
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2", "common_score", 
+                                             "distinct_score_1", "distinct_score_2",
+                                             "rank_c"))))
+  expect_true(all(dim(res$mat_1) == c(n, p_1)))
+  expect_true(all(dim(res$mat_2) == c(n, p_2)))
+})
 
 #################
 

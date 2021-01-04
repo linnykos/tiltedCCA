@@ -165,31 +165,6 @@ test_that(".reparameterize preserves the column space (2nd test)", {
   expect_true(all(bool_vec))
 })
 
-test_that(".reparameterize can preserve the spectrum", {
-  trials <- 50
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    n <- 20; p <- 5
-    mat_1 <- matrix(rnorm(n*p), n, p)
-    mat_2 <- matrix(rnorm(n*p), n, p)
-    
-    res <- .reparameterize(mat_1, mat_2, preserve_spectrum = T)
-    
-    d_1 <- svd(crossprod(mat_1))$d
-    d_2 <- svd(crossprod(mat_2))$d
-    d_1b <- svd(crossprod(res$mat_1))$d
-    d_2b <- svd(crossprod(res$mat_2))$d
-    
-    bool1 <- all(abs(d_1 - d_1b) <= 1e-6)
-    bool2 <- all(abs(d_2 - d_2b) <= 1e-6)
-    
-    bool1 & bool2
-  })
-  
-  expect_true(all(bool_vec))
-})
-
 ############################
 
 ## .projection is correct

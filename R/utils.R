@@ -35,21 +35,13 @@
 # and t(mat_1)%*%mat_1 and t(mat_2)%*%mat_2 are the identity
 # this essentially runs CCA
 # we should move/integrate this into a more appropriate function later
-.reparameterize <- function(mat_1, mat_2, preserve_spectrum = F, tol = 1e-6){
+.reparameterize <- function(mat_1, mat_2){
   stopifnot(all(dim(mat_1) == dim(mat_2)), Matrix::rankMatrix(mat_1) == ncol(mat_1),
             Matrix::rankMatrix(mat_2) == ncol(mat_2))
   n <- nrow(mat_1); p <- nrow(mat_2)
   
   res <- .cca(mat_1, mat_2, rank_1 = ncol(mat_1), rank_2 = ncol(mat_2))
   mat_1b <- mat_1 %*% res$loading_1; mat_2b <- mat_2 %*% res$loading_2
-  
-  if(preserve_spectrum){
-    d_1 <- svd(mat_1)$d; d_2 <- svd(mat_2)$d
-    svd_1 <- svd(mat_1b); svd_2 <- svd(mat_2b)
-    svd_1$d <- d_1; svd_2$d <- d_2
-    mat_1b <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
-    mat_2b <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v)
-  }
   
   list(mat_1 = mat_1b, mat_2 = mat_2b, diag_vec = res$obj_vec)
 }

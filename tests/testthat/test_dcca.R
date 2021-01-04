@@ -738,42 +738,39 @@ test_that("dcca_decomposition is a decomposition under no noise with meta-cells"
   expect_true(all(bool_vec))
 })
 
-# test_that("dcca_decomposition can obtain the same result when fed into itself (i.e., stability/identifiability)", {
-#   set.seed(10)
-#   n_clust <- 100
-#   B_mat <- matrix(c(0.9, 0.4, 0.1, 
-#                     0.4, 0.9, 0.1,
-#                     0.1, 0.1, 0.5), 3, 3)
-#   K <- ncol(B_mat)
-#   membership_vec <- c(rep(1, 2*n_clust), rep(2, 2*n_clust), rep(3, n_clust))
-#   n <- length(membership_vec)
-#   rho <- 0.25
-#   common_score <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-#   distinct_score_1 <- generate_random_orthogonal(n, K)
-#   distinct_score_2 <- generate_random_orthogonal(n, K)
-#   
-#   distinct_score_1 <- equalize_norm(distinct_score_1, common_score)/4
-#   distinct_score_2 <- equalize_norm(distinct_score_2, common_score)/4
-#   
-#   p_1 <- 20; p_2 <- 40
-#   coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-#   coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
-#   
-#   dat <- generate_data(common_score, distinct_score_1, distinct_score_2,
-#                        coef_mat_1, coef_mat_2)
-#   
-#   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K, 
-#                           apply_shrinkage = F, verbose = F)
-#   res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-#   
-#   dcca_res2 <- dcca_factor(res$common_mat_1 + res$distinct_mat_1, 
-#                            res$common_mat_2 + res$distinct_mat_2, 
-#                            rank_1 = K, rank_2 = K, apply_shrinkage = F, verbose = F)
-#   res2 <- dcca_decomposition(dcca_res2, rank_c = K, verbose = F)
-#   
-#   expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)
-#   expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
-#   expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
-#   expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
-# })
+test_that("dcca_decomposition can obtain the same result when fed into itself (i.e., stability/identifiability)", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  set.seed(10)
+  p_1 <- 20; p_2 <- 40
+  coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
+  coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+  
+  set.seed(10)
+  dat <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
+
+  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
+                          apply_shrinkage = F, verbose = F)
+  res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+
+  dcca_res2 <- dcca_factor(res$common_mat_1 + res$distinct_mat_1,
+                           res$common_mat_2 + res$distinct_mat_2,
+                           rank_1 = K, rank_2 = K, apply_shrinkage = F, verbose = F)
+  res2 <- dcca_decomposition(dcca_res2, rank_c = K, verbose = F)
+
+  expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)
+  expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
+  expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
+  expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
+})
 
