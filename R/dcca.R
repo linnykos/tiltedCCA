@@ -6,10 +6,11 @@
 #' @param mat_2 data matrix 2
 #' @param rank_1 desired rank of data matrix 1
 #' @param rank_2 desired rank of data matrix 1
+#' @param meta_clustering optional clustering
 #' @param apply_shrinkage boolean 
 #' @param verbose boolean
 #'
-#' @return list
+#' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                         apply_shrinkage = T, verbose = T){
@@ -63,6 +64,18 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                               check_alignment = all(!is.na(meta_clustering)),
                               verbose = verbose, msg = msg)
 
+  if(length(rownames(mat_1)) != 0){
+    rownames(distinct_score_1) <- rownames(mat_1)
+    rownames(distinct_score_2) <- rownames(mat_1)
+    rownames(score_1) <- rownames(mat_1)
+    rownames(score_2) <- rownames(mat_1)
+    rownames(svd_1$u) <- rownames(mat_1)
+    rownames(svd_2$u) <- rownames(mat_1)
+  }
+  
+  if(length(colnames(mat_1)) != 0) rownames(svd_1$v) <- colnames(mat_1)
+  if(length(colnames(mat_2)) != 0) rownames(svd_2$v) <- colnames(mat_2)
+  
   class(res) <- "dcca"
   res
 }
@@ -73,7 +86,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
 #' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
 #' @param verbose boolean
 #'
-#' @return list
+#' @return list of class \code{dcca_decomp}
 #' @export
 dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
@@ -95,6 +108,23 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   distinct_mat_1 <- dcca_res$distinct_score_1 %*% coef_mat_1
   distinct_mat_2 <- dcca_res$distinct_score_2 %*% coef_mat_2
   
+  if(length(rownames(dcca_res$common_score)) != 0){
+    rownames(common_mat_1) <- rownames(dcca_res$common_score)
+    rownames(common_mat_2) <- rownames(dcca_res$common_score)
+    rownames(distinct_mat_1) <- rownames(dcca_res$common_score)
+    rownames(distinct_mat_2) <- rownames(dcca_res$common_score)
+  }
+  
+  if(length(rownames(dcca_res$svd_1$v)) != 0){
+    colnames(common_mat_1) <- rownames(dcca_res$svd_1$v)
+    colnames(distinct_mat_1) <- rownames(dcca_res$svd_1$v)
+  }
+  
+  if(length(rownames(dcca_res$svd_2$v)) != 0){
+    colnames(common_mat_2) <- rownames(dcca_res$svd_2$v)
+    colnames(distinct_mat_2) <- rownames(dcca_res$svd_2$v)
+  }
+  
   if(verbose) print("D-CCA: Done")
   structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],
        distinct_score_1 = dcca_res$distinct_score_1,
@@ -104,8 +134,18 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
        cca_obj = dcca_res$cca_obj), class = "dcca_decomp")
 }
 
+#' Extract UMAP embedding
+#'
+#' @param obj return object from \code{dcca_decomposition}
+#' @param common boolean
+#' @param distinct_1 boolean
+#' @param distinct_2 boolean
+#' @param only_embedding boolean
+#'
+#' @return 2-column matrix
+#' @export
 extract_embedding <- function(obj, common = T, distinct_1 = T,
-                              distinct_2 = T){
+                              distinct_2 = T, only_embedding = T){
   stopifnot(class(obj) == "dcca_decomp")
   rank_c <- ifelse(common, ncol(obj$common_score), 1)
   rank_1 <- ifelse(distinct_1, ncol(obj$distinct_score_1), 1)
@@ -130,7 +170,15 @@ extract_embedding <- function(obj, common = T, distinct_1 = T,
     .mult_mat_vec(res$u, res$d)
   }))
   
-  Seurat::RunUMAP(tmp, verbose = F)@cell.embeddings
+  if(length(rownames(obj$common_mat_1)) != 0){
+    rownames(tmp) <- rownames(obj$common_mat_1)
+  }
+  
+  if(only_embedding){
+    Seurat::RunUMAP(tmp, verbose = F)@cell.embeddings
+  } else {
+    Seurat::RunUMAP(tmp, reduction.key = "tmp", verbose = F)
+  }
 }
 
 

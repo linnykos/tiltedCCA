@@ -4,17 +4,17 @@
 \alias{dcca_decomposition}
 \title{D-CCA Decomposition}
 \usage{
-dcca_decomposition(dcca_res, rank_12, verbose = T)
+dcca_decomposition(dcca_res, rank_c, verbose = T)
 }
 \arguments{
 \item{dcca_res}{output from \code{dcca_factor}}
 
-\item{rank_12}{desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}}
+\item{rank_c}{desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}}
 
 \item{verbose}{boolean}
 }
 \value{
-list
+list of class \code{dcca_decomp}
 }
 \description{
 D-CCA Decomposition

@@ -4,7 +4,15 @@
 \alias{dcca_factor}
 \title{D-CCA Factorization}
 \usage{
-dcca_factor(mat_1, mat_2, rank_1, rank_2, enforce_rank = T, verbose = T)
+dcca_factor(
+  mat_1,
+  mat_2,
+  rank_1,
+  rank_2,
+  meta_clustering = NA,
+  apply_shrinkage = T,
+  verbose = T
+)
 }
 \arguments{
 \item{mat_1}{data matrix 1}
@@ -15,12 +23,14 @@ dcca_factor(mat_1, mat_2, rank_1, rank_2, enforce_rank = T, verbose = T)
 
 \item{rank_2}{desired rank of data matrix 1}
 
-\item{enforce_rank}{boolean}
+\item{meta_clustering}{optional clustering}
+
+\item{apply_shrinkage}{boolean}
 
 \item{verbose}{boolean}
 }
 \value{
-list
+list of class \code{dcca}
 }
 \description{
 D-CCA Factorization
