@@ -6,22 +6,26 @@
 \usage{
 extract_embedding(
   obj,
-  common = T,
+  common_1 = T,
+  common_2 = T,
   distinct_1 = T,
   distinct_2 = T,
-  only_embedding = T
+  only_embedding = T,
+  reduction_key = "tmp"
 )
 }
 \arguments{
 \item{obj}{return object from \code{dcca_decomposition}}
-
-\item{common}{boolean}
 
 \item{distinct_1}{boolean}
 
 \item{distinct_2}{boolean}
 
 \item{only_embedding}{boolean}
+
+\item{reduction_key}{string for \code{Seurat::RunUMAP}}
+
+\item{common}{boolean}
 }
 \value{
 2-column matrix

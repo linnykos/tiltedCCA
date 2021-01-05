@@ -141,11 +141,13 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
 #' @param only_embedding boolean
+#' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
 #' @return 2-column matrix
 #' @export
-extract_embedding <- function(obj, common = T, distinct_1 = T,
-                              distinct_2 = T, only_embedding = T){
+extract_embedding <- function(obj, common_1 = T, common_2 = T,
+                              distinct_1 = T, distinct_2 = T, 
+                              only_embedding = T, reduction_key = "tmp"){
   stopifnot(class(obj) == "dcca_decomp")
   rank_c <- ifelse(common, ncol(obj$common_score), 1)
   rank_1 <- ifelse(distinct_1, ncol(obj$distinct_score_1), 1)
@@ -159,10 +161,8 @@ extract_embedding <- function(obj, common = T, distinct_1 = T,
   tmp3 <- .svd_truncated(obj$distinct_mat_1, rank_1); d1 <- tmp3$d[1]
   tmp4 <- .svd_truncated(obj$distinct_mat_2, rank_2); d2 <- tmp4$d[1]
   
-  if(common){
-    tmp1$d <- tmp1$d/(c1 + d1); svd_list[[len+1]] <- tmp1; len <- len + 1
-    tmp2$d <- tmp2$d/(c2 + d2); svd_list[[len+1]] <- tmp2; len <- len + 1
-  }
+  if(common_1){ tmp1$d <- tmp1$d/(c1 + d1); svd_list[[len+1]] <- tmp1; len <- len + 1 }
+  if(common_2){ tmp2$d <- tmp2$d/(c2 + d2); svd_list[[len+1]] <- tmp2; len <- len + 1 }
   if(distinct_1){ tmp3$d <- tmp3$d/(c1 + d1); svd_list[[len+1]] <- tmp3; len <- len + 1 }
   if(distinct_2){ tmp4$d <- tmp4$d/(c2 + d2); svd_list[[len+1]] <- tmp4; len <- len + 1 }
 
@@ -177,7 +177,7 @@ extract_embedding <- function(obj, common = T, distinct_1 = T,
   if(only_embedding){
     Seurat::RunUMAP(tmp, verbose = F)@cell.embeddings
   } else {
-    Seurat::RunUMAP(tmp, reduction.key = "tmp", verbose = F)
+    Seurat::RunUMAP(tmp, reduction.key = reduction_key, verbose = F)
   }
 }
 
