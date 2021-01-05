@@ -65,16 +65,16 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                               verbose = verbose, msg = msg)
 
   if(length(rownames(mat_1)) != 0){
-    rownames(distinct_score_1) <- rownames(mat_1)
-    rownames(distinct_score_2) <- rownames(mat_1)
-    rownames(score_1) <- rownames(mat_1)
-    rownames(score_2) <- rownames(mat_1)
-    rownames(svd_1$u) <- rownames(mat_1)
-    rownames(svd_2$u) <- rownames(mat_1)
+    rownames(res$distinct_score_1) <- rownames(mat_1)
+    rownames(res$distinct_score_2) <- rownames(mat_1)
+    rownames(res$score_1) <- rownames(mat_1)
+    rownames(res$score_2) <- rownames(mat_1)
+    rownames(res$svd_1$u) <- rownames(mat_1)
+    rownames(res$svd_2$u) <- rownames(mat_1)
   }
   
-  if(length(colnames(mat_1)) != 0) rownames(svd_1$v) <- colnames(mat_1)
-  if(length(colnames(mat_2)) != 0) rownames(svd_2$v) <- colnames(mat_2)
+  if(length(colnames(mat_1)) != 0) rownames(res$svd_1$v) <- colnames(mat_1)
+  if(length(colnames(mat_2)) != 0) rownames(res$svd_2$v) <- colnames(mat_2)
   
   class(res) <- "dcca"
   res
