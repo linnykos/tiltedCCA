@@ -63,6 +63,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res,
                             check_alignment = all(!is.na(meta_clustering)),
+                            reorthogonalize = reorthogonalize,
                             verbose = verbose, msg = msg)
 
   class(res) <- "dcca"
@@ -182,8 +183,24 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   common_score <- .compute_common_score(score_1, score_2, obj_vec = obj_vec)
   stopifnot(all(dim(common_score) == c(nrow(score_1), full_rank)))
   
-  distinct_score_1 <- cbind(score_1[,1:full_rank, drop = F] - common_score, score_1[,-(1:full_rank), drop = F])
-  distinct_score_2 <- cbind(score_2[,1:full_rank, drop = F] - common_score, score_2[,-(1:full_rank), drop = F])
+  distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
+  distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
+  
+  if(reorthogonalize){
+    tmp <- solve(crossprod(common_score))
+    tmp2 <- tcrossprod(tmp, common_score)
+    
+    common_comp1 <- common_score %*% (tmp2 %*% distinct_score_1)
+    common_comp2 <- common_score %*% (tmp2 %*% distinct_score_2)
+    stopifnot(all(abs(common_comp1 - common_comp2) <= 1e-6))
+    
+    common_score <- common_score + common_comp1
+    distinct_score_1 <- distinct_score_1 - common_comp1
+    distinct_score_2 <- distinct_score_2 - common_comp1
+  }
+  
+  distinct_score_1 <- cbind(distinct_score_1, score_1[,-(1:full_rank), drop = F])
+  distinct_score_2 <- cbind(distinct_score_2, score_2[,-(1:full_rank), drop = F])
   
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
   list(common_score = common_score, 
@@ -285,9 +302,12 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
 
 .compute_cca_aggregate_matrix <- function(svd_1, svd_2, augment = T){
   res <- crossprod(svd_1$u, svd_2$u)
-  if(nrow(res) < ncol(res)) res <- rbind(res, matrix(0, ncol(res)-nrow(res), ncol(res)))
-  if(ncol(res) < nrow(res)) res <- cbind(res, matrix(0, nrow(res), nrow(res)-ncol(res)))
   
+  if(augment){
+    if(nrow(res) < ncol(res)) res <- rbind(res, matrix(0, ncol(res)-nrow(res), ncol(res)))
+    if(ncol(res) < nrow(res)) res <- cbind(res, matrix(0, nrow(res), nrow(res)-ncol(res)))
+  }
+
   res
 }
 

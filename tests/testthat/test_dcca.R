@@ -54,6 +54,55 @@ test_that(".compute_cca_aggregate_matrix works", {
   expect_true(all(dim(res) == c(length(svd_1$d), length(svd_2$d))))
 })
 
+test_that(".compute_cca_aggregate_matrix works when ranks are not the same", {
+  set.seed(10)
+  n <- 20; p1 <- 50; p2 <- 40
+  mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  
+  svd_1 <- .svd_truncated(mat_1, K = 2); svd_2 <- .svd_truncated(mat_2, K = 3)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  
+  res <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = F)
+  
+  expect_true(is.matrix(res))
+  expect_true(all(dim(res) == c(length(svd_1$d), length(svd_2$d))))
+})
+
+test_that(".compute_cca_aggregate_matrix preserves SVD values when augment = T", {
+  trials <- 100
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    n <- 20; p1 <- 50; p2 <- 40
+    mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+    mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+    
+    rank_1 <- sample(1:10,1); rank_2 <- sample(1:10,1); rank_full <- min(c(rank_1, rank_2))
+    svd_1 <- .svd_truncated(mat_1, K = rank_1); svd_2 <- .svd_truncated(mat_2, K = rank_2)
+    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    
+    res1 <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
+    svd_res_1 <- svd(res1)
+    svd_res_1$u <- svd_res_1$u[1:rank_1, 1:rank_full, drop  = F]
+    svd_res_1$v <- svd_res_1$v[1:rank_2, 1:rank_full, drop  = F]
+    
+    res2 <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = F)
+    svd_res_2 <- svd(res2)
+    
+    tmp <- svd(crossprod(svd_res_1$u, svd_res_2$u))
+    svd_res_1$u <- svd_res_1$u %*% tcrossprod(tmp$u, tmp$v)
+    
+    tmp <- svd(crossprod(svd_res_1$v, svd_res_2$v))
+    svd_res_1$v <- svd_res_1$v %*% tcrossprod(tmp$u, tmp$v)
+
+    bool1 <- sum(abs(svd_res_1$u - svd_res_2$u)) <= 1e-6
+    bool2 <- sum(abs(svd_res_1$v - svd_res_2$v)) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
 test_that(".compute_cca_aggregate_matrix is correct", {
   trials <- 20
   
@@ -419,6 +468,152 @@ test_that(".dcca_common_score works", {
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
+test_that(".dcca_common_score preserves rownames and colnames", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  
+  mat_1 <- scale(mat_1, center = T, scale = F)
+  mat_2 <- scale(mat_2, center = T, scale = F)
+  
+  rownames(mat_1) <- paste0("a", 1:n); rownames(mat_2) <- paste0("a", 1:n)
+  colnames(mat_1) <- paste0("b", 1:p1)
+  colnames(mat_2) <- paste0("c", 1:p2)
+  
+  svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
+  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
+  
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
+  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
+})
+
+test_that(".dcca_common_score works with K=1 for either", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  
+  mat_1 <- scale(mat_1, center = T, scale = F)
+  mat_2 <- scale(mat_2, center = T, scale = F)
+  
+  svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = K)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
+  expect_true(all(dim(res$common_score) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,K)))
+  
+  svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = 1)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
+  expect_true(all(dim(res$common_score) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,K)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,1)))
+  
+  svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = 1)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, verbose = F)
+  expect_true(all(dim(res$common_score) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,1)))
+})
+
+test_that(".dcca_common_score works with K=1 for either, with reorthgonalize", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  
+  mat_1 <- scale(mat_1, center = T, scale = F)
+  mat_2 <- scale(mat_2, center = T, scale = F)
+  
+  svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = K)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
+  expect_true(all(dim(res$common_score) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,K)))
+  
+  svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = 1)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
+  expect_true(all(dim(res$common_score) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,K)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,1)))
+  
+  svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = 1)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
+  expect_true(all(dim(res$common_score) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,1)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,1)))
+})
+
+test_that(".dcca_common_score with reorthogonalize is correct", {
+  trials <- 100
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    n <- 100; K <- 2
+    common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+    
+    p1 <- 5; p2 <- 10
+    transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+    transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+    
+    mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+    mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+    
+    mat_1 <- scale(mat_1, center = T, scale = F)
+    mat_2 <- scale(mat_2, center = T, scale = F)
+    
+    svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
+    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    cca_res <- .cca(svd_1, svd_2)
+    res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
+    
+    prod_mat1 <- crossprod(res$common_score, res$distinct_score_1)
+    prod_mat2 <- crossprod(res$common_score, res$distinct_score_2)
+    
+    sum(abs(prod_mat1)) <= 1e-6 & sum(abs(prod_mat2)) <= 1e-6 
+  })
+  
+  expect_true(all(bool_vec))
+})
+
 test_that(".dcca_common_score yields uncorrelated residuals", {
   trials <- 100
   
@@ -527,6 +722,68 @@ test_that("dcca_factor works", {
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
+test_that("dcca_factor preserves rownames and colnames", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  rownames(mat_1) <- paste0("a", 1:n); rownames(mat_2) <- paste0("a", 1:n)
+  colnames(mat_1) <- paste0("b", 1:p1)
+  colnames(mat_2) <- paste0("c", 1:p2)
+  
+  res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  
+  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
+  expect_true(all(rownames(mat_1) == rownames(res$score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$score_2)))
+  
+  expect_true(all(rownames(mat_1) == rownames(res$svd_1$u)))
+  expect_true(all(rownames(mat_1) == rownames(res$svd_2$u)))
+  expect_true(all(colnames(mat_1) == rownames(res$svd_1$v)))
+  expect_true(all(colnames(mat_2) == rownames(res$svd_2$v)))
+})
+
+test_that("dcca_factor preserves rownames and colnames with metacells", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  rownames(mat_1) <- paste0("a", 1:n); rownames(mat_2) <- paste0("a", 1:n)
+  colnames(mat_1) <- paste0("b", 1:p1)
+  colnames(mat_2) <- paste0("c", 1:p2)
+  
+  nc <- 20
+  meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+  
+  res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
+                     apply_shrinkage = T, verbose = F)
+  
+  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
+  expect_true(all(rownames(mat_1) == rownames(res$score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$score_2)))
+  
+  expect_true(all(rownames(mat_1) == rownames(res$svd_1$u)))
+  expect_true(all(rownames(mat_1) == rownames(res$svd_2$u)))
+  expect_true(all(colnames(mat_1) == rownames(res$svd_1$v)))
+  expect_true(all(colnames(mat_2) == rownames(res$svd_2$v)))
+})
+
 test_that("dcca_factor does not require rank_1 = rank_2", {
   set.seed(5)
   n <- 100; K <- 2
@@ -602,7 +859,61 @@ test_that("dcca_decomposition works", {
                                              "common_mat_1", "common_mat_2",
                                              "distinct_mat_1", "distinct_mat_2"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
+})
+
+
+test_that("dcca_decomposition with reorthogonalize yields uncorrelated common and distinct components", {
+  set.seed(1)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
   
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  
+  dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, reorthogonalize = T, verbose = F)
+  res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+  
+  prod_mat1 <- crossprod(res$common_mat_1, res$distinct_mat_1)
+  prod_mat2 <- crossprod(res$common_mat_2, res$distinct_mat_2)
+  
+  expect_true(sum(abs(prod_mat1)) <= 1e-6)
+  expect_true(sum(abs(prod_mat2)) <= 1e-6)
+})
+
+test_that("dcca_decomposition preserves rownames and colnames", {
+  set.seed(1)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  rownames(mat_1) <- paste0("a", 1:n); rownames(mat_2) <- paste0("a", 1:n)
+  colnames(mat_1) <- paste0("b", 1:p1)
+  colnames(mat_2) <- paste0("c", 1:p2)
+  
+  dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+  
+  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
+  
+  expect_true(all(rownames(mat_1) == rownames(res$common_mat_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$common_mat_2)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_mat_1)))
+  expect_true(all(rownames(mat_1) == rownames(res$distinct_mat_2)))
+  expect_true(all(colnames(mat_1) == colnames(res$common_mat_1)))
+  expect_true(all(colnames(mat_1) == colnames(res$distinct_mat_1)))
+  expect_true(all(colnames(mat_2) == colnames(res$common_mat_2)))
+  expect_true(all(colnames(mat_2) == colnames(res$distinct_mat_2)))
 })
 
 test_that("dcca_decomposition yields uncorrelated distinct matrices", {
@@ -620,7 +931,7 @@ test_that("dcca_decomposition yields uncorrelated distinct matrices", {
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     tmp <- crossprod(res$distinct_mat_1, res$distinct_mat_2)
@@ -648,7 +959,7 @@ test_that("dcca_decomposition yields uncorrelated distinct matrices with meta-ce
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, meta_clustering = meta_clustering,
                             verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
@@ -675,15 +986,15 @@ test_that("dcca_decomposition yields a low-rank matrix", {
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     bool1 <- Matrix::rankMatrix(res$common_mat_1) == K
     bool2 <- Matrix::rankMatrix(res$common_mat_2) == K
     bool3 <- Matrix::rankMatrix(res$distinct_mat_1) == K
-    bool4 <- Matrix::rankMatrix(res$distinct_mat_2) == K
+    bool4 <- Matrix::rankMatrix(res$distinct_mat_2) == K+1
     bool5 <- Matrix::rankMatrix(res$common_mat_1 + res$distinct_mat_1) == K
-    bool6 <- Matrix::rankMatrix(res$common_mat_2 + res$distinct_mat_2) == K
+    bool6 <- Matrix::rankMatrix(res$common_mat_2 + res$distinct_mat_2) == K+1
     
     bool1 & bool2 & bool3 & bool4 & bool5 & bool6
   })
@@ -708,16 +1019,16 @@ test_that("dcca_decomposition yields a low-rank matrix with meta-cells", {
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, meta_clustering = meta_clustering,
                             verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     bool1 <- Matrix::rankMatrix(res$common_mat_1) == K
     bool2 <- Matrix::rankMatrix(res$common_mat_2) == K
     bool3 <- Matrix::rankMatrix(res$distinct_mat_1) == K
-    bool4 <- Matrix::rankMatrix(res$distinct_mat_2) == K
+    bool4 <- Matrix::rankMatrix(res$distinct_mat_2) == K+1
     bool5 <- Matrix::rankMatrix(res$common_mat_1 + res$distinct_mat_1) == K
-    bool6 <- Matrix::rankMatrix(res$common_mat_2 + res$distinct_mat_2) == K
+    bool6 <- Matrix::rankMatrix(res$common_mat_2 + res$distinct_mat_2) == K+1
     
     bool1 & bool2 & bool3 & bool4 & bool5 & bool6
   })
@@ -740,7 +1051,7 @@ test_that("dcca_decomposition yields common matrices with the same column space"
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     svd_1 <- svd(res$common_mat_1)$u[,1:K]
@@ -769,7 +1080,7 @@ test_that("dcca_decomposition yields common matrices with the same column space 
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, meta_clustering = meta_clustering,
                             verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
