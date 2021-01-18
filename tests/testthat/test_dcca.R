@@ -18,6 +18,23 @@ test_that(".spoet works", {
   expect_true(all(sort(names(res)) == sort(c("d", "d_original", "u", "v"))))
 })
 
+test_that(".spoet preserves rownames and columnnames", {
+  set.seed(10)
+  p <- 100; n <- 20; K <- 2
+  cov_mat <- matrix(0, nrow = p, ncol = p)
+  cov_mat[1:(p/2), 1:(p/2)] <- 2
+  cov_mat[(p/2+1):p, (p/2+1):p] <- 0.5
+  diag(cov_mat) <- c(rep(5, p/2), rep(1, p/2))
+  mat <- abs(MASS::mvrnorm(n = n, mu = c(200,rep(30, p/2-1), rep(5, p/2)), Sigma = cov_mat))
+  rownames(mat) <- paste0("a", 1:n)
+  colnames(mat) <- paste0("b", 1:p)
+  
+  res <- .spoet(mat, K = 2)
+  
+  expect_true(all(rownames(res$u) == rownames(mat)))
+  expect_true(all(rownames(res$v) == colnames(mat)))
+})
+
 ################################
 
 ## .compute_cca_aggregate_matrix is correct
@@ -125,6 +142,107 @@ test_that(".cca works", {
   expect_true(length(res$obj_vec) <= min(c(length(svd_1$d), length(svd_2$d))))
 })
 
+test_that(".cca preserves colnames", {
+  set.seed(10)
+  n <- 20; p1 <- 50; p2 <- 40
+  mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  colnames(mat_1) <- paste0("a", 1:p1)
+  colnames(mat_2) <- paste0("b", 1:p2)
+
+  res <- .cca(mat_1, mat_2, rank_1 = 2, rank_2 = 2)
+  
+  expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
+  expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
+  
+  ##
+  
+  svd_1 <- .svd_truncated(mat_1); svd_2 <- .svd_truncated(mat_2)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  
+  res <- .cca(svd_1, svd_2)
+  
+  expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
+  expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
+})
+
+test_that(".cca works when the two matrices have different ranks larger than 1", {
+  set.seed(10)
+  n <- 20; p1 <- 50; p2 <- 40
+  mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  
+  rank_1 <- 2; rank_2 <- 4
+  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2)
+  
+  expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
+  expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
+  expect_true(length(res$obj_vec) == 2)
+  
+  ####
+  
+  svd_1 <- .svd_truncated(mat_1, K = rank_1); svd_2 <- .svd_truncated(mat_2, K = rank_2)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  
+  res <- .cca(svd_1, svd_2)
+  
+  expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
+  expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
+  expect_true(length(res$obj_vec) == 2)
+})
+
+test_that(".cca works when either matrix have rank 1 for matrix inputs", {
+  set.seed(10)
+  n <- 20; p1 <- 50; p2 <- 40
+  mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  rank_1 <- 2; rank_2 <- 4
+  
+  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = rank_2)
+  expect_true(all(dim(res$loading_1) == c(p1, 1)))
+  expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
+  expect_true(length(res$obj_vec) == 1)
+  
+  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = 1)
+  expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
+  expect_true(all(dim(res$loading_2) == c(p2, 1)))
+  expect_true(length(res$obj_vec) == 1)
+  
+  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = 1)
+  expect_true(all(dim(res$loading_1) == c(p1, 1)))
+  expect_true(all(dim(res$loading_2) == c(p2, 1)))
+  expect_true(length(res$obj_vec) == 1)
+})
+
+test_that(".cca works when either matrix have rank 1 for svd inputs", {
+  set.seed(10)
+  n <- 20; p1 <- 50; p2 <- 40
+  mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  rank_1 <- 2; rank_2 <- 4
+  
+  svd_1 <- .svd_truncated(mat_1, K = rank_1); svd_2 <- .svd_truncated(mat_2, K = rank_2)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  
+  svd_1b <- .svd_truncated(mat_1, K = 1); svd_2b <- .svd_truncated(mat_2, K = 1)
+  svd_1b <- .check_svd(svd_1b); svd_2b <- .check_svd(svd_2b)
+  
+  res <- .cca(svd_1b, svd_2)
+  expect_true(all(dim(res$loading_1) == c(p1, 1)))
+  expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
+  expect_true(length(res$obj_vec) == 1)
+  
+  res <- .cca(svd_1, svd_2b)
+  expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
+  expect_true(all(dim(res$loading_2) == c(p2, 1)))
+  expect_true(length(res$obj_vec) == 1)
+  
+  res <- .cca(svd_1b, svd_2b)
+  expect_true(all(dim(res$loading_1) == c(p1, 1)))
+  expect_true(all(dim(res$loading_2) == c(p2, 1)))
+  expect_true(length(res$obj_vec) == 1)
+})
+
 test_that(".cca yields empirically uncorrelated canoncical scores", {
   trials <- 20
   
@@ -145,8 +263,8 @@ test_that(".cca yields empirically uncorrelated canoncical scores", {
     
     res <- .cca(svd_1, svd_2)
     
-    bool1 <- sum(abs(t(res$loading_1) %*% (stats::cov(mat_1)*(n-1)/n) %*% res$loading_1 - diag(min(p1,p2)))) <= 1e-4
-    bool2 <- sum(abs(t(res$loading_2) %*% (stats::cov(mat_2)*(n-1)/n) %*% res$loading_2 - diag(min(p1,p2)))) <= 1e-4
+    bool1 <- sum(abs(t(res$loading_1) %*% (stats::cov(mat_1)*(n-1)/n) %*% res$loading_1 - diag(p1))) <= 1e-4
+    bool2 <- sum(abs(t(res$loading_2) %*% (stats::cov(mat_2)*(n-1)/n) %*% res$loading_2 - diag(p2))) <= 1e-4
     
     bool1 & bool2
   })
@@ -257,8 +375,8 @@ test_that(".compute_unnormalized_scores computes the correct scores", {
     res <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     rank_val <- Matrix::rankMatrix(.compute_cca_aggregate_matrix(svd_1, svd_2))
     
-    bool1 <- sum(crossprod(res$score_1) - n*diag(rank_val)) <= 1e-4
-    bool2 <- sum(crossprod(res$score_2) - n*diag(rank_val)) <= 1e-4
+    bool1 <- sum(crossprod(res$score_1) - n*diag(p1)) <= 1e-4
+    bool2 <- sum(crossprod(res$score_2) - n*diag(p2)) <= 1e-4
     
     bool1 & bool2
   })
@@ -426,6 +544,10 @@ test_that("dcca_factor does not require rank_1 = rank_2", {
 
   expect_true(length(res$cca_obj) == 2)
   expect_true(length(res2$cca_obj) == 2)
+  expect_true(all(dim(res$distinct_score_1) == c(n, 2)))
+  expect_true(all(dim(res$distinct_score_2) == c(n, 5)))
+  expect_true(all(dim(res2$distinct_score_1) == c(n, 5)))
+  expect_true(all(dim(res2$distinct_score_2) == c(n, 2)))
 })
 
 test_that("dcca_factor works with meta-cells", {
@@ -773,4 +895,98 @@ test_that("dcca_decomposition can obtain the same result when fed into itself (i
   expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
 })
+
+####################################
+
+## .compute_common_score is correct
+
+test_that(".compute_common_score works", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  res <- .compute_common_score(score_1, score_2)
+  
+  expect_true(is.matrix(res))
+  expect_true(all(dim(res) == dim(score_1)))
+})
+
+test_that(".compute_common_score can handle when the two scores have different dimensions", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  score_1b <- score_1[,1:2]
+  res <- .compute_common_score(score_1b, score_2)
+  expect_true(all(dim(res) == dim(score_1b)))
+  
+  score_2b <- score_2[,1:2]
+  res <- .compute_common_score(score_1, score_2b)
+  expect_true(all(dim(res) == dim(score_2b)))
+})
+
+test_that(".compute_common_score works with some of them being K=1", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  score_1b <- score_1[, 1,drop = F]
+  res <- .compute_common_score(score_1b, score_2)
+  expect_true(all(dim(res) == dim(score_1b)))
+  
+  score_2b <- score_2[, 1,drop = F]
+  res <- .compute_common_score(score_1, score_2b)
+  expect_true(all(dim(res) == dim(score_2b)))
+  
+  res <- .compute_common_score(score_1b, score_2b)
+  expect_true(all(dim(res) == dim(score_1b)))
+})
+
+test_that(".compute_common_score preserves rownames and colnames", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  rownames(score_1) <- paste0("a", 1:n)
+  rownames(score_2) <- paste0("a", 1:n)
+  
+  res <- .compute_common_score(score_1, score_2)
+  expect_true(all(dim(res) == dim(score_1)))
+  expect_true(all(rownames(res) == rownames(score_1)))
+  
+  # observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)
+})
+
 

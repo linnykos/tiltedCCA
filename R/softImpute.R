@@ -7,6 +7,8 @@
 #'
 #' @return list
 #' @export
+### NOTE TO SELF: Honestly, if we replace all the missing values with their row-column mean and average, 
+### followed by an SVD, I'm sure it'll be fine
 softImpute_diagnostic <- function(mat, K, num_val = ceiling(min(c(4, dim(mat)/10))),
                                   lambda = NA){
   stopifnot(K > 1)

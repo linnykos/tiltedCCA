@@ -15,10 +15,13 @@ generate_data <- function(score_1, score_2,
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
             nrow(score_2) > ncol(score_2))
   
-  tmp <- .reparameterize(score_1, score_2)
-  score_1 <- tmp$mat_1; score_2 <- tmp$mat_2
+  tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  full_rank <- length(tmp$obj_vec)
   common_score <- .compute_common_score(score_1, score_2, obj_vec = tmp$diag_vec)
-  distinct_score_1 <- score_1 - common_score; distinct_score_2 <- score_2 - common_score
+  
+  distinct_score_1 <- cbind(score_1[,1:full_rank, drop = F] - common_score, score_1[,-(1:full_rank), drop = F])
+  distinct_score_2 <- cbind(score_2[,1:full_rank, drop = F] - common_score, score_2[,-(1:full_rank), drop = F])
   
   tmp1 <- crossprod(common_score); tmp2 <- crossprod(distinct_score_1); tmp3 <- crossprod(distinct_score_2)
   

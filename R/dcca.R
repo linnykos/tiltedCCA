@@ -13,7 +13,7 @@
 #' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
-                        apply_shrinkage = T, verbose = T){
+                        apply_shrinkage = T, reorthogonalize = F, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
   n <- nrow(mat_1)
@@ -54,28 +54,17 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     # note, since we're already doing averaging, we don't further shrink the spectrum
     cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = rank_1, rank_2 = rank_2)
   } else {
+    
     # alternatively, apply D-CCA to all cells
     msg <- " (all cells)"
     if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
     cca_res <- .cca(svd_1, svd_2)
   }
   
-  res <- .dcca_common_score(svd_1, svd_2, cca_res, 
-                              check_alignment = all(!is.na(meta_clustering)),
-                              verbose = verbose, msg = msg)
+  res <- .dcca_common_score(svd_1, svd_2, cca_res,
+                            check_alignment = all(!is.na(meta_clustering)),
+                            verbose = verbose, msg = msg)
 
-  if(length(rownames(mat_1)) != 0){
-    rownames(res$distinct_score_1) <- rownames(mat_1)
-    rownames(res$distinct_score_2) <- rownames(mat_1)
-    rownames(res$score_1) <- rownames(mat_1)
-    rownames(res$score_2) <- rownames(mat_1)
-    rownames(res$svd_1$u) <- rownames(mat_1)
-    rownames(res$svd_2$u) <- rownames(mat_1)
-  }
-  
-  if(length(colnames(mat_1)) != 0) rownames(res$svd_1$v) <- colnames(mat_1)
-  if(length(colnames(mat_2)) != 0) rownames(res$svd_2$v) <- colnames(mat_2)
-  
   class(res) <- "dcca"
   res
 }
@@ -98,8 +87,8 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
   
   if(verbose) print("D-CCA: Computing common matrices")
-  coef_mat_1 <- crossprod(dcca_res$score_1[,1:rank_c, drop = F], mat_1)/n
-  coef_mat_2 <- crossprod(dcca_res$score_2[,1:rank_c, drop = F], mat_2)/n
+  coef_mat_1 <- crossprod(dcca_res$score_1, mat_1)/n
+  coef_mat_2 <- crossprod(dcca_res$score_2, mat_2)/n
   
   common_mat_1 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
   common_mat_2 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
@@ -107,23 +96,6 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   if(verbose) print("D-CCA: Computing distinctive matrices")
   distinct_mat_1 <- dcca_res$distinct_score_1 %*% coef_mat_1
   distinct_mat_2 <- dcca_res$distinct_score_2 %*% coef_mat_2
-  
-  if(length(rownames(dcca_res$common_score)) != 0){
-    rownames(common_mat_1) <- rownames(dcca_res$common_score)
-    rownames(common_mat_2) <- rownames(dcca_res$common_score)
-    rownames(distinct_mat_1) <- rownames(dcca_res$common_score)
-    rownames(distinct_mat_2) <- rownames(dcca_res$common_score)
-  }
-  
-  if(length(rownames(dcca_res$svd_1$v)) != 0){
-    colnames(common_mat_1) <- rownames(dcca_res$svd_1$v)
-    colnames(distinct_mat_1) <- rownames(dcca_res$svd_1$v)
-  }
-  
-  if(length(rownames(dcca_res$svd_2$v)) != 0){
-    colnames(common_mat_2) <- rownames(dcca_res$svd_2$v)
-    colnames(distinct_mat_2) <- rownames(dcca_res$svd_2$v)
-  }
   
   if(verbose) print("D-CCA: Done")
   structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],
@@ -185,21 +157,22 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
 #################################
 
 .dcca_common_score <- function(svd_1, svd_2, cca_res, check_alignment = T,
-                                 verbose = T, msg = ""){
+                               reorthogonalize = F, verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
   if(verbose) print(paste0("D-CCA", msg, ": Computing unnormalized scores"))
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  stopifnot(ncol(score_1) == full_rank, ncol(score_2) == full_rank,
+  stopifnot(ncol(score_1) == length(svd_1$d), ncol(score_2) == length(svd_2$d),
             nrow(score_1) == nrow(score_2))
 
   if(verbose) print(paste0("D-CCA", msg, ": Computing common factors"))
   if(check_alignment){
-    tmp <- .reparameterize(score_1, score_2)
-    score_1 <- tmp$mat_1; score_2 <- tmp$mat_2
-    
+    # reparameterize the scores
+    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    stopifnot(is.matrix(score_1), is.matrix(score_2))
     obj_vec <- diag(crossprod(score_1, score_2))/n
   } else {
     obj_vec <- cca_res$obj_vec
@@ -207,10 +180,10 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   
   # threshold x for numerical stability
   common_score <- .compute_common_score(score_1, score_2, obj_vec = obj_vec)
-  stopifnot(all(dim(common_score) == dim(score_1)))
+  stopifnot(all(dim(common_score) == c(nrow(score_1), full_rank)))
   
-  distinct_score_1 <- score_1 - common_score
-  distinct_score_2 <- score_2 - common_score
+  distinct_score_1 <- cbind(score_1[,1:full_rank, drop = F] - common_score, score_1[,-(1:full_rank), drop = F])
+  distinct_score_2 <- cbind(score_2[,1:full_rank, drop = F] - common_score, score_2[,-(1:full_rank), drop = F])
   
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
   list(common_score = common_score, 
@@ -223,12 +196,14 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
 # score is a matrix with n rows. loadings is a mat with p rows
 .compute_common_score <- function(score_1, score_2, obj_vec = NA){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) >= ncol(score_1),
-            nrow(score_2) >= ncol(score_2))
+            nrow(score_2) >= ncol(score_2), is.matrix(score_1), is.matrix(score_2))
+  
+  p <- min(c(ncol(score_1), ncol(score_2)))
+  if(ncol(score_1) > p){ score_1 <- score_1[,1:p,drop = F]}
+  if(ncol(score_2) > p){ score_2 <- score_2[,1:p,drop = F]}
   
   n <- nrow(score_1)
-  if(all(is.na(obj_vec))){
-    obj_vec <- diag(crossprod(score_1, score_2))/n
-  }
+  obj_vec <- diag(crossprod(score_1, score_2))/n
   
   R_vec <- sapply(obj_vec, function(x){x <- min(1,max(x,0)); 1-sqrt((1-x)/(1+x))})
   common_score <- .mult_mat_vec((score_1+score_2)/2, R_vec)
@@ -252,11 +227,16 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   svd_res$u <- svd_res$u[,1:K,drop = F]
   svd_res$v <- svd_res$v[,1:K,drop = F]
   
+  # pass row-names and column-names
+  if(length(rownames(mat)) != 0) rownames(svd_res$u) <- rownames(mat)
+  if(length(colnames(mat)) != 0) rownames(svd_res$v) <- colnames(mat)
+  
   svd_res
 }
 
 # takes either two matrices or two SVDs
-.cca <- function(input_1, input_2, rank_1 = NA, rank_2 = NA, tol = 1e-6){
+.cca <- function(input_1, input_2, rank_1 = NA, rank_2 = NA, 
+                 return_scores = F, tol = 1e-6){
   if(is.matrix(input_1) & is.matrix(input_2)){
     stopifnot(nrow(input_1) == nrow(input_2), 
               rank_1 <= ncol(input_1), rank_2 <= ncol(input_2))
@@ -269,26 +249,46 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
               all(c("u","d","v") %in% names(input_1)),
               all(c("u","d","v") %in% names(input_2)),
               all(input_1$d >= 0), all(input_2$d >= 0), 
-              nrow(input_1$u) == nrow(input_2$u))
+              all(diff(input_1$d) <= 1e-6), all(diff(input_2$d) <= 1e-6),
+              nrow(input_1$u) == nrow(input_2$u), is.na(rank_1), is.na(rank_2))
+    
+    rank_1 <- length(which(input_1$d >= 1e-6)); rank_2 <- length(which(input_2$d >= 1e-6))
     svd_1 <- input_1; svd_2 <- input_2
   }
   
   n <- nrow(svd_1$u)
   
+  # perform CCA
   cov_1_invhalf <- .mult_mat_vec(svd_1$v, sqrt(n)/svd_1$d)
   cov_2_invhalf <- .mult_mat_vec(svd_2$v, sqrt(n)/svd_2$d)
                                     
-  agg_mat <-  .compute_cca_aggregate_matrix(svd_1, svd_2)
+  agg_mat <-  .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
   svd_res <- svd(agg_mat)
-  full_rank_idx <- which(svd_res$d >= tol)
+  full_rank <- min(c(rank_1, rank_2))
   
-  list(loading_1 = cov_1_invhalf %*% svd_res$u[,full_rank_idx,drop = F],
-       loading_2 = cov_2_invhalf %*% svd_res$v[,full_rank_idx,drop = F],
-       obj_vec = svd_res$d[full_rank_idx])
+  loading_1 <- cov_1_invhalf %*% svd_res$u[1:ncol(cov_1_invhalf), 1:rank_1, drop = F]
+  loading_2 <- cov_2_invhalf %*% svd_res$v[1:ncol(cov_2_invhalf), 1:rank_2, drop = F]
+  
+  # return
+  if(!return_scores){
+    list(loading_1 = loading_1, loading_2 = loading_2, obj_vec = svd_res$d[1:full_rank])
+  } else {
+    if(!is.matrix(input_1) | !is.matrix(input_2)){
+      input_1 <- tcrossprod(.mult_mat_vec(input_1$u, input_1$d), input_1$v) 
+      input_2 <- tcrossprod(.mult_mat_vec(input_2$u, input_2$d), input_2$v) 
+    }
+    
+    list(score_1 = input_1 %*% loading_1, score_2 = input_2 %*% loading_2, obj_vec = svd_res$d[1:full_rank])
+  }
+  
 }
 
-.compute_cca_aggregate_matrix <- function(svd_1, svd_2){
-  crossprod(svd_1$u, svd_2$u)
+.compute_cca_aggregate_matrix <- function(svd_1, svd_2, augment = T){
+  res <- crossprod(svd_1$u, svd_2$u)
+  if(nrow(res) < ncol(res)) res <- rbind(res, matrix(0, ncol(res)-nrow(res), ncol(res)))
+  if(ncol(res) < nrow(res)) res <- cbind(res, matrix(0, nrow(res), nrow(res)-ncol(res)))
+  
+  res
 }
 
 # unnoramlized means that while score_1 is orthogonal, it is not orthonormal
