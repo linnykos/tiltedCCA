@@ -2,7 +2,7 @@ context("Test DCCA")
 
 ## .spoet is correct
 
-test_that(".spoet works", {
+test_that("(Basic) .spoet works", {
   set.seed(10)
   p <- 100; n <- 20; K <- 2
   cov_mat <- matrix(0, nrow = p, ncol = p)
@@ -18,7 +18,7 @@ test_that(".spoet works", {
   expect_true(all(sort(names(res)) == sort(c("d", "d_original", "u", "v"))))
 })
 
-test_that(".spoet preserves rownames and columnnames", {
+test_that("(Coding) .spoet preserves rownames and columnnames", {
   set.seed(10)
   p <- 100; n <- 20; K <- 2
   cov_mat <- matrix(0, nrow = p, ncol = p)
@@ -39,7 +39,7 @@ test_that(".spoet preserves rownames and columnnames", {
 
 ## .compute_cca_aggregate_matrix is correct
 
-test_that(".compute_cca_aggregate_matrix works", {
+test_that("(Basic) .compute_cca_aggregate_matrix works", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -54,7 +54,7 @@ test_that(".compute_cca_aggregate_matrix works", {
   expect_true(all(dim(res) == c(length(svd_1$d), length(svd_2$d))))
 })
 
-test_that(".compute_cca_aggregate_matrix works when ranks are not the same", {
+test_that("(Coding) .compute_cca_aggregate_matrix works when ranks are not the same", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -69,7 +69,7 @@ test_that(".compute_cca_aggregate_matrix works when ranks are not the same", {
   expect_true(all(dim(res) == c(length(svd_1$d), length(svd_2$d))))
 })
 
-test_that(".compute_cca_aggregate_matrix preserves SVD values when augment = T", {
+test_that("(Math) .compute_cca_aggregate_matrix preserves SVD values when augment = T", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -103,7 +103,7 @@ test_that(".compute_cca_aggregate_matrix preserves SVD values when augment = T",
   expect_true(all(bool_vec))
 })
 
-test_that(".compute_cca_aggregate_matrix is correct", {
+test_that("(Math) .compute_cca_aggregate_matrix is correct", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -134,7 +134,7 @@ test_that(".compute_cca_aggregate_matrix is correct", {
   expect_true(all(bool_vec))
 })
 
-test_that(".compute_cca_aggregate_matrix is gives the correct svd", {
+test_that("(Math) .compute_cca_aggregate_matrix is gives the correct svd", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -173,7 +173,7 @@ test_that(".compute_cca_aggregate_matrix is gives the correct svd", {
 
 ## .cca is correct
 
-test_that(".cca works", {
+test_that("(Basic) .cca works", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -191,7 +191,7 @@ test_that(".cca works", {
   expect_true(length(res$obj_vec) <= min(c(length(svd_1$d), length(svd_2$d))))
 })
 
-test_that(".cca preserves colnames", {
+test_that("(Coding) .cca preserves colnames", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -215,7 +215,7 @@ test_that(".cca preserves colnames", {
   expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
 })
 
-test_that(".cca works when the two matrices have different ranks larger than 1", {
+test_that("(Coding) .cca works when the two matrices have different ranks larger than 1", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -240,7 +240,7 @@ test_that(".cca works when the two matrices have different ranks larger than 1",
   expect_true(length(res$obj_vec) == 2)
 })
 
-test_that(".cca works when either matrix have rank 1 for matrix inputs", {
+test_that("(Coding) .cca works when either matrix have rank 1 for matrix inputs", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -263,7 +263,7 @@ test_that(".cca works when either matrix have rank 1 for matrix inputs", {
   expect_true(length(res$obj_vec) == 1)
 })
 
-test_that(".cca works when either matrix have rank 1 for svd inputs", {
+test_that("(Coding) .cca works when either matrix have rank 1 for svd inputs", {
   set.seed(10)
   n <- 20; p1 <- 50; p2 <- 40
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
@@ -292,7 +292,7 @@ test_that(".cca works when either matrix have rank 1 for svd inputs", {
   expect_true(length(res$obj_vec) == 1)
 })
 
-test_that(".cca yields empirically uncorrelated canoncical scores", {
+test_that("(Math) .cca yields empirically uncorrelated canoncical scores", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -321,7 +321,7 @@ test_that(".cca yields empirically uncorrelated canoncical scores", {
   expect_true(all(bool_vec))
 })
 
-test_that(".cca obtains the correlation that is the same value as the objective", {
+test_that("(Math) .cca obtains the correlation that is the same value as the objective", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -359,7 +359,7 @@ test_that(".cca obtains the correlation that is the same value as the objective"
   expect_true(all(bool_vec))
 })
 
-test_that(".cca obtains the maximum correlation", {
+test_that("(Math) .cca obtains the maximum correlation", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -402,7 +402,7 @@ test_that(".cca obtains the maximum correlation", {
 
 ## .compute_unnormalized_scores is correct
 
-test_that(".compute_unnormalized_scores computes the correct scores", {
+test_that("(Math) .compute_unnormalized_scores computes the correct scores", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -437,7 +437,7 @@ test_that(".compute_unnormalized_scores computes the correct scores", {
 
 ## .dcca_common_score is correct
 
-test_that(".dcca_common_score works", {
+test_that("(Basic) .dcca_common_score works", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -468,7 +468,7 @@ test_that(".dcca_common_score works", {
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
-test_that(".dcca_common_score preserves rownames and colnames", {
+test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -502,7 +502,7 @@ test_that(".dcca_common_score preserves rownames and colnames", {
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
 })
 
-test_that(".dcca_common_score works with K=1 for either", {
+test_that("(Coding) .dcca_common_score works with K=1 for either", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -542,7 +542,7 @@ test_that(".dcca_common_score works with K=1 for either", {
   expect_true(all(dim(res$distinct_score_2) == c(n,1)))
 })
 
-test_that(".dcca_common_score works with K=1 for either, with reorthgonalize", {
+test_that("(Coding) .dcca_common_score works with K=1 for either, with reorthgonalize", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -582,7 +582,7 @@ test_that(".dcca_common_score works with K=1 for either, with reorthgonalize", {
   expect_true(all(dim(res$distinct_score_2) == c(n,1)))
 })
 
-test_that(".dcca_common_score with reorthogonalize is correct", {
+test_that("(Math) .dcca_common_score with reorthogonalize is correct", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -614,7 +614,7 @@ test_that(".dcca_common_score with reorthogonalize is correct", {
   expect_true(all(bool_vec))
 })
 
-test_that(".dcca_common_score yields uncorrelated residuals", {
+test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -648,7 +648,7 @@ test_that(".dcca_common_score yields uncorrelated residuals", {
   expect_true(all(bool_vec))
 })
 
-test_that(".dcca_common_score yields uncorrelated residuals with meta-cells", {
+test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cells", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -699,7 +699,7 @@ test_that(".dcca_common_score yields uncorrelated residuals with meta-cells", {
 
 ## dcca_factor is correct
 
-test_that("dcca_factor works", {
+test_that("(Basic) dcca_factor works", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -722,7 +722,7 @@ test_that("dcca_factor works", {
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
-test_that("dcca_factor preserves rownames and colnames", {
+test_that("(Coding) dcca_factor preserves rownames and colnames", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -751,7 +751,7 @@ test_that("dcca_factor preserves rownames and colnames", {
   expect_true(all(colnames(mat_2) == rownames(res$svd_2$v)))
 })
 
-test_that("dcca_factor preserves rownames and colnames with metacells", {
+test_that("(Coding) dcca_factor preserves rownames and colnames with metacells", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -784,7 +784,7 @@ test_that("dcca_factor preserves rownames and colnames with metacells", {
   expect_true(all(colnames(mat_2) == rownames(res$svd_2$v)))
 })
 
-test_that("dcca_factor does not require rank_1 = rank_2", {
+test_that("(Coding) dcca_factor does not require rank_1 = rank_2", {
   set.seed(5)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -807,7 +807,7 @@ test_that("dcca_factor does not require rank_1 = rank_2", {
   expect_true(all(dim(res2$distinct_score_2) == c(n, 2)))
 })
 
-test_that("dcca_factor works with meta-cells", {
+test_that("(Coding) dcca_factor works with meta-cells", {
   set.seed(5)
   n <- 200; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -837,7 +837,7 @@ test_that("dcca_factor works with meta-cells", {
 
 ## dcca_decomposition is correct
 
-test_that("dcca_decomposition works", {
+test_that("(Basic) dcca_decomposition works", {
   set.seed(1)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -862,7 +862,7 @@ test_that("dcca_decomposition works", {
 })
 
 
-test_that("dcca_decomposition with reorthogonalize yields uncorrelated common and distinct components", {
+test_that("(Math) dcca_decomposition with reorthogonalize yields uncorrelated common and distinct components", {
   set.seed(1)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -884,7 +884,7 @@ test_that("dcca_decomposition with reorthogonalize yields uncorrelated common an
   expect_true(sum(abs(prod_mat2)) <= 1e-6)
 })
 
-test_that("dcca_decomposition preserves rownames and colnames", {
+test_that("(Coding) dcca_decomposition preserves rownames and colnames", {
   set.seed(1)
   n <- 100; K <- 2
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
@@ -916,7 +916,7 @@ test_that("dcca_decomposition preserves rownames and colnames", {
   expect_true(all(colnames(mat_2) == colnames(res$distinct_mat_2)))
 })
 
-test_that("dcca_decomposition yields uncorrelated distinct matrices", {
+test_that("(Math) dcca_decomposition yields uncorrelated distinct matrices", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -942,7 +942,7 @@ test_that("dcca_decomposition yields uncorrelated distinct matrices", {
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition yields uncorrelated distinct matrices with meta-cells", {
+test_that("(Math) dcca_decomposition yields uncorrelated distinct matrices with meta-cells", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -971,7 +971,7 @@ test_that("dcca_decomposition yields uncorrelated distinct matrices with meta-ce
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition yields a low-rank matrix", {
+test_that("(Math) dcca_decomposition yields a low-rank matrix", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1002,7 +1002,7 @@ test_that("dcca_decomposition yields a low-rank matrix", {
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition yields a low-rank matrix with meta-cells", {
+test_that("(Math) dcca_decomposition yields a low-rank matrix with meta-cells", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1036,7 +1036,7 @@ test_that("dcca_decomposition yields a low-rank matrix with meta-cells", {
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition yields common matrices with the same column space", {
+test_that("(Math) dcca_decomposition yields common matrices with the same column space", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1063,7 +1063,7 @@ test_that("dcca_decomposition yields common matrices with the same column space"
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition yields common matrices with the same column space with meta-cells", {
+test_that("(Math) dcca_decomposition yields common matrices with the same column space with meta-cells", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1093,7 +1093,7 @@ test_that("dcca_decomposition yields common matrices with the same column space 
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition is a decomposition under no noise", {
+test_that("(Math) dcca_decomposition is a decomposition under no noise", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1131,7 +1131,7 @@ test_that("dcca_decomposition is a decomposition under no noise", {
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition is a decomposition under no noise with meta-cells", {
+test_that("(Math) dcca_decomposition is a decomposition under no noise with meta-cells", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1171,7 +1171,7 @@ test_that("dcca_decomposition is a decomposition under no noise with meta-cells"
   expect_true(all(bool_vec))
 })
 
-test_that("dcca_decomposition can obtain the same result when fed into itself (i.e., stability/identifiability)", {
+test_that("(Math) dcca_decomposition can obtain the same result when fed into itself (i.e., stability/identifiability)", {
   set.seed(10)
   n_clust <- 100
   B_mat <- matrix(c(0.9, 0.4, 0.1, 
@@ -1211,7 +1211,7 @@ test_that("dcca_decomposition can obtain the same result when fed into itself (i
 
 ## .compute_common_score is correct
 
-test_that(".compute_common_score works", {
+test_that("(Basic) .compute_common_score works", {
   set.seed(10)
   n_clust <- 100
   B_mat <- matrix(c(0.9, 0.4, 0.1, 
@@ -1230,7 +1230,7 @@ test_that(".compute_common_score works", {
   expect_true(all(dim(res) == dim(score_1)))
 })
 
-test_that(".compute_common_score can handle when the two scores have different dimensions", {
+test_that("(Coding) .compute_common_score can handle when the two scores have different dimensions", {
   set.seed(10)
   n_clust <- 100
   B_mat <- matrix(c(0.9, 0.4, 0.1, 
@@ -1252,7 +1252,7 @@ test_that(".compute_common_score can handle when the two scores have different d
   expect_true(all(dim(res) == dim(score_2b)))
 })
 
-test_that(".compute_common_score works with some of them being K=1", {
+test_that("(Coding) .compute_common_score works with some of them being K=1", {
   set.seed(10)
   n_clust <- 100
   B_mat <- matrix(c(0.9, 0.4, 0.1, 
@@ -1299,5 +1299,185 @@ test_that(".compute_common_score preserves rownames and colnames", {
   
   # observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)
 })
+
+#######################
+
+## .reorthgonalize_scores is correct
+
+test_that("(Basic) .reorthgonalize_scores works", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  common_score <- .compute_common_score(score_1, score_2)
+  full_rank <- ncol(common_score)
+  distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
+  distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
+  
+  res <- .reorthgonalize_scores(common_score, distinct_score_1, distinct_score_2, check = T)
+  
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_score_1", "distinct_score_2"))))
+  expect_true(all(dim(res$common_score) == dim(common_score)))
+  expect_true(all(dim(res$distinct_score_1) == dim(distinct_score_1)))
+  expect_true(all(dim(res$distinct_score_2) == dim(distinct_score_2)))
+})
+
+test_that("(Math) .reorthgonalize_scores passes check=T", {
+  trials <- 100
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    B_mat <- matrix(c(0.9, 0.4, 0.1,
+                      0.4, 0.9, 0.1,
+                      0.1, 0.1, 0.3), 3, 3)
+    K <- ncol(B_mat); n_clust <- 50; rho <- 1
+    
+    true_membership_vec <- rep(1:4, each = n_clust)
+    n <- length(true_membership_vec)
+    
+    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
+    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
+    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    common_score <- .compute_common_score(score_1, score_2)
+    full_rank <- ncol(common_score)
+    distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
+    distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
+    
+    res <- .reorthgonalize_scores(common_score, distinct_score_1, distinct_score_2, check = T)
+    
+    all(dim(res$common_score) == dim(common_score)) & 
+      all(dim(res$distinct_score_1) == dim(distinct_score_1)) &
+      all(dim(res$distinct_score_2) == dim(distinct_score_2))
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+#####################################
+
+## .compute_distinct_score is correct
+
+test_that("(Basic) .compute_distinct_score works", {
+  set.seed(10)
+  n_clust <- 100
+  B_mat <- matrix(c(0.9, 0.4, 0.1, 
+                    0.4, 0.9, 0.1,
+                    0.1, 0.1, 0.5), 3, 3)
+  K <- ncol(B_mat)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec)
+  rho <- 1
+  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  
+  tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  common_score <- .compute_common_score(score_1, score_2)
+  
+  res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = F)
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_score_1", "distinct_score_2"))))
+  expect_true(all(dim(res$common_score) == dim(common_score)))
+  expect_true(all(dim(res$distinct_score_1) == dim(score_1)))
+  expect_true(all(dim(res$distinct_score_2) == dim(score_2)))
+  
+  res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = T)
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_score_1", "distinct_score_2"))))
+  expect_true(all(dim(res$common_score) == dim(common_score)))
+  expect_true(all(dim(res$distinct_score_1) == dim(score_1)))
+  expect_true(all(dim(res$distinct_score_2) == dim(score_2)))
+})
+
+test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices with reorthoganlize=F", {
+  trials <- 100
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    B_mat <- matrix(c(0.9, 0.4, 0.1,
+                      0.4, 0.9, 0.1,
+                      0.1, 0.1, 0.3), 3, 3)
+    K <- ncol(B_mat); n_clust <- 50; rho <- 0.1
+    
+    true_membership_vec <- rep(1:4, each = n_clust)
+    n <- length(true_membership_vec)
+    
+    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
+    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
+    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    common_score <- .compute_common_score(score_1, score_2)
+    res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = F)
+    
+    all(abs(crossprod(res$distinct_score_1, res$distinct_score_2)) <= 1e-6)
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that("(Math) .compute_distinct_score generates orthogonal distinct/common matrices with reorthoganlize=T", {
+  trials <- 100
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    B_mat <- matrix(c(0.9, 0.4, 0.1,
+                      0.4, 0.9, 0.1,
+                      0.1, 0.1, 0.3), 3, 3)
+    K <- ncol(B_mat); n_clust <- 50; rho <- 0.1
+    
+    true_membership_vec <- rep(1:4, each = n_clust)
+    n <- length(true_membership_vec)
+    
+    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
+    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
+    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    common_score <- .compute_common_score(score_1, score_2)
+    res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = T)
+    
+    bool1 <- all(abs(crossprod(res$distinct_score_1, res$common_score)) <= 1e-6)
+    bool2 <- all(abs(crossprod(res$distinct_score_2, res$common_score)) <= 1e-6)
+    
+    bool1 & bool2
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+
+
+
+
+
+
+
+
+
+
+
 
 

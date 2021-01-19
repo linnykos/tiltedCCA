@@ -183,25 +183,10 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   common_score <- .compute_common_score(score_1, score_2, obj_vec = obj_vec)
   stopifnot(all(dim(common_score) == c(nrow(score_1), full_rank)))
   
-  distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
-  distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
-  
-  if(reorthogonalize){
-    tmp <- solve(crossprod(common_score))
-    tmp2 <- tcrossprod(tmp, common_score)
-    
-    common_comp1 <- common_score %*% (tmp2 %*% distinct_score_1)
-    common_comp2 <- common_score %*% (tmp2 %*% distinct_score_2)
-    stopifnot(all(abs(common_comp1 - common_comp2) <= 1e-6))
-    
-    common_score <- common_score + common_comp1
-    distinct_score_1 <- distinct_score_1 - common_comp1
-    distinct_score_2 <- distinct_score_2 - common_comp1
-  }
-  
-  distinct_score_1 <- cbind(distinct_score_1, score_1[,-(1:full_rank), drop = F])
-  distinct_score_2 <- cbind(distinct_score_2, score_2[,-(1:full_rank), drop = F])
-  
+  tmp <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = reorthogonalize)
+  common_score <- tmp$common_score
+  distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
+ 
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
   list(common_score = common_score, 
        distinct_score_1 = distinct_score_1,
@@ -226,6 +211,44 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   common_score <- .mult_mat_vec((score_1+score_2)/2, R_vec)
   
   common_score
+}
+
+.compute_distinct_score <- function(score_1, score_2, common_score, reorthogonalize = F){
+  full_rank <- ncol(common_score)
+  distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
+  distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
+  
+  if(reorthogonalize){
+    tmp <- .reorthgonalize_scores(common_score, distinct_score_1, distinct_score_2)
+    common_score <- tmp$common_score
+    distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
+  }
+  
+  # handle different ranks
+  distinct_score_1 <- cbind(distinct_score_1, score_1[,-(1:full_rank), drop = F])
+  distinct_score_2 <- cbind(distinct_score_2, score_2[,-(1:full_rank), drop = F])
+  
+  list(common_score = common_score, distinct_score_1 = distinct_score_1, 
+       distinct_score_2 = distinct_score_2)
+}
+
+.reorthgonalize_scores <- function(common_score, distinct_score_1, distinct_score_2, check = F){
+  tmp <- solve(crossprod(common_score))
+  tmp2 <- tcrossprod(tmp, common_score)
+  
+  common_comp1 <- common_score %*% (tmp2 %*% distinct_score_1)
+  
+  if(check){
+    common_comp2 <- common_score %*% (tmp2 %*% distinct_score_2)
+    stopifnot(all(abs(common_comp1 - common_comp2) <= 1e-6))
+  }
+ 
+  common_score <- common_score + common_comp1
+  distinct_score_1 <- distinct_score_1 - common_comp1
+  distinct_score_2 <- distinct_score_2 - common_comp1
+  
+  list(common_score = common_score, distinct_score_1 = distinct_score_1, 
+       distinct_score_2 = distinct_score_2)
 }
 
 ##############################################

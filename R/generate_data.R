@@ -9,8 +9,7 @@
 #'
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
 #' @export
-generate_data <- function(score_1, score_2,
-                          coef_mat_1, coef_mat_2, 
+generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2, reorthogonalize = F,
                           noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
             nrow(score_2) > ncol(score_2))
@@ -20,8 +19,9 @@ generate_data <- function(score_1, score_2,
   full_rank <- length(tmp$obj_vec)
   common_score <- .compute_common_score(score_1, score_2, obj_vec = tmp$diag_vec)
   
-  distinct_score_1 <- cbind(score_1[,1:full_rank, drop = F] - common_score, score_1[,-(1:full_rank), drop = F])
-  distinct_score_2 <- cbind(score_2[,1:full_rank, drop = F] - common_score, score_2[,-(1:full_rank), drop = F])
+  tmp <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = reorthogonalize)
+  common_score <- tmp$common_score
+  distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
   tmp1 <- crossprod(common_score); tmp2 <- crossprod(distinct_score_1); tmp3 <- crossprod(distinct_score_2)
   
