@@ -3,8 +3,7 @@
 heatmap_2d_decomposition <- function(vec1, vec2, 
                                      xlim = c(-0.1, 1.1)*max(c(vec1[1], vec2[1])),
                                      ylim = c(-0.1, 1.1)*max(c(vec1[2], vec2[2])),
-                                     gridsize1 = 100, gridsize2 = 200,
-                                     col_levels = 21){
+                                     gridsize = 100, col_levels = 21){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
   
@@ -14,8 +13,8 @@ heatmap_2d_decomposition <- function(vec1, vec2,
   len1 <- .l2norm(vec1); len2 <- .l2norm(vec2)
  
   # compute values
-  x_seq <- seq(xlim[1], xlim[2], length.out = gridsize1)
-  y_seq <- seq(ylim[1], ylim[2], length.out = gridsize1)
+  x_seq <- seq(xlim[1], xlim[2], length.out = gridsize)
+  y_seq <- seq(ylim[1], ylim[2], length.out = gridsize)
   grid_mat <- .construct_grid(x_seq, y_seq)
   values <- sapply(1:nrow(grid_mat), function(i){
     .compute_attempted_decomposition(vec1, vec2, common_vec = grid_mat[i,])
@@ -23,8 +22,7 @@ heatmap_2d_decomposition <- function(vec1, vec2,
   mat <- .arrange_gridvalues(x_seq, y_seq, values)
   
   # find the angle
-  common_vec <- .search_common_vec(vec1, vec2, mat, xmax = xlim[2], ymax = ylim[2],
-                                   gridsize = gridsize2)
+  common_vec <- .search_common_vec(vec1, vec2, mat, grid_mat)
   
   # plotting
   side_length <- floor(col_levels/2); max_val <- max(abs(mat))
@@ -77,11 +75,52 @@ heatmap_2d_decomposition <- function(vec1, vec2,
   mat
 }
 
-.search_common_vec <- function(vec1, vec2, mat, xmax, ymax, gridsize = 50){
-  res <- .rightmost_vector(vec1, vec2)
-  tot_ang <- .angle_between_vectors(vec1, vec2)
-  ang <- res$len_left/(res$len_left + res$len_right)*tot_ang
-  unit_vec <- .angle_from_vector(res$vec_right, ang)
+.search_common_vec <- function(vec1, vec2, mat, grid_mat){
+  stopifnot(nrow(grid_mat) == prod(dim(mat)), .l2norm(vec1) <= .l2norm(vec2))
+  num_val <- nrow(grid_mat)
+  len2 <- .l2norm(vec2)
+  
+  # fill out the boolean matrix
+  bool_array <- array(NA, dim = c(nrow(mat), ncol(mat), 3))
+  
+  # which vectors are not too long
+  bool_array[,,1] <- matrix(sapply(1:num_val, function(i){
+    .l2norm(grid_mat[i,]) <= len2
+  }), nrow = nrow(mat), ncol = ncol(mat))
+  
+  # which vectors are within the angle
+  ang1 <- .angle_between_vectors(vec1, c(1,0))
+  ang2 <- .angle_between_vectors(vec2, c(1,0))
+  bool_array[,,2] <- matrix(sapply(1:num_val, function(i){
+    ang <- .angle_between_vectors(grid_mat[i,], c(1,0))
+    ang <= max(c(ang1, ang2)) & ang >= min(c(ang1, ang2))
+  }), nrow = nrow(mat), ncol = ncol(mat))
+  
+  # which vectors have close-to-orthogonal values (try 5 different values to determine the range)
+  ang_vec <- seq(min(c(ang1, ang2)), max(c(ang1, ang2)), length.out = 7)[3:5]
+  val_vec <- sapply(ang_vec, function(ang){
+    .search_min_along_angle(mat, ang)
+  })
+  bool_array[,,3] <- (abs(mat) <= max(val_vec))
+  bool_mat <- apply(bool_array, c(1,2), all)
+  
+  # reorder all the indices by their angle
+  true_idx <- which(bool_mat)
+  grid_true <- grid_mat[true_idx,]
+  ang_vec <- sapply(1:nrow(grid_true), function(i){
+    .angle_between_vectors(grid_true[i,], c(1,0))
+  })
+  grid_true <- grid_true[order(ang_vec),]
+  
+  # compute the common percentages among the selected values
+  .max_common_perc(vec1, vec2, grid_true)
+}
+
+.search_min_along_angle <- function(mat, ang, gridsize = 100){
+  rad <- ang * pi/180
+  unit_vec <- c(cos(rad), sin(rad))
+  xmax <- max(as.numeric(rownames(mat)))
+  ymax <- max(as.numeric(colnames(mat)))
   
   unit_vec1 <- unit_vec * (xmax/unit_vec[1])
   unit_vec2 <- unit_vec * (ymax/unit_vec[2])
@@ -92,15 +131,14 @@ heatmap_2d_decomposition <- function(vec1, vec2,
   values <- sapply(perc_seq, function(perc){
     .search_min_in_direction_from_mat(search_vec*perc, mat)
   })
-  
-  common_vec <- search_vec*perc_seq[.search_first_min(values)]
-  common_vec
+
+  values[.search_first_min(values)]
 }
 
 .search_min_in_direction_from_mat <- function(vec, mat){
   x_seq <- as.numeric(rownames(mat))
   y_seq <- as.numeric(colnames(mat))
-  
+
   idx1 <- which.min(abs(vec[1] - x_seq)); idx2 <- which.min(abs(vec[2] - y_seq))
   abs(mat[idx1, idx2])
 }
@@ -108,8 +146,8 @@ heatmap_2d_decomposition <- function(vec1, vec2,
 .search_first_min <- function(vec){
   lower_quant <- stats::quantile(vec, prob = 0.05)
   idx <- which(vec <= lower_quant)
-  
-  # find all the first contiguous block 
+
+  # find all the first contiguous block
   if(length(idx) > 1){
     tmp <- idx[1]
     for(i in 2:length(idx)){
@@ -119,10 +157,30 @@ heatmap_2d_decomposition <- function(vec1, vec2,
         break()
       }
     }
-    
+
     tmp[which.min(vec[tmp])]
   } else {
     idx[1]
   }
- 
+}
+
+.max_common_perc <- function(vec1, vec2, grid_true){
+  len1 <- .l2norm(vec1); len2 <- .l2norm(vec2)
+  stopifnot(len1 <= len2)
+  ratio <- len1/len2
+  
+  common_perc <- sapply(1:nrow(grid_true), function(i){
+    common_vec2 <- grid_true[i,]
+    common_vec1 <- ratio*common_vec2
+    
+    tmp1 <- common_vec1 - .orthogonal_vec2vec(common_vec1, vec1)
+    tmp2 <- common_vec2 - .orthogonal_vec2vec(common_vec2, vec2)
+    
+    perc1 <- .l2norm(tmp1)/.l2norm(vec1)
+    perc2 <- .l2norm(tmp2)/.l2norm(vec2)
+    mean(c(perc1, perc2))
+  })
+  plot(common_perc)
+  
+  grid_true[which.max(common_perc),]
 }

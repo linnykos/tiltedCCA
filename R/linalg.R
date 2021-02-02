@@ -25,3 +25,20 @@
     list(vec_right = vec2, vec_left = vec1, len_right = .l2norm(vec2), len_left = .l2norm(vec1))
   }
 }
+
+#' Projection of vector onto another vector
+#'
+#' Returns the component of \code{vec1} that is orthogonal to \code{vec2}
+#'
+#' @param vec1 vector
+#' @param vec2 vector
+#' @param tol small positive number
+#'
+#' @return vector
+.orthogonal_vec2vec <- function(vec1, vec2, tol = 1e-6){
+  stopifnot(length(vec1) == length(vec2))
+  
+  d <- length(vec1)
+  vec2 <- vec2/.l2norm(vec2)
+  as.numeric((diag(d) - vec2%*%t(vec2))%*%vec1)
+}
