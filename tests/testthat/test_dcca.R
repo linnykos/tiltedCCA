@@ -708,8 +708,8 @@ test_that("(Basic) dcca_factor works", {
   transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
   transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
   
-  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
-  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
   res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
   
@@ -839,7 +839,7 @@ test_that("(Coding) dcca_factor works with meta-cells", {
 
 test_that("(Basic) dcca_decomposition works", {
   set.seed(1)
-  n <- 100; K <- 2
+  n <- 100; K <- 3
   common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
   
   p1 <- 5; p2 <- 10
@@ -1131,6 +1131,41 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise", {
   expect_true(all(bool_vec))
 })
 
+test_that("(Math) dcca_decomposition yields the same matrix w/ and w/o reorthoganlize", {
+  trials <- 20
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    n <- 100; K <- 2
+    common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+    
+    p1 <- 5; p2 <- 10
+    transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+    transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+    
+    mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+    mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+    
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, 
+                            apply_shrinkage = F, verbose = F, reorthogonalize = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+    
+    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, 
+                            apply_shrinkage = F, verbose = F, reorthogonalize = T)
+    res2 <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+    
+    tmp1a <- res$common_mat_1+res$distinct_mat_1
+    tmp2a <- res$common_mat_2+res$distinct_mat_2
+    
+    tmp1b <- res2$common_mat_1+res2$distinct_mat_1
+    tmp2b <- res2$common_mat_2+res2$distinct_mat_2
+    
+    sum(abs(tmp1a-tmp1b)) + sum(abs(tmp2a-tmp2b)) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
 test_that("(Math) dcca_decomposition is a decomposition under no noise with meta-cells", {
   trials <- 20
   
@@ -1205,6 +1240,51 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
+})
+
+test_that("(Math) dcca_decomposition's final matrix can be recovered with a literal projection", {
+  trials <- 100
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    B_mat <- matrix(c(0.9, 0.4, 0.1,
+                      0.4, 0.9, 0.1,
+                      0.1, 0.1, 0.3), 3, 3)
+    K <- ncol(B_mat); n_clust <- 50; rho <- 0.1
+    
+    true_membership_vec <- rep(1:4, each = n_clust)
+    n <- length(true_membership_vec)
+    
+    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
+    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
+    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    
+    p_1 <- 20; p_2 <- 40
+    coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
+    coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+    dat <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
+    
+    dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
+                            apply_shrinkage = F, verbose = F, reorthogonalize = F)
+    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+    
+    dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
+                            apply_shrinkage = F, verbose = F, reorthogonalize = T)
+    res2 <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+    
+    # extract the columnspace
+    col1 <- svd(res$common_mat_1)$u[,1:K]; col2 <- svd(res$common_mat_2)$u[,1:K]
+    tmp1 <- (diag(nrow(col1)) - col1 %*% t(col1)) %*% res$distinct_mat_1
+    tmp2 <- (diag(nrow(col2)) - col2 %*% t(col2)) %*% res$distinct_mat_2
+    
+    bool1 <- sum(abs(tmp1 - res2$distinct_mat_1)) <= 1e-6
+    bool2 <- sum(abs(tmp2 - res2$distinct_mat_2)) <= 1e-6
+    
+    bool1 & bool2
+  })
+  
+  expect_true(all(bool_vec))
 })
 
 ####################################

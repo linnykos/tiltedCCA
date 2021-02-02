@@ -8,9 +8,9 @@
   if(min(dim(mat)) > K+2){
     res <- tryCatch({
       # ask for more singular values than needed to ensure stability
-      RSpectra::svds(mat, k = K+2)
+      irlba::irlba(mat, k = K+2)
     }, error = function(e){
-      irlba::irlba(mat, nv = K+2)
+      RSpectra::svds(mat, nv = K+2)
     })
   } else {
     res <- svd(mat)
