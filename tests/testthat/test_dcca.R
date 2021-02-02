@@ -495,11 +495,6 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   expect_true(all(rownames(mat_1) == rownames(res$common_score)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
-  
-  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
-  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
-  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
-  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
 })
 
 test_that("(Coding) .dcca_common_score works with K=1 for either", {
@@ -540,78 +535,6 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   expect_true(all(dim(res$common_score) == c(n,1)))
   expect_true(all(dim(res$distinct_score_1) == c(n,1)))
   expect_true(all(dim(res$distinct_score_2) == c(n,1)))
-})
-
-test_that("(Coding) .dcca_common_score works with K=1 for either, with reorthgonalize", {
-  set.seed(5)
-  n <- 100; K <- 2
-  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
-  
-  p1 <- 5; p2 <- 10
-  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
-  
-  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
-  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
-  
-  mat_1 <- scale(mat_1, center = T, scale = F)
-  mat_2 <- scale(mat_2, center = T, scale = F)
-  
-  svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = K)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
-  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
-  expect_true(all(dim(res$common_score) == c(n,1)))
-  expect_true(all(dim(res$distinct_score_1) == c(n,1)))
-  expect_true(all(dim(res$distinct_score_2) == c(n,K)))
-  
-  svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = 1)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
-  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
-  expect_true(all(dim(res$common_score) == c(n,1)))
-  expect_true(all(dim(res$distinct_score_1) == c(n,K)))
-  expect_true(all(dim(res$distinct_score_2) == c(n,1)))
-  
-  svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = 1)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
-  res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
-  expect_true(all(dim(res$common_score) == c(n,1)))
-  expect_true(all(dim(res$distinct_score_1) == c(n,1)))
-  expect_true(all(dim(res$distinct_score_2) == c(n,1)))
-})
-
-test_that("(Math) .dcca_common_score with reorthogonalize is correct", {
-  trials <- 100
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    n <- 100; K <- 2
-    common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
-    
-    p1 <- 5; p2 <- 10
-    transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-    transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
-    
-    mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
-    mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
-    
-    mat_1 <- scale(mat_1, center = T, scale = F)
-    mat_2 <- scale(mat_2, center = T, scale = F)
-    
-    svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-    cca_res <- .cca(svd_1, svd_2)
-    res <- .dcca_common_score(svd_1, svd_2, cca_res, check_alignment = F, reorthogonalize = T, verbose = F)
-    
-    prod_mat1 <- crossprod(res$common_score, res$distinct_score_1)
-    prod_mat2 <- crossprod(res$common_score, res$distinct_score_2)
-    
-    sum(abs(prod_mat1)) <= 1e-6 & sum(abs(prod_mat2)) <= 1e-6 
-  })
-  
-  expect_true(all(bool_vec))
 })
 
 test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
@@ -861,29 +784,6 @@ test_that("(Basic) dcca_decomposition works", {
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
-
-test_that("(Math) dcca_decomposition with reorthogonalize yields uncorrelated common and distinct components", {
-  set.seed(1)
-  n <- 100; K <- 2
-  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
-  
-  p1 <- 5; p2 <- 10
-  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
-  
-  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
-  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
-  
-  dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, reorthogonalize = T, verbose = F)
-  res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-  
-  prod_mat1 <- crossprod(res$common_mat_1, res$distinct_mat_1)
-  prod_mat2 <- crossprod(res$common_mat_2, res$distinct_mat_2)
-  
-  expect_true(sum(abs(prod_mat1)) <= 1e-6)
-  expect_true(sum(abs(prod_mat2)) <= 1e-6)
-})
-
 test_that("(Coding) dcca_decomposition preserves rownames and colnames", {
   set.seed(1)
   n <- 100; K <- 2
@@ -1131,41 +1031,6 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise", {
   expect_true(all(bool_vec))
 })
 
-test_that("(Math) dcca_decomposition yields the same matrix w/ and w/o reorthoganlize", {
-  trials <- 20
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    n <- 100; K <- 2
-    common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
-    
-    p1 <- 5; p2 <- 10
-    transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-    transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
-    
-    mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
-    mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
-    
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, 
-                            apply_shrinkage = F, verbose = F, reorthogonalize = F)
-    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-    
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, 
-                            apply_shrinkage = F, verbose = F, reorthogonalize = T)
-    res2 <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-    
-    tmp1a <- res$common_mat_1+res$distinct_mat_1
-    tmp2a <- res$common_mat_2+res$distinct_mat_2
-    
-    tmp1b <- res2$common_mat_1+res2$distinct_mat_1
-    tmp2b <- res2$common_mat_2+res2$distinct_mat_2
-    
-    sum(abs(tmp1a-tmp1b)) + sum(abs(tmp2a-tmp2b)) <= 1e-6
-  })
-  
-  expect_true(all(bool_vec))
-})
-
 test_that("(Math) dcca_decomposition is a decomposition under no noise with meta-cells", {
   trials <- 20
   
@@ -1240,51 +1105,6 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
-})
-
-test_that("(Math) dcca_decomposition's final matrix can be recovered with a literal projection", {
-  trials <- 100
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    B_mat <- matrix(c(0.9, 0.4, 0.1,
-                      0.4, 0.9, 0.1,
-                      0.1, 0.1, 0.3), 3, 3)
-    K <- ncol(B_mat); n_clust <- 50; rho <- 0.1
-    
-    true_membership_vec <- rep(1:4, each = n_clust)
-    n <- length(true_membership_vec)
-    
-    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
-    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
-    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    
-    p_1 <- 20; p_2 <- 40
-    coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-    coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
-    dat <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
-    
-    dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
-                            apply_shrinkage = F, verbose = F, reorthogonalize = F)
-    res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-    
-    dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
-                            apply_shrinkage = F, verbose = F, reorthogonalize = T)
-    res2 <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-    
-    # extract the columnspace
-    col1 <- svd(res$common_mat_1)$u[,1:K]; col2 <- svd(res$common_mat_2)$u[,1:K]
-    tmp1 <- (diag(nrow(col1)) - col1 %*% t(col1)) %*% res$distinct_mat_1
-    tmp2 <- (diag(nrow(col2)) - col2 %*% t(col2)) %*% res$distinct_mat_2
-    
-    bool1 <- sum(abs(tmp1 - res2$distinct_mat_1)) <= 1e-6
-    bool2 <- sum(abs(tmp2 - res2$distinct_mat_2)) <= 1e-6
-    
-    bool1 & bool2
-  })
-  
-  expect_true(all(bool_vec))
 })
 
 ####################################
@@ -1380,75 +1200,6 @@ test_that(".compute_common_score preserves rownames and colnames", {
   # observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)
 })
 
-#######################
-
-## .reorthgonalize_scores is correct
-
-test_that("(Basic) .reorthgonalize_scores works", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                    0.4, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3)
-  K <- ncol(B_mat)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec)
-  rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  
-  tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  common_score <- .compute_common_score(score_1, score_2)
-  full_rank <- ncol(common_score)
-  distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
-  distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
-  
-  res <- .reorthgonalize_scores(common_score, distinct_score_1, distinct_score_2, check = T)
-  
-  expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_score_1", "distinct_score_2"))))
-  expect_true(all(dim(res$common_score) == dim(common_score)))
-  expect_true(all(dim(res$distinct_score_1) == dim(distinct_score_1)))
-  expect_true(all(dim(res$distinct_score_2) == dim(distinct_score_2)))
-})
-
-test_that("(Math) .reorthgonalize_scores passes check=T", {
-  trials <- 100
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    B_mat <- matrix(c(0.9, 0.4, 0.1,
-                      0.4, 0.9, 0.1,
-                      0.1, 0.1, 0.3), 3, 3)
-    K <- ncol(B_mat); n_clust <- 50; rho <- 1
-    
-    true_membership_vec <- rep(1:4, each = n_clust)
-    n <- length(true_membership_vec)
-    
-    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
-    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    
-    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
-    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    
-    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    common_score <- .compute_common_score(score_1, score_2)
-    full_rank <- ncol(common_score)
-    distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
-    distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
-    
-    res <- .reorthgonalize_scores(common_score, distinct_score_1, distinct_score_2, check = T)
-    
-    all(dim(res$common_score) == dim(common_score)) & 
-      all(dim(res$distinct_score_1) == dim(distinct_score_1)) &
-      all(dim(res$distinct_score_2) == dim(distinct_score_2))
-  })
-  
-  expect_true(all(bool_vec))
-})
-
 #####################################
 
 ## .compute_distinct_score is correct
@@ -1470,14 +1221,7 @@ test_that("(Basic) .compute_distinct_score works", {
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   common_score <- .compute_common_score(score_1, score_2)
   
-  res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = F)
-  expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_score_1", "distinct_score_2"))))
-  expect_true(all(dim(res$common_score) == dim(common_score)))
-  expect_true(all(dim(res$distinct_score_1) == dim(score_1)))
-  expect_true(all(dim(res$distinct_score_2) == dim(score_2)))
-  
-  res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = T)
+  res <- .compute_distinct_score(score_1, score_2, common_score)
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_score_1", "distinct_score_2"))))
   expect_true(all(dim(res$common_score) == dim(common_score)))
@@ -1485,7 +1229,7 @@ test_that("(Basic) .compute_distinct_score works", {
   expect_true(all(dim(res$distinct_score_2) == dim(score_2)))
 })
 
-test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices with reorthoganlize=F", {
+test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices", {
   trials <- 100
   
   bool_vec <- sapply(1:trials, function(x){
@@ -1507,42 +1251,9 @@ test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices
     tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     common_score <- .compute_common_score(score_1, score_2)
-    res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = F)
+    res <- .compute_distinct_score(score_1, score_2, common_score)
     
     all(abs(crossprod(res$distinct_score_1, res$distinct_score_2)) <= 1e-6)
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-test_that("(Math) .compute_distinct_score generates orthogonal distinct/common matrices with reorthoganlize=T", {
-  trials <- 100
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    B_mat <- matrix(c(0.9, 0.4, 0.1,
-                      0.4, 0.9, 0.1,
-                      0.1, 0.1, 0.3), 3, 3)
-    K <- ncol(B_mat); n_clust <- 50; rho <- 0.1
-    
-    true_membership_vec <- rep(1:4, each = n_clust)
-    n <- length(true_membership_vec)
-    
-    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, 2*n_clust))
-    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    
-    membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
-    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    
-    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    common_score <- .compute_common_score(score_1, score_2)
-    res <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = T)
-    
-    bool1 <- all(abs(crossprod(res$distinct_score_1, res$common_score)) <= 1e-6)
-    bool2 <- all(abs(crossprod(res$distinct_score_2, res$common_score)) <= 1e-6)
-    
-    bool1 & bool2
   })
   
   expect_true(all(bool_vec))

@@ -1,4 +1,4 @@
-#' D-PLS Factorization
+#' D-MCA Factorization
 #'
 #' @param mat_1 data matrix 1
 #' @param mat_2 data matrix 2
@@ -9,16 +9,16 @@
 #'
 #' @return list of class \code{dcca}
 #' @export
-dpls_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
+dmca_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
                         verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), rank_1 == rank_2)
   n <- nrow(mat_1)
-  if(verbose) print("D-PLS: Rescaling matrices")
+  if(verbose) print("D-MCA: Rescaling matrices")
   mat_1 <- scale(mat_1, center = T, scale = F)
   mat_2 <- scale(mat_2, center = T, scale = F)
   
-  if(verbose) print(paste0("D-PLS: Starting matrix shrinkage"))
+  if(verbose) print(paste0("D-MCA: Starting matrix shrinkage"))
   if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1)
   if(apply_shrinkage) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2)
   
@@ -26,59 +26,59 @@ dpls_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
 
   # alternatively, apply D-CCA to all cells
   msg <- " (all cells)"
-  if(verbose) print(paste0("D-PLS", msg, ": Computing PLS"))
-  pls_res <- .pls(svd_1, svd_2, rank = min(rank_1, rank_2))
+  if(verbose) print(paste0("D-MCA", msg, ": Computing MCA"))
+  mca_res <- .mca(svd_1, svd_2, rank = min(rank_1, rank_2))
   
-  res <- .pls_common_score(svd_1, svd_2, pls_res,
+  res <- .mca_common_score(svd_1, svd_2, mca_res,
                            verbose = verbose, msg = msg)
   
-  class(res) <- "dpls"
+  class(res) <- "dmca"
   res
 }
 
-#' D-PLS Decomposition
+#' D-MCA Decomposition
 #'
-#' @param dpls_res output from \code{dpls_factor}
+#' @param dmca_res output from \code{dmca_factor}
 #' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
 #' @param verbose boolean
 #'
-#' @return list of class \code{dpls_decomp}
+#' @return list of class \code{dmca_decomp}
 #' @export
-dcca_decomposition <- function(dpls_res, verbose = T){
-  stopifnot(class(dcca_res) == "dpls")
-  n <- nrow(dpls_res$svd_1$u)
-  full_rank <- ncol(dpls_res$pls_res$u)
+dmca_decomposition <- function(dmca_res, verbose = T){
+  stopifnot(class(dcca_res) == "dmca")
+  n <- nrow(dmca_res$svd_1$u)
+  full_rank <- ncol(dmca_res$mca_res$u)
   
-  if(verbose) print("D-PLS: Form coefficient matrices")
+  if(verbose) print("D-MCA: Form coefficient matrices")
   # WARNING: this seems to current assume that the ranks are equal
-  coef_1 <- tcrossprod(solve(crossprod(svd_1$v, pls_res$pls_res$u)), svd_1$v)
-  coef_2 <- tcrossprod(solve(crossprod(svd_2$v, pls_res$pls_res$v)), svd_2$v)
+  coef_1 <- .mca_coef_mat(svd_1$v, mca_res$mca_res$u)
+  coef_2 <- .mca_coef_mat(svd_2$v, mca_res$mca_res$v)
   
-  if(verbose) print("D-PLS: Computing common matrices")
-  common_mat_1 <- pls_res$common_mat_1 %*% coef_1
-  common_mat_2 <- pls_res$common_mat_2 %*% coef_2
+  if(verbose) print("D-MCA: Computing common matrices")
+  common_mat_1 <- mca_res$common_mat_1 %*% coef_1
+  common_mat_2 <- mca_res$common_mat_2 %*% coef_2
   
-  if(verbose) print("D-PLS: Computing distinctive matrices")
-  distinct_mat_1 <- (pls_res$score_1 - pls_res$common_mat_1) %*% coef_1
-  distinct_mat_2 <- (pls_res$score_2 - pls_res$common_mat_2) %*% coef_1
+  if(verbose) print("D-MCA: Computing distinctive matrices")
+  distinct_mat_1 <- (mca_res$score_1 - mca_res$common_mat_1) %*% coef_1
+  distinct_mat_2 <- (mca_res$score_2 - mca_res$common_mat_2) %*% coef_1
   
-  if(verbose) print("D-PLS: Done")
+  if(verbose) print("D-MCA: Done")
   structure(list(common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
                  distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
-                 pls_obj = pls_res$pls_res$d), class = "dpls_decomp")
+                 mca_obj = mca_res$mca_res$d), class = "dmca_decomp")
 }
 
 #############################
 
-.pls <- function(svd_1, svd_2, rank){
+.mca <- function(svd_1, svd_2, rank){
   .svd_truncated(crossprod(.mult_mat_vec(svd_1$v, svd_1$d), svd_1$u) %*% tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), K = rank)
 }
 
-.pls_common_score <- function(svd_1, svd_2, pls_res,
+.mca_common_score <- function(svd_1, svd_2, mca_res,
                               verbose = T, msg = ""){
-  n <- nrow(svd_1$u); K <- ncol(pls_res$u)
-  score_1 <- .mult_mat_vec(svd_1$u, svd_1$d) %*% crossprod(svd_1$v, pls_res$u)
-  score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, pls_res$v)
+  n <- nrow(svd_1$u); K <- ncol(mca_res$u)
+  score_1 <- .mult_mat_vec(svd_1$u, svd_1$d) %*% crossprod(svd_1$v, mca_res$u)
+  score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, mca_res$v)
   
   common_mat_1 <- matrix(NA, nrow = n, ncol = K)
   common_mat_2 <- matrix(NA, nrow = n, ncol = K)
@@ -90,7 +90,14 @@ dcca_decomposition <- function(dpls_res, verbose = T){
     common_mat_2[,j] <- basis_res$basis_mat %*% tmp_decomp$common_vec2
   }
   
-  list(svd_1 = svd_1, svd_2 = svd_2, pls_res = pls_res,
+  list(svd_1 = svd_1, svd_2 = svd_2, mca_res = mca_res,
        score_1 = score_2, score_2 = score_2,
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2)
+}
+
+.mca_coef_mat <- function(singular_mat, loading_mat){
+  stopifnot(nrow(singular_mat) == nrow(loading_mat),
+            ncol(singular_mat) == ncol(loading_mat))
+  
+  tcrossprod(solve(crossprod(singular_mat, loading_mat)), singular_mat)
 }

@@ -35,6 +35,7 @@ test_that("heteroPCA improves upon the typical covariance estimator", {
   
   trials <- 20
   result_mat <- sapply(1:trials, function(x){
+    set.seed(x)
     
     obs_mat <- matrix(NA, nrow = n, ncol = p)
     for(i in 1:n){

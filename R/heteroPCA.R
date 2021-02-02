@@ -30,6 +30,6 @@ heteroPCA <- function(mat, K, max_iter = 25, tol = 1e-4, verbose = T){
   }
   
   if(verbose) print("heteroPCA: Final iteration")
-  res <- .svd_truncated(cov_mat, K)
+  res <- .svd_truncated(cov_mat, K, symmetric = T)
   tcrossprod(.mult_mat_vec(res$u, res$d), res$v)
 }

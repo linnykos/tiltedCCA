@@ -2,15 +2,20 @@
 
 ##############
 
-.svd_truncated <- function(mat, K = min(dim(mat))){
+.svd_truncated <- function(mat, K = min(dim(mat)), symmetric = F){
   stopifnot(min(dim(mat)) >= K)
   
-  if(min(dim(mat)) > K+2){
+  if(min(dim(mat)) > 2*(K+2)){
     res <- tryCatch({
       # ask for more singular values than needed to ensure stability
-      irlba::irlba(mat, k = K+2)
+      if(symmetric){
+        tmp <- irlba::partial_eigen(mat, n = K+2)
+        list(u = tmp$vectors, d = tmp$values, v = tmp$vectors)
+      } else {
+        irlba::irlba(mat, nv = K+2)
+      }
     }, error = function(e){
-      RSpectra::svds(mat, nv = K+2)
+      RSpectra::svds(mat, k = K+2)
     })
   } else {
     res <- svd(mat)
