@@ -41,6 +41,10 @@
   svd_res
 }
 
+.recover_mat_from_svd <- function(svd_res){
+  tcrossprod(.mult_mat_vec(svd_res$u, svd_res$d), svd_res$v)
+}
+
 .equalize_norm <- function(mat_1, mat_2){
   vec_1 <- apply(mat_1, 2, .l2norm)
   vec_2 <- apply(mat_2, 2, .l2norm)

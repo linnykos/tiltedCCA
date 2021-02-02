@@ -10,8 +10,11 @@
   # relabel so vec1 is always shorter
   len1 <- .l2norm(vec1); len2 <- .l2norm(vec2); flipped <- F
   if(len1 > len2){ flipped <- T; tmp <- vec2; vec2 <- vec1; vec1 <- tmp }
-  len1 <- .l2norm(vec1); len2 <- .l2norm(vec2); ratio <- len1/len2
- 
+  len1 <- .l2norm(vec1); len2 <- .l2norm(vec2)
+  rescaling_factor <- max(c(len1, len2))
+  vec1 <- vec1/rescaling_factor; vec2 <- vec2/rescaling_factor
+  ratio <- len1/len2
+  
   # compute values
   x_seq <- seq(xlim[1], xlim[2], length.out = gridsize)
   y_seq <- seq(ylim[1], ylim[2], length.out = gridsize)
@@ -23,6 +26,11 @@
   
   # find the angle
   common_vec <- .search_common_vec(vec1, vec2, mat, grid_mat)
+  
+  # restore original scale
+  vec1 <- vec1*rescaling_factor; vec2 <- vec2*rescaling_factor
+  common_vec <- common_vec*rescaling_factor
+  x_seq <- x_seq*rescaling_factor; y_seq <- y_seq*rescaling_factor
   
   # plotting
   if(!plotting) { 
@@ -124,11 +132,17 @@
   
   # reorder all the indices by their angle
   true_idx <- which(bool_mat)
-  grid_true <- grid_mat[true_idx,]
-  ang_vec <- sapply(1:nrow(grid_true), function(i){
-    .angle_between_vectors(grid_true[i,], c(1,0))
-  })
-  grid_true <- grid_true[order(ang_vec),]
+  if(length(true_idx) == 0){
+    # emergency case
+    return(c((vec1[1]+vec2[1])/2, (vec1[2]+vec2[2])/2))
+  }
+  grid_true <- grid_mat[true_idx,,drop = F]
+  if(nrow(grid_true) > 1){
+    ang_vec <- sapply(1:nrow(grid_true), function(i){
+      .angle_between_vectors(grid_true[i,], c(1,0))
+    })
+    grid_true <- grid_true[order(ang_vec),,drop = F]
+  }
   
   # compute the common percentages among the selected values
   .max_common_cor(vec1, vec2, grid_true)
@@ -194,5 +208,5 @@
     .cor_vectors(common_vec1, vec1)^2 + .cor_vectors(common_vec2, vec2)^2
   })
   
-  grid_true[which.max(common_perc),]
+  grid_true[which.max(common_cor),]
 }

@@ -71,7 +71,7 @@ dmca_decomposition <- function(dmca_res, verbose = T){
 #############################
 
 .mca <- function(svd_1, svd_2, rank){
-  .svd_truncated(crossprod(.mult_mat_vec(svd_1$v, svd_1$d), svd_1$u) %*% tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), K = rank)
+  .svd_truncated(tcrossprod(svd_1$v %*% crossprod(.mult_mat_vec(svd_1$u, svd_1$d), .mult_mat_vec(svd_2$u, svd_2$d)), svd_2$v), K = rank)
 }
 
 .mca_common_score <- function(svd_1, svd_2, mca_res,
@@ -85,10 +85,15 @@ dmca_decomposition <- function(dmca_res, verbose = T){
   
   for(j in 1:K){
     basis_res <- .representation_2d(score_1[,j], score_2[,j])
+    stopifnot(all(basis_res$rep1 >= 0), all(basis_res$rep2 >= 0))
+    
     tmp_decomp <- .decomposition_2d(basis_res$rep1, basis_res$rep2, plotting = F)
     common_mat_1[,j] <- basis_res$basis_mat %*% tmp_decomp$common_vec1
     common_mat_2[,j] <- basis_res$basis_mat %*% tmp_decomp$common_vec2
   }
+  
+  if(length(rownames(svd_1$u)) != 0) rownames(common_mat_1) <- rownames(svd_1$u)
+  if(length(colnames(svd_2$u)) != 0) rownames(common_mat_2) <- colnames(svd_2$u)
   
   list(svd_1 = svd_1, svd_2 = svd_2, mca_res = mca_res,
        score_1 = score_2, score_2 = score_2,

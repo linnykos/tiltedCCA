@@ -1,4 +1,4 @@
-context("Test DCCA")
+context("Test D-CCA")
 
 ## .spoet is correct
 

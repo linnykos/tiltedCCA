@@ -8,7 +8,8 @@
   
   basis_mat <- cbind(unit1, unit2)
   rep1 <- c(.l2norm(vec1), 0)
-  rep2 <- c(.l2norm(vec2-tmp), .l2norm(tmp))
+  rep2 <- as.numeric(crossprod(basis_mat, vec2))
+  names(rep2) <- NULL
   
   list(basis_mat = basis_mat, rep1 = rep1, rep2 = rep2)
 }
