@@ -1,6 +1,6 @@
 ## construct the plot given 2 vectors in 2D
 ## blue is angle close to 0, white is angle close to 90, red is angle close to 180
-decomposition_2d <- function(vec1, vec2, 
+.decomposition_2d <- function(vec1, vec2, 
                              xlim = c(-0.1, 1.1)*max(c(vec1[1], vec2[1])),
                              ylim = c(-0.1, 1.1)*max(c(vec1[2], vec2[2])),
                              plotting = T, gridsize = 100, col_levels = 21){
@@ -8,8 +8,8 @@ decomposition_2d <- function(vec1, vec2,
             all(c(vec1, vec2) >= 0))
   
   # relabel so vec1 is always shorter
-  len1 <- .l2norm(vec1); len2 <- .l2norm(vec2)
-  if(len1 > len2){ tmp <- vec2; vec2 <- vec1; vec1 <- tmp }
+  len1 <- .l2norm(vec1); len2 <- .l2norm(vec2); flipped <- F
+  if(len1 > len2){ flipped <- T; tmp <- vec2; vec2 <- vec1; vec1 <- tmp }
   len1 <- .l2norm(vec1); len2 <- .l2norm(vec2); ratio <- len1/len2
  
   # compute values
@@ -28,8 +28,14 @@ decomposition_2d <- function(vec1, vec2,
   if(!plotting) { 
     common_vec2 <- common_vec; common_vec1 <- ratio*common_vec2
     distinct_vec1 <- vec1 - common_vec1; distinct_vec2 <- vec2 - common_vec2
-    list(common_vec1 = common_vec1, common_vec2 = common_vec2,
-         distinct_vec1 = distinct_vec1, distinct_vec2 = distinct_vec2)
+    
+    if(!flipped){
+      list(common_vec1 = common_vec1, common_vec2 = common_vec2,
+           distinct_vec1 = distinct_vec1, distinct_vec2 = distinct_vec2)
+    } else {
+      list(common_vec1 = common_vec2, common_vec2 = common_vec1,
+           distinct_vec1 = distinct_vec2, distinct_vec2 = distinct_vec1)
+    }
     
   } else {
     side_length <- floor(col_levels/2); max_val <- max(abs(mat))

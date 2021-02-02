@@ -5,7 +5,7 @@
 #' @param mat_1 data matrix 1
 #' @param mat_2 data matrix 2
 #' @param rank_1 desired rank of data matrix 1
-#' @param rank_2 desired rank of data matrix 1
+#' @param rank_2 desired rank of data matrix 2
 #' @param meta_clustering optional clustering
 #' @param apply_shrinkage boolean 
 #' @param verbose boolean
