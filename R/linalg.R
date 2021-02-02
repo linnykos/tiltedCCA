@@ -1,8 +1,26 @@
 ## given 2 vectors, find the hyperplane 2D representation
+.representation_2d <- function(vec1, vec2){
+  stopifnot(length(vec1) == length(vec2))
+  
+  unit1 <- vec1/.l2norm(vec1)
+  tmp <- .orthogonal_vec2vec(vec2, unit1)
+  unit2 <- tmp/.l2norm(tmp)
+  
+  basis_mat <- cbind(unit1, unit2)
+  rep1 <- c(.l2norm(vec1), 0)
+  rep2 <- c(.l2norm(vec2-tmp), .l2norm(tmp))
+  
+  list(basis_mat = basis_mat, rep1 = rep1, rep2 = rep2)
+}
+
+#############
+
+.cor_vectors <- function(vec1, vec2){
+  (vec1 %*%vec2)/(.l2norm(vec1)*.l2norm(vec2))
+}
 
 .angle_between_vectors <- function(vec1, vec2){
-  theta <- (vec1 %*%vec2)/(.l2norm(vec1)*.l2norm(vec2))
-  acos(theta)*180/pi
+  acos(.cor_vectors(vec1, vec2))*180/pi
 }
 
 .angle_from_vector <- function(vec, angle){
@@ -42,3 +60,4 @@
   vec2 <- vec2/.l2norm(vec2)
   as.numeric((diag(d) - vec2%*%t(vec2))%*%vec1)
 }
+
