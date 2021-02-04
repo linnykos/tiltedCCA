@@ -30,6 +30,8 @@
   # refine common vector using zero-order optimization to ensure distinct vectors are orthogonal
   common_vec <- .optimize_common_vector(vec1, vec2, common_vec)
   
+  # THINK ABOUT: last catch-all: orthogonalize the distinct vectors and then set the common_vec's to be resulting vector
+  
   # restore original scale
   vec1 <- vec1*rescaling_factor; vec2 <- vec2*rescaling_factor
   common_vec <- common_vec*rescaling_factor

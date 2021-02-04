@@ -121,8 +121,12 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 extract_embedding <- function(obj, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T, 
                               only_embedding = T, reduction_key = "UMAP"){
-  stopifnot(class(obj) == "dcca_decomp")
-  rank_c <- ifelse((common_1 | common_2), ncol(obj$common_score), 1)
+  stopifnot(class(obj) %in% c("dcca_decomp", "dmca_decomp"))
+  if(class(obj) == "dcca_decomp") {
+    rank_c <- ifelse((common_1 | common_2), ncol(obj$common_score), 1)
+  } else {
+    rank_c <- ifelse((common_1 | common_2), ncol(obj$common_score_1), 1)
+  }
   rank_1 <- ifelse(distinct_1, ncol(obj$distinct_score_1), 1)
   rank_2 <- ifelse(distinct_2, ncol(obj$distinct_score_2), 1)
   

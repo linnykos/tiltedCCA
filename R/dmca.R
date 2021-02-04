@@ -59,12 +59,16 @@ dmca_decomposition <- function(dmca_res, verbose = T){
   common_mat_2 <- dmca_res$common_mat_2 %*% coef_2
   
   if(verbose) print("D-MCA: Computing distinctive matrices")
-  distinct_mat_1 <- (dmca_res$score_1 - dmca_res$common_mat_1) %*% coef_1
-  distinct_mat_2 <- (dmca_res$score_2 - dmca_res$common_mat_2) %*% coef_2
+  distinct_score_1 <- dmca_res$score_1 - dmca_res$common_mat_1
+  distinct_score_2 <- dmca_res$score_2 - dmca_res$common_mat_2
+  distinct_mat_1 <- distinct_score_1 %*% coef_1
+  distinct_mat_2 <- distinct_score_2 %*% coef_2
   
   if(verbose) print("D-MCA: Done")
   structure(list(common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
                  distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
+                 common_score_1 = dmca_res$common_mat_1, common_score_2 = dmca_res$common_mat_2,
+                 distinct_score_1 = distinct_score_1, distinct_score_2 = distinct_score_2,
                  mca_obj = dmca_res$mca_res$d), class = "dmca_decomp")
 }
 
