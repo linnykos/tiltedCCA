@@ -1,8 +1,8 @@
 ## construct the plot given 2 vectors in 2D
 ## blue is angle close to 0, white is angle close to 90, red is angle close to 180
 .decomposition_2d <- function(vec1, vec2, 
-                             xlim = c(-0.1, 1.1)*max(c(vec1[1], vec2[1])),
-                             ylim = c(-0.1, 1.1)*max(c(vec1[2], vec2[2])),
+                             xlim = c(-0.1, 1.1)*max(c(vec1, vec2)),
+                             ylim = c(-0.1, 1.1)*max(c(vec1, vec2)),
                              plotting = T, gridsize = 100, col_levels = 21){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
@@ -24,8 +24,11 @@
   })
   mat <- .arrange_gridvalues(x_seq, y_seq, values)
   
-  # find the angle
+  # find the common vector
   common_vec <- .search_common_vec(vec1, vec2, mat, grid_mat)
+  
+  # refine common vector using zero-order optimization to ensure distinct vectors are orthogonal
+  common_vec <- .optimize_common_vector(vec1, vec2, common_vec)
   
   # restore original scale
   vec1 <- vec1*rescaling_factor; vec2 <- vec2*rescaling_factor
@@ -209,4 +212,26 @@
   })
   
   grid_true[which.max(common_cor),]
+}
+
+.optimize_common_vector <- function(vec1, vec2, common_vec, 
+                                    min_val = 0.9, max_val = 1.1){
+  len1 <- .l2norm(vec1); len2 <- .l2norm(vec2)
+  stopifnot(len1 <= len2)
+  ratio <- len1/len2
+  
+  fun <- function(x){
+    common_vec2 <- x*common_vec
+    common_vec1 <- ratio*common_vec2
+    
+    distinct_vec1 <- vec1 - common_vec1
+    distinct_vec2 <- vec2 - common_vec2
+    
+    abs(.angle_between_vectors(distinct_vec1, distinct_vec2)-90)
+  }
+  
+  res <- stats::optimize(fun, interval = c(min_val, max_val),
+                         maximum = F)
+  
+  res$minimum * common_vec
 }

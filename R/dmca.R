@@ -7,7 +7,7 @@
 #' @param apply_shrinkage boolean 
 #' @param verbose boolean
 #'
-#' @return list of class \code{dcca}
+#' @return list of class \code{dmca}
 #' @export
 dmca_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
                         verbose = T){
@@ -15,8 +15,8 @@ dmca_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), rank_1 == rank_2)
   n <- nrow(mat_1)
   if(verbose) print("D-MCA: Rescaling matrices")
-  mat_1 <- scale(mat_1, center = T, scale = F)
-  mat_2 <- scale(mat_2, center = T, scale = F)
+  mat_1 <- scale(mat_1, center = T, scale = T)
+  mat_2 <- scale(mat_2, center = T, scale = T)
   
   if(verbose) print(paste0("D-MCA: Starting matrix shrinkage"))
   if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1)
@@ -39,33 +39,33 @@ dmca_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
 #' D-MCA Decomposition
 #'
 #' @param dmca_res output from \code{dmca_factor}
-#' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
+#' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dmca_factor}
 #' @param verbose boolean
 #'
 #' @return list of class \code{dmca_decomp}
 #' @export
 dmca_decomposition <- function(dmca_res, verbose = T){
-  stopifnot(class(dcca_res) == "dmca")
+  stopifnot(class(dmca_res) == "dmca")
   n <- nrow(dmca_res$svd_1$u)
   full_rank <- ncol(dmca_res$mca_res$u)
   
   if(verbose) print("D-MCA: Form coefficient matrices")
   # WARNING: this seems to current assume that the ranks are equal
-  coef_1 <- .mca_coef_mat(svd_1$v, mca_res$mca_res$u)
-  coef_2 <- .mca_coef_mat(svd_2$v, mca_res$mca_res$v)
+  coef_1 <- .mca_coef_mat(dmca_res$svd_1$v, dmca_res$mca_res$u)
+  coef_2 <- .mca_coef_mat(dmca_res$svd_2$v, dmca_res$mca_res$v)
   
   if(verbose) print("D-MCA: Computing common matrices")
-  common_mat_1 <- mca_res$common_mat_1 %*% coef_1
-  common_mat_2 <- mca_res$common_mat_2 %*% coef_2
+  common_mat_1 <- dmca_res$common_mat_1 %*% coef_1
+  common_mat_2 <- dmca_res$common_mat_2 %*% coef_2
   
   if(verbose) print("D-MCA: Computing distinctive matrices")
-  distinct_mat_1 <- (mca_res$score_1 - mca_res$common_mat_1) %*% coef_1
-  distinct_mat_2 <- (mca_res$score_2 - mca_res$common_mat_2) %*% coef_1
+  distinct_mat_1 <- (dmca_res$score_1 - dmca_res$common_mat_1) %*% coef_1
+  distinct_mat_2 <- (dmca_res$score_2 - dmca_res$common_mat_2) %*% coef_2
   
   if(verbose) print("D-MCA: Done")
   structure(list(common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
                  distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
-                 mca_obj = mca_res$mca_res$d), class = "dmca_decomp")
+                 mca_obj = dmca_res$mca_res$d), class = "dmca_decomp")
 }
 
 #############################
@@ -96,7 +96,7 @@ dmca_decomposition <- function(dmca_res, verbose = T){
   if(length(colnames(svd_2$u)) != 0) rownames(common_mat_2) <- colnames(svd_2$u)
   
   list(svd_1 = svd_1, svd_2 = svd_2, mca_res = mca_res,
-       score_1 = score_2, score_2 = score_2,
+       score_1 = score_1, score_2 = score_2,
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2)
 }
 
