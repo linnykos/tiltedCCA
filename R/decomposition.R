@@ -1,8 +1,8 @@
 ## construct the plot given 2 vectors in 2D
 ## blue is angle close to 0, white is angle close to 90, red is angle close to 180
 .decomposition_2d <- function(vec1, vec2, 
-                             xlim = c(-0.1, 1.1)*max(c(vec1, vec2)),
-                             ylim = c(-0.1, 1.1)*max(c(vec1, vec2)),
+                             xlim = c(0, 1.1*max(c(vec1, vec2))),
+                             ylim = c(0, 1.1*max(c(vec1, vec2))),
                              plotting = T, gridsize = 100, col_levels = 21){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
@@ -14,8 +14,7 @@
   rescaling_factor <- max(c(len1, len2))
   vec1 <- vec1/rescaling_factor; vec2 <- vec2/rescaling_factor
   ratio <- len1/len2
-  
-  # compute values
+
   x_seq <- seq(xlim[1], xlim[2], length.out = gridsize)
   y_seq <- seq(ylim[1], ylim[2], length.out = gridsize)
   grid_mat <- .construct_grid(x_seq, y_seq)
@@ -29,9 +28,7 @@
   
   # refine common vector using zero-order optimization to ensure distinct vectors are orthogonal
   common_vec <- .optimize_common_vector(vec1, vec2, common_vec)
-  
-  # THINK ABOUT: last catch-all: orthogonalize the distinct vectors and then set the common_vec's to be resulting vector
-  
+
   # restore original scale
   vec1 <- vec1*rescaling_factor; vec2 <- vec2*rescaling_factor
   common_vec <- common_vec*rescaling_factor
@@ -92,7 +89,9 @@
   
   dis_vec1 <- vec1 - common_vec1; dis_vec2 <- vec2 - common_vec2
   
-  .angle_between_vectors(dis_vec1, dis_vec2) - 90
+  tmp <- .angle_between_vectors(dis_vec1, dis_vec2)
+  if(is.na(tmp)) return(NA)
+  tmp - 90
 }
 
 .arrange_gridvalues <- function(x_seq, y_seq, values){
@@ -112,7 +111,7 @@
   len2 <- .l2norm(vec2)
   
   # fill out the boolean matrix
-  bool_array <- array(NA, dim = c(nrow(mat), ncol(mat), 3))
+  bool_array <- array(NA, dim = c(nrow(mat), ncol(mat), 4))
   
   # which vectors are not too long
   bool_array[,,1] <- matrix(sapply(1:num_val, function(i){
@@ -133,6 +132,8 @@
     .search_min_along_angle(mat, ang)
   })
   bool_array[,,3] <- (abs(mat) <= max(val_vec))
+  
+  bool_array[,,4] <- !is.na(mat)
   bool_mat <- apply(bool_array, c(1,2), all)
   
   # reorder all the indices by their angle
@@ -210,7 +211,7 @@
     common_vec2 <- grid_true[i,]
     common_vec1 <- ratio*common_vec2
     
-    .cor_vectors(common_vec1, vec1)^2 + .cor_vectors(common_vec2, vec2)^2
+    (len1/(len1+len2))*.cor_vectors(common_vec1, vec1)^2 + (len2/(len1+len2))*.cor_vectors(common_vec2, vec2)^2
   })
   
   grid_true[which.max(common_cor),]

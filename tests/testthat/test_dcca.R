@@ -110,7 +110,8 @@ test_that("(Math) .compute_cca_aggregate_matrix is correct", {
     set.seed(x)
     n <- 20; p1 <- 50; p2 <- 40
     mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
-    mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+    Sigma_mat <- matrix(1, p2, p2); diag(Sigma_mat) <- 2
+    mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = Sigma_mat), center = T, scale = F)
     
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)

@@ -9,17 +9,17 @@
 #'
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
 #' @export
-generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2, reorthogonalize = F,
+generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
                           noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
             nrow(score_2) > ncol(score_2))
-  
+
   tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   full_rank <- length(tmp$obj_vec)
   common_score <- .compute_common_score(score_1, score_2, obj_vec = tmp$diag_vec)
   
-  tmp <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = reorthogonalize)
+  tmp <- .compute_distinct_score(score_1, score_2, common_score)
   common_score <- tmp$common_score
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
@@ -32,7 +32,7 @@ generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2, reorthogonal
   rank_c <- ncol(common_score)
   mat_1 <- common_score %*% coef_mat_1[1:rank_c,,drop = F] + distinct_score_1 %*% coef_mat_1
   mat_2 <- common_score %*% coef_mat_2[1:rank_c,,drop = F] + distinct_score_2 %*% coef_mat_2
-  
+
   mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
   
   list(mat_1 = mat_1, mat_2 = mat_2, 
@@ -41,6 +41,33 @@ generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2, reorthogonal
        distinct_score_2 = distinct_score_2,
        rank_c = Matrix::rankMatrix(common_score))
 }
+
+generate_data_dmca <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
+                               noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
+  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
+            nrow(score_2) > ncol(score_2))
+  stopifnot(ncol(score_1) == ncol(score_2))
+  
+  rank_1 <- ncol(score_1); rank_2 <- ncol(score_2)
+  mat_1 <- score_1 %*% coef_mat_1; mat_2 <- score_2 %*% coef_mat_2
+  dmca_res <- dmca_factor(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2, 
+                          apply_shrinkage = F, verbose = F)
+  res <- dmca_decomposition(dmca_res, verbose = F)
+ 
+  mat_1 <- res$common_mat_1 + res$distinct_mat_1
+  mat_2 <- res$common_mat_2 + res$distinct_mat_2
+  
+  mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
+  
+  list(mat_1 = mat_1, mat_2 = mat_2, 
+       common_score_1 = res$common_score_1, common_score_2 = res$common_score_2,
+       distinct_score_1 = res$distinct_score_1, distinct_score_2 = res$distinct_score_2,
+       common_mat_1 = res$common_mat_1, common_mat_2 = res$common_mat_2, 
+       distinct_mat_1 = res$distinct_mat_1, distinct_mat_2 = res$distinct_mat_2)
+}
+
+
+
 
 form_seurat_obj <- function(mat_1, mat_2){
   stopifnot(nrow(mat_1) == nrow(mat_2))

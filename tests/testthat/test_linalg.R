@@ -29,3 +29,12 @@ test_that("(Math) .representation_2d has the correct representation", {
   
   expect_true(all(bool_vec))
 })
+
+#############################
+
+## .cor_vectors is correct
+
+test_that("(Code) .cor_vectors works with len is 0", {
+  res <- .cor_vectors(c(1,0),c(0,0))
+  expect_true(is.na(res))
+})
