@@ -1,9 +1,11 @@
 #' Extract UMAP embedding
 #'
 #' @param obj return object from \code{dcca_decomposition}
-#' @param common boolean
+#' @param common_1 boolean
+#' @param common_2 boolean
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
+#' @param mode \code{"dcca"} or \code{"dmca"}
 #' @param only_embedding boolean
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'

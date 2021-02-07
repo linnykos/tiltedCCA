@@ -21,6 +21,7 @@ test_that("(Math) .decomposition_2d works", {
   expect_true(all(bool_vec))
 })
 
+# WARNING: This test errors because our search doesn't appropriately handle nearly-parallel vectors well
 test_that("(Math) .decomposition_2d yields orthogonal distinct vectors", {
   trials <- 100
   

@@ -48,7 +48,7 @@
     }
     
   } else {
-    side_length <- floor(col_levels/2); max_val <- max(abs(mat))
+    side_length <- floor(col_levels/2); max_val <- max(abs(mat), na.rm = T)
     col_vec <- c(grDevices::hcl.colors(side_length, palette = "YlGnBu"),
                  "gray75",
                  rev(grDevices::hcl.colors(side_length, palette = "OrRd")))
@@ -182,7 +182,7 @@
 }
 
 .search_first_min <- function(vec){
-  lower_quant <- stats::quantile(vec, prob = 0.05)
+  lower_quant <- stats::quantile(vec, prob = 0.05, na.rm = T)
   idx <- which(vec <= lower_quant)
 
   # find all the first contiguous block

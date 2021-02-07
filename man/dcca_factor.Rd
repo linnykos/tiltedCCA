@@ -11,6 +11,7 @@ dcca_factor(
   rank_2,
   meta_clustering = NA,
   apply_shrinkage = T,
+  reorthogonalize = F,
   verbose = T
 )
 }
@@ -21,11 +22,13 @@ dcca_factor(
 
 \item{rank_1}{desired rank of data matrix 1}
 
-\item{rank_2}{desired rank of data matrix 1}
+\item{rank_2}{desired rank of data matrix 2}
 
 \item{meta_clustering}{optional clustering}
 
 \item{apply_shrinkage}{boolean}
+
+\item{reorthogonalize}{boolean}
 
 \item{verbose}{boolean}
 }

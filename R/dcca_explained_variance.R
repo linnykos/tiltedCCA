@@ -1,0 +1,46 @@
+explained_variance <- function(dcca_res, rank_c, verbose = T){
+  stopifnot(class(dcca_res) == "dcca")
+  n <- nrow(dcca_res$svd_1$u)
+  full_rank <- length(dcca_res$cca_obj)
+  
+  if(verbose) print("D-CCA: Form denoised observation matrices")
+  mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d) , dcca_res$svd_1$v)
+  mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
+  
+  if(verbose) print("D-CCA: Computing common percentage")
+  common_perc_1 <- .common_percentage(dcca_res$score_1, dcca_res$common_score)
+  common_perc_2 <- .common_percentage(dcca_res$score_1, dcca_res$common_score)
+  
+  if(verbose) print("D-CCA: Computing matrices")
+  coef_mat_1 <- crossprod(dcca_res$score_1, mat_1)/n
+  coef_mat_2 <- crossprod(dcca_res$score_2, mat_2)/n
+  
+  common_mat_1 <- common_perc_1 %*% coef_mat_1
+  common_mat_2 <- common_perc_2 %*% coef_mat_2
+  distinct_mat_1 <- mat_1 - common_mat_1
+  distinct_mat_2 <- mat_2 - common_mat_2
+  
+  if(verbose) print("D-CCA: Done")
+  structure(list(common_perc_1 = common_perc_1,
+                 common_perc_2 = common_perc_1,
+                 common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
+                 distinct_mat_1 = distinct_mat_1, 
+                 distinct_mat_2 = distinct_mat_2), class = "dcca_percentage")
+}
+
+#####################################
+
+.common_percentage <- function(score_mat, common_score_mat){
+  stopifnot(nrow(score_mat) == nrow(common_score_mat), ncol(score_mat) >= nrow(common_score_mat))
+  n <- nrow(score_mat)
+  
+  rank_1 <- ncol(score_mat)
+  rank_c <- ncol(common_score_mat)
+  mat <- matrix(0, n, rank_1)
+  for(j in 1:rank_c){
+    tmp <- .orthogonal_vec2vec(common_score_mat[,j], score_mat[,j])
+    common_score_mat[,j] - tmp
+  }
+  
+  mat
+}

@@ -36,7 +36,6 @@ dmca_factor <- function(mat_1, mat_2, rank_1, rank_2, apply_shrinkage = T,
 #' D-MCA Decomposition
 #'
 #' @param dmca_res output from \code{dmca_factor}
-#' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dmca_factor}
 #' @param verbose boolean
 #'
 #' @return list of class \code{dmca_decomp}

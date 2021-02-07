@@ -26,11 +26,7 @@
   cor_val <- .cor_vectors(vec1, vec2)
   if(is.na(cor_val)) return(NA)
   ang <- acos(min(max(cor_val,-1),1))*180/pi
-  
-  if(is.nan(ang)){
-    print(vec1zz); print(vec2zz); stop()
-  } 
-  
+
   ang
 }
 

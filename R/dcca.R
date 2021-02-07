@@ -8,6 +8,7 @@
 #' @param rank_2 desired rank of data matrix 2
 #' @param meta_clustering optional clustering
 #' @param apply_shrinkage boolean 
+#' @param reorthogonalize boolean
 #' @param verbose boolean
 #'
 #' @return list of class \code{dcca}
