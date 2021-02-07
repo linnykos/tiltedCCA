@@ -6,6 +6,8 @@
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
 #' @param mode \code{"dcca"} or \code{"dmca"}
+#' @param noise_addition boolean
+#' @param noise_val positive numeric
 #' @param only_embedding boolean
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
@@ -13,6 +15,7 @@
 #' @export
 extract_embedding <- function(obj, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T, mode = "dcca",
+                              noise_addition = T, noise_val = 0.05,
                               only_embedding = T, reduction_key = "UMAP"){
   if(class(obj) == "dcca_decomp" | mode == "dcca") {
     rank_c <- ifelse((common_1 | common_2), ncol(obj$common_score), 1)
@@ -31,13 +34,21 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   tmp3 <- .svd_truncated(obj$distinct_mat_1, rank_1); d1 <- tmp3$d[1]
   tmp4 <- .svd_truncated(obj$distinct_mat_2, rank_2); d2 <- tmp4$d[1]
   
-  if(common_1){ tmp1$d <- tmp1$d/(c1 + d1) } else { tmp1$u <- matrix(1, nrow = n, ncol = 1) ; tmp1$d <- c1/(c1+d1)}
+  if(common_1){ tmp1$d <- tmp1$d/(c1 + d1) } else { 
+    tmp1$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1); tmp1$d <- ifelse(noise_addition, c1/(c1+d1)*noise_val, 0)
+  }
   svd_list[[len+1]] <- tmp1; len <- len + 1
-  if(common_2){ tmp2$d <- tmp2$d/(c2 + d2) } else { tmp2$u <- matrix(1, nrow = n, ncol = 1) ; tmp2$d <- c2/(c2+d2)}
+  if(common_2){ tmp2$d <- tmp2$d/(c2 + d2) } else { 
+    tmp2$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) ; tmp2$d <- ifelse(noise_addition, c2/(c2+d2)*noise_val, 0)
+  }
   svd_list[[len+1]] <- tmp2; len <- len + 1
-  if(distinct_1){ tmp3$d <- tmp3$d/(c1 + d1) } else { tmp3$u <- matrix(1, nrow = n, ncol = 1) ; tmp3$d <- d1/(c1+d1)}
+  if(distinct_1){ tmp3$d <- tmp3$d/(c1 + d1) } else { 
+    tmp3$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) ; tmp3$d <- ifelse(noise_addition, d1/(c1+d1)*noise_val, 0)
+  }
   svd_list[[len+1]] <- tmp3; len <- len + 1
-  if(distinct_2){ tmp4$d <- tmp4$d/(c2 + d2) } else { tmp4$u <- matrix(1, nrow = n, ncol = 1) ; tmp4$d <- d2/(c2+d2)}
+  if(distinct_2){ tmp4$d <- tmp4$d/(c2 + d2) } else { 
+    tmp4$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) ; tmp4$d <- ifelse(noise_addition, d2/(c2+d2)*noise_val, 0)
+  }
   svd_list[[len+1]] <- tmp4; len <- len + 1
   
   # if(common_1){ tmp1$d <- tmp1$d/(c1 + d1); svd_list[[len+1]] <- tmp1; len <- len + 1 }

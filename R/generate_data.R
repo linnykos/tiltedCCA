@@ -30,12 +30,18 @@ generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2,
             abs(sum(abs(tmp3)) - sum(abs(diag(tmp3)))) <= 1e-6)
   
   rank_c <- ncol(common_score)
-  mat_1 <- common_score %*% coef_mat_1[1:rank_c,,drop = F] + distinct_score_1 %*% coef_mat_1
-  mat_2 <- common_score %*% coef_mat_2[1:rank_c,,drop = F] + distinct_score_2 %*% coef_mat_2
+  common_mat_1 <- common_score %*% coef_mat_1[1:rank_c,,drop = F] 
+  distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
+  common_mat_2 <- common_score %*% coef_mat_2[1:rank_c,,drop = F] 
+  distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
 
+  mat_1 <- common_mat_1 + distinct_mat_1
+  mat_2 <- common_mat_2 + distinct_mat_2
   mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
   
   list(mat_1 = mat_1, mat_2 = mat_2, 
+       common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
+       distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
        common_score = common_score, 
        distinct_score_1 = distinct_score_1,
        distinct_score_2 = distinct_score_2,
