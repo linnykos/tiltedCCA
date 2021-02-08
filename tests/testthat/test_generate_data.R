@@ -22,7 +22,9 @@ test_that("generate_data_dcca works", {
   res <- generate_data_dcca(score_1, score_2, coef_mat_1, coef_mat_2)
 
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2", "common_score", 
+  expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2", "common_mat_1", "common_mat_2",
+                                             "distinct_mat_1", "distinct_mat_2",
+                                             "common_score", 
                                              "distinct_score_1", "distinct_score_2",
                                              "rank_c"))))
   expect_true(all(dim(res$mat_1) == c(n, p_1)))
