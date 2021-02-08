@@ -6,6 +6,7 @@
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
 #' @param noise_val non-negative numeric (set to 0 to essentially ignore)
+#' @param vis_param list containing 4 scalars: \code{cmin_1}, \code{cmin_2}, \code{dmin_1}, \code{dmin_2}
 #' @param only_embedding boolean
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
@@ -14,40 +15,49 @@
 extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T,
                               noise_val = 0.05,
+                              vis_param = NA,
                               only_embedding = T, reduction_key = "UMAP"){
   n <- nrow(svd_list[[1]]$u)
   
-  c1 <- svd_list[[1]]$d[1]; c1_last <- svd_list[[1]]$d[length(svd_list[[1]]$d)]
-  c2 <- svd_list[[2]]$d[1]; c2_last <- svd_list[[2]]$d[length(svd_list[[2]]$d)]
-  d1 <- svd_list[[3]]$d[1]; d1_last <- svd_list[[3]]$d[length(svd_list[[3]]$d)]
-  d2 <- svd_list[[4]]$d[1]; d2_last <- svd_list[[4]]$d[length(svd_list[[4]]$d)]
+  c1 <- svd_list[[1]]$d[1]
+  c2 <- svd_list[[2]]$d[1]
+  d1 <- svd_list[[3]]$d[1]
+  d2 <- svd_list[[4]]$d[1]
+  
+  if(all(!is.na(vis_param))){
+    cmin_1 <- vis_param$cmin_1; cmin_2 <- vis_param$cmin_2
+    dmin_1 <- vis_param$dmin_1; dmin_2 <- vis_param$dmin_2
+  } else {
+    cmin_1 <- mean(svd_list[[1]]$d); cmin_2 <- mean(svd_list[[2]]$d)
+    dmin_1 <- mean(svd_list[[3]]$d); dmin_2 <- mean(svd_list[[4]]$d)
+  }
   
   if(common_1){ 
     svd_list[[1]]$d <- svd_list[[1]]$d/(c1 + d1) 
   } else { 
     svd_list[[1]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
-    svd_list[[1]]$d <- c1/(c1+d1)*ifelse(distinct_1, noise_val, 0)
+    svd_list[[1]]$d <- cmin_1/(c1+d1)*ifelse(distinct_1, noise_val, 0)
   }
   
   if(common_2){ 
     svd_list[[2]]$d <- svd_list[[2]]$d/(c2 + d2) 
   } else { 
     svd_list[[2]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
-    svd_list[[2]]$d <- c2/(c2+d2)*ifelse(distinct_2, noise_val, 0)
+    svd_list[[2]]$d <- cmin_2/(c2+d2)*ifelse(distinct_2, noise_val, 0)
   }
  
   if(distinct_1){ 
     svd_list[[3]]$d <- svd_list[[3]]$d/(c1 + d1) 
   } else { 
     svd_list[[3]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
-    svd_list[[3]]$d <- d1_last/(c1+d1)*ifelse(common_1, noise_val, 0)
+    svd_list[[3]]$d <- dmin_1/(c1+d1)*ifelse(common_1, noise_val, 0)
   }
 
   if(distinct_2){ 
     svd_list[[4]]$d <- svd_list[[4]]$d/(c2 + d2) 
   } else { 
     svd_list[[4]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
-    svd_list[[4]]$d <- d2_last/(c2+d2)*ifelse(common_2, noise_val, 0)
+    svd_list[[4]]$d <- dmin_2/(c2+d2)*ifelse(common_2, noise_val, 0)
   }
   
   tmp <- do.call(cbind, lapply(svd_list, function(res){
@@ -94,6 +104,6 @@ extract_svd_embedding <- function(obj, mode = "dcca"){
       rownames(svd_list[[i]]$u) <- rownames(obj$common_mat_1)
     }
   }
-  
+
   svd_list
 }
