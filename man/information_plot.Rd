@@ -10,7 +10,8 @@ information_plot(
   reorder_types = T,
   plot_individual = T,
   col_vec = (scales::hue_pal())(length(unique(weight_mat[, 3]))),
-  y_offset = 0.1
+  y_offset = 0.1,
+  cex_text = 1
 )
 }
 \arguments{

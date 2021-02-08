@@ -10,13 +10,14 @@
 #' @param plot_individual boolean
 #' @param col_vec vector of colors
 #' @param y_offset numeric
+#' @param cex_text numeric
 #'
 #' @return none
 #' @export
 information_plot <- function(weight_mat, main = "", 
                              reorder_types = T, plot_individual = T,
                              col_vec = scales::hue_pal()(length(unique(weight_mat[,3]))),
-                             y_offset = 0.1){
+                             y_offset = 0.1, cex_text = 1){
   stopifnot(is.data.frame(weight_mat), ncol(weight_mat) == 3, colnames(weight_mat)[3] == "cell_type",
             all(weight_mat[,1:2] <= 1), all(weight_mat[,1:2] >= 0))
   
@@ -71,6 +72,8 @@ information_plot <- function(weight_mat, main = "",
     }
   }
   graphics::lines(c(-2*len, 2*len), rep(0,2), col = "black", lwd = 3, lty = 2)
+  graphics::text(x = 0, y = 1, pos = 4, labels = colnames(weight_mat)[1], cex = cex_text, col = 2)
+  graphics::text(x = 0, y = -1, pos = 4, labels = colnames(weight_mat)[2], cex = cex_text, col = 2)
   
   graphics::axis(side = 1, at = (((1:len)-1)*1.5+1.5/2), labels = FALSE)
   graphics::text(x = (((1:len)-1)*1.5+1.5/2),

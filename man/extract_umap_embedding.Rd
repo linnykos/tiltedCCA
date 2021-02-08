@@ -11,6 +11,7 @@ extract_umap_embedding(
   distinct_1 = T,
   distinct_2 = T,
   noise_val = 0.05,
+  vis_param = NA,
   only_embedding = T,
   reduction_key = "UMAP"
 )
@@ -27,6 +28,8 @@ extract_umap_embedding(
 \item{distinct_2}{boolean}
 
 \item{noise_val}{non-negative numeric (set to 0 to essentially ignore)}
+
+\item{vis_param}{list containing 4 scalars: \code{cmin_1}, \code{cmin_2}, \code{dmin_1}, \code{dmin_2}}
 
 \item{only_embedding}{boolean}
 

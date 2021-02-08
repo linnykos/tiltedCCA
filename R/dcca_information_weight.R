@@ -34,15 +34,11 @@ dcca_information_weight <- function(mat, common_mat, tol = 0.05, iter_max = 100,
     if(iter > 1 && (abs(obj_vec[iter] - obj_vec[iter-1])/ obj_vec[iter-1]) <= 1e-6) break()
     
     tmp <- .mult_mat_vec(mat, beta_vec)
-    alpha_vec <- sapply(1:n, function(i){
-      as.numeric(common_mat[i,] %*% tmp[i,])/crossprod(tmp[i,])
-    })
+    alpha_vec <- as.numeric(diag(tcrossprod(common_mat, tmp))/diag(tcrossprod(tmp)))
     alpha_vec <- pmin(pmax(alpha_vec, tol), 1)
     
     tmp <- .mult_vec_mat(alpha_vec, mat)
-    beta_vec <- sapply(1:p, function(j){
-      as.numeric(common_mat[,j] %*% tmp[,j])/crossprod(tmp[,j])
-    })
+    beta_vec <- as.numeric(diag(crossprod(common_mat, tmp))/diag(crossprod(tmp)))
     beta_vec <- pmin(pmax(beta_vec, tol), 1)
   }
 
