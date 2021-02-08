@@ -26,28 +26,28 @@ extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
     svd_list[[1]]$d <- svd_list[[1]]$d/(c1 + d1) 
   } else { 
     svd_list[[1]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
-    svd_list[[1]]$d <- c1_last/(c1+d1)*noise_val
+    svd_list[[1]]$d <- c1/(c1+d1)*ifelse(distinct_1, noise_val, 0)
   }
   
   if(common_2){ 
     svd_list[[2]]$d <- svd_list[[2]]$d/(c2 + d2) 
   } else { 
     svd_list[[2]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
-    svd_list[[2]]$d <- c2_last/(c2+d2)*noise_val
+    svd_list[[2]]$d <- c2/(c2+d2)*ifelse(distinct_2, noise_val, 0)
   }
  
   if(distinct_1){ 
     svd_list[[3]]$d <- svd_list[[3]]$d/(c1 + d1) 
   } else { 
     svd_list[[3]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
-    svd_list[[3]]$d <- d1_last/(c1+d1)*noise_val
+    svd_list[[3]]$d <- d1_last/(c1+d1)*ifelse(common_1, noise_val, 0)
   }
 
   if(distinct_2){ 
     svd_list[[4]]$d <- svd_list[[4]]$d/(c2 + d2) 
   } else { 
     svd_list[[4]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
-    svd_list[[4]]$d <- d2_last/(c2+d2)*noise_val
+    svd_list[[4]]$d <- d2_last/(c2+d2)*ifelse(common_2, noise_val, 0)
   }
   
   tmp <- do.call(cbind, lapply(svd_list, function(res){

@@ -82,7 +82,6 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
 dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
   n <- nrow(dcca_res$svd_1$u)
-  full_rank <- length(dcca_res$cca_obj)
   
   if(verbose) print("D-CCA: Form denoised observation matrices")
   mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d) , dcca_res$svd_1$v)
