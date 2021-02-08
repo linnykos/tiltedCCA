@@ -1,3 +1,11 @@
+#' D-CCA Variance decomposition
+#'
+#' @param dcca_res Output of \code{dcca_factor}
+#' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
+#' @param verbose boolean
+#'
+#' @return object of class \code{dcca_decomp2}
+#' @export
 dcca_variance_decomposition <- function(dcca_res, rank_c, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
   n <- nrow(dcca_res$svd_1$u)
@@ -24,6 +32,14 @@ dcca_variance_decomposition <- function(dcca_res, rank_c, verbose = T){
                  mat_1 = mat_1, mat_2 = mat_2), class = "dcca_decomp2")
 }
 
+#' Weights for cells and variables
+#'
+#' @param dcca_decomp2 Output of \code{dcca_variance_decomposition}
+#' @param weight_func function for scalars
+#' @param verbose boolean
+#'
+#' @return 4 vectors as a list
+#' @export
 explained_variance <- function(dcca_decomp2, weight_func = function(x){x},
                                verbose = T){
   stopifnot(class(dcca_decomp2) == "dcca_decomp2")

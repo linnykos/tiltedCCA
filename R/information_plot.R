@@ -1,9 +1,23 @@
-# input has one row for each unit (ex: cell or variable)
+#' Constructing information plot
+#' 
+#' \code{weight_mat} has one row for each unit (ex: cell)
+#'
+#' @param weight_mat data frame with 3 columns, where the first two columns
+#' denote the row-specific weight for distinct information (values between 0
+#' and 1) and the third column is the label
+#' @param main character
+#' @param reorder_types boolean
+#' @param plot_individual boolean
+#' @param col_vec vector of colors
+#' @param y_offset numeric
+#'
+#' @return none
+#' @export
 information_plot <- function(weight_mat, main = "", 
-                             reorder_types = T,
+                             reorder_types = T, plot_individual = T,
                              col_vec = scales::hue_pal()(length(unique(weight_mat[,3]))),
                              y_offset = 0.1){
-  stopifnot(ncol(weight_mat) == 3, colnames(weight_mat)[3] == "cell_type",
+  stopifnot(is.data.frame(weight_mat), ncol(weight_mat) == 3, colnames(weight_mat)[3] == "cell_type",
             all(weight_mat[,1:2] <= 1), all(weight_mat[,1:2] >= 0))
   
   # compute group-wise weight matrix
@@ -37,28 +51,30 @@ information_plot <- function(weight_mat, main = "",
   
   for(i in 1:len){
     xlim <- c((i-1)*1.5, (i-1)*1.5+1)
-    
-    set.seed(10)
-    idx <- which(weight_mat$cell_type == summary_mat$cell_type[i])
-    if(length(idx) > 50){ idx <- idx[sample(1:length(idx), 50)] }
-    
+   
     col <- type_col_mat$col[which(type_col_mat$cell_type == summary_mat$cell_type[i])]
     graphics::rect(xlim[1], -(1-summary_mat[i,2]), xlim[2], 1-summary_mat[i,1], col = col)
-    offsets <- seq(0, 1, length.out = length(idx)+10)
-    offsets <- offsets[-c(1:5, (length(offsets)-4):(length(offsets)))]
     
-    for(j in 1:length(idx)){
-      graphics::lines(rep(xlim[1]+offsets[j], 2), c(1-weight_mat[idx[j],1], -(1-weight_mat[idx[j],2])),
-            col = "gray", lwd = 0.3)
-      graphics::points(rep(xlim[1]+offsets[j], 2), c(1-weight_mat[idx[j],1], -(1-weight_mat[idx[j],2])),
-             col = "gray", cex = 0.2, pch = 16)
+    if(plot_individual){
+      idx <- which(weight_mat$cell_type == summary_mat$cell_type[i])
+      if(length(idx) > 50){ idx <- idx[sample(1:length(idx), 50)] }
+      
+      offsets <- seq(0, 1, length.out = length(idx)+10)
+      offsets <- offsets[-c(1:5, (length(offsets)-4):(length(offsets)))]
+      
+      for(j in 1:length(idx)){
+        graphics::lines(rep(xlim[1]+offsets[j], 2), c(1-weight_mat[idx[j],1], -(1-weight_mat[idx[j],2])),
+                        col = "gray", lwd = 0.3)
+        graphics::points(rep(xlim[1]+offsets[j], 2), c(1-weight_mat[idx[j],1], -(1-weight_mat[idx[j],2])),
+                         col = "gray", cex = 0.2, pch = 16)
+      }
     }
   }
   graphics::lines(c(-2*len, 2*len), rep(0,2), col = "black", lwd = 3, lty = 2)
   
   graphics::axis(side = 1, at = (((1:len)-1)*1.5+1.5/2), labels = FALSE)
   graphics::text(x = (((1:len)-1)*1.5+1.5/2),
-       y = par("usr")[3]-y_offset,
+       y = graphics::par("usr")[3]-y_offset,
        labels = as.character(summary_mat$cell_type),
        xpd = NA, srt = 45, adj = 0.965, cex = 0.8)
   

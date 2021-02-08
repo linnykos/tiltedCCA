@@ -11,6 +11,8 @@ extract_embedding(
   distinct_1 = T,
   distinct_2 = T,
   mode = "dcca",
+  noise_addition = T,
+  noise_val = 0.05,
   only_embedding = T,
   reduction_key = "UMAP"
 )
@@ -27,6 +29,10 @@ extract_embedding(
 \item{distinct_2}{boolean}
 
 \item{mode}{\code{"dcca"} or \code{"dmca"}}
+
+\item{noise_addition}{boolean}
+
+\item{noise_val}{positive numeric}
 
 \item{only_embedding}{boolean}
 
