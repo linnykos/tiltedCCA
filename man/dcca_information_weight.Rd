@@ -4,7 +4,13 @@
 \alias{dcca_information_weight}
 \title{Weight based on D-CCA}
 \usage{
-dcca_information_weight(mat, common_mat, tol = 0.05, iter_max = 100)
+dcca_information_weight(
+  mat,
+  common_mat,
+  tol = 0.05,
+  iter_max = 100,
+  verbose = T
+)
 }
 \arguments{
 \item{mat}{Desired observed matrix}
@@ -14,6 +20,8 @@ dcca_information_weight(mat, common_mat, tol = 0.05, iter_max = 100)
 \item{tol}{numeric}
 
 \item{iter_max}{numeric}
+
+\item{verbose}{boolean}
 }
 \value{
 three vectors as a list

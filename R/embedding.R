@@ -1,67 +1,61 @@
 #' Extract UMAP embedding
 #'
-#' @param obj return object from \code{dcca_decomposition}
+#' @param svd_list return object from \code{extract_svd_embedding}
 #' @param common_1 boolean
 #' @param common_2 boolean
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
-#' @param mode \code{"dcca"} or \code{"dmca"}
-#' @param noise_addition boolean
-#' @param noise_val positive numeric
+#' @param noise_val non-negative numeric (set to 0 to essentially ignore)
 #' @param only_embedding boolean
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
-#' @return 2-column matrix
+#' @return 2-column matrix or \code{Seurat} object
 #' @export
-extract_embedding <- function(obj, common_1 = T, common_2 = T,
-                              distinct_1 = T, distinct_2 = T, mode = "dcca",
-                              noise_addition = T, noise_val = 0.05,
+extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
+                              distinct_1 = T, distinct_2 = T,
+                              noise_val = 0.05,
                               only_embedding = T, reduction_key = "UMAP"){
-  if(class(obj) == "dcca_decomp" | mode == "dcca") {
-    rank_c <- ifelse((common_1 | common_2), ncol(obj$common_score), 1)
-  } else {
-    rank_c <- ifelse((common_1 | common_2), ncol(obj$common_score_1), 1)
-  }
-  n <- nrow(obj$common_mat_1)
-  rank_1 <- ifelse(distinct_1, ncol(obj$distinct_score_1), 1)
-  rank_2 <- ifelse(distinct_2, ncol(obj$distinct_score_2), 1)
+  n <- nrow(svd_list[[1]]$u)
   
-  svd_list <- vector("list", 0)
-  len <- length(svd_list)
+  c1 <- svd_list[[1]]$d[1]; c1_last <- svd_list[[1]]$d[length(svd_list[[1]]$d)]
+  c2 <- svd_list[[2]]$d[1]; c2_last <- svd_list[[2]]$d[length(svd_list[[2]]$d)]
+  d1 <- svd_list[[3]]$d[1]; d1_last <- svd_list[[3]]$d[length(svd_list[[3]]$d)]
+  d2 <- svd_list[[4]]$d[1]; d2_last <- svd_list[[4]]$d[length(svd_list[[4]]$d)]
   
-  tmp1 <- .svd_truncated(obj$common_mat_1, rank_c); c1 <- tmp1$d[1]
-  tmp2 <- .svd_truncated(obj$common_mat_2, rank_c); c2 <- tmp2$d[1]
-  tmp3 <- .svd_truncated(obj$distinct_mat_1, rank_1); d1 <- tmp3$d[1]
-  tmp4 <- .svd_truncated(obj$distinct_mat_2, rank_2); d2 <- tmp4$d[1]
+  if(common_1){ 
+    svd_list[[1]]$d <- svd_list[[1]]$d/(c1 + d1) 
+  } else { 
+    svd_list[[1]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
+    svd_list[[1]]$d <- c1_last/(c1+d1)*noise_val
+  }
   
-  if(common_1){ tmp1$d <- tmp1$d/(c1 + d1) } else { 
-    tmp1$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1); tmp1$d <- ifelse(noise_addition, c1/(c1+d1)*noise_val, 0)
+  if(common_2){ 
+    svd_list[[2]]$d <- svd_list[[2]]$d/(c2 + d2) 
+  } else { 
+    svd_list[[2]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
+    svd_list[[2]]$d <- c2_last/(c2+d2)*noise_val
   }
-  svd_list[[len+1]] <- tmp1; len <- len + 1
-  if(common_2){ tmp2$d <- tmp2$d/(c2 + d2) } else { 
-    tmp2$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) ; tmp2$d <- ifelse(noise_addition, c2/(c2+d2)*noise_val, 0)
+ 
+  if(distinct_1){ 
+    svd_list[[3]]$d <- svd_list[[3]]$d/(c1 + d1) 
+  } else { 
+    svd_list[[3]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
+    svd_list[[3]]$d <- d1_last/(c1+d1)*noise_val
   }
-  svd_list[[len+1]] <- tmp2; len <- len + 1
-  if(distinct_1){ tmp3$d <- tmp3$d/(c1 + d1) } else { 
-    tmp3$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) ; tmp3$d <- ifelse(noise_addition, d1/(c1+d1)*noise_val, 0)
+
+  if(distinct_2){ 
+    svd_list[[4]]$d <- svd_list[[4]]$d/(c2 + d2) 
+  } else { 
+    svd_list[[4]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
+    svd_list[[4]]$d <- d2_last/(c2+d2)*noise_val
   }
-  svd_list[[len+1]] <- tmp3; len <- len + 1
-  if(distinct_2){ tmp4$d <- tmp4$d/(c2 + d2) } else { 
-    tmp4$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) ; tmp4$d <- ifelse(noise_addition, d2/(c2+d2)*noise_val, 0)
-  }
-  svd_list[[len+1]] <- tmp4; len <- len + 1
-  
-  # if(common_1){ tmp1$d <- tmp1$d/(c1 + d1); svd_list[[len+1]] <- tmp1; len <- len + 1 }
-  # if(common_2){ tmp2$d <- tmp2$d/(c2 + d2); svd_list[[len+1]] <- tmp2; len <- len + 1 }
-  # if(distinct_1){ tmp3$d <- tmp3$d/(c1 + d1); svd_list[[len+1]] <- tmp3; len <- len + 1 }
-  # if(distinct_2){ tmp4$d <- tmp4$d/(c2 + d2); svd_list[[len+1]] <- tmp4; len <- len + 1 }
   
   tmp <- do.call(cbind, lapply(svd_list, function(res){
     .mult_mat_vec(res$u, res$d)
   }))
   
-  if(length(rownames(obj$common_mat_1)) != 0){
-    rownames(tmp) <- rownames(obj$common_mat_1)
+  if(length(rownames(svd_list[[1]]$u)) != 0){
+    rownames(tmp) <- rownames(svd_list[[1]]$u)
   }
   
   if(only_embedding){
@@ -69,4 +63,37 @@ extract_embedding <- function(obj, common_1 = T, common_2 = T,
   } else {
     Seurat::RunUMAP(tmp, reduction.key = reduction_key, verbose = F)
   }
+}
+
+#' Extract SVD embedding
+#'
+#' @param obj return object from \code{dcca_decomposition}
+#' @param mode \code{"dcca"} or \code{"dmca"}
+#'
+#' @return list
+#' @export
+extract_svd_embedding <- function(obj, mode = "dcca"){
+  if(class(obj) == "dcca_decomp" | mode == "dcca") {
+    rank_c <- ncol(obj$common_score)
+  } else {
+    rank_c <- ncol(obj$common_score_1)
+  }
+  n <- nrow(obj$common_mat_1)
+  rank_1 <- ncol(obj$distinct_score_1)
+  rank_2 <- ncol(obj$distinct_score_2)
+  
+  svd_list <- vector("list", 4)
+  
+  svd_list[[1]] <- .svd_truncated(obj$common_mat_1, rank_c)
+  svd_list[[2]] <- .svd_truncated(obj$common_mat_2, rank_c)
+  svd_list[[3]] <- .svd_truncated(obj$distinct_mat_1, rank_1)
+  svd_list[[4]] <- .svd_truncated(obj$distinct_mat_2, rank_2)
+  
+  if(length(rownames(obj$common_mat_1)) != 0){
+    for(i in 1:4){
+      rownames(svd_list[[i]]$u) <- rownames(obj$common_mat_1)
+    }
+  }
+  
+  svd_list
 }
