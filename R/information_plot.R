@@ -53,7 +53,7 @@ information_plot <- function(weight_mat, main = "",
   for(i in 1:len){
     xlim <- c((i-1)*1.5, (i-1)*1.5+1)
    
-    col <- type_col_mat$col[which(type_col_mat$cell_type == summary_mat$cell_type[i])]
+    col <- as.character(type_col_mat$col[which(type_col_mat$cell_type == summary_mat$cell_type[i])])
     graphics::rect(xlim[1], -(1-summary_mat[i,2]), xlim[2], 1-summary_mat[i,1], col = col)
     
     if(plot_individual){
