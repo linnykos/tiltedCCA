@@ -99,10 +99,10 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   distinct_mat_2 <- dcca_res$distinct_score_2 %*% coef_mat_2
   
   if(verbose) print("D-CCA: Computing parameters for visualization")
-  cmin_1 <- mean(.svd_truncated(common_mat_1, K = rank_c)$d)
-  cmin_2 <- mean(.svd_truncated(common_mat_2, K = rank_c)$d)
-  dmin_1 <- mean(.svd_truncated(dcca_res$distinct_score_1[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F], K = rank_c)$d)
-  dmin_2 <- mean(.svd_truncated(dcca_res$distinct_score_2[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F], K = rank_c)$d)
+  cmin_1 <- mean(.svd_truncated(common_mat_1, K = rank_c, K_full_rank = T)$d)
+  cmin_2 <- mean(.svd_truncated(common_mat_2, K = rank_c, K_full_rank = T)$d)
+  dmin_1 <- mean(.svd_truncated(dcca_res$distinct_score_1[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F], K = rank_c, K_full_rank = T)$d)
+  dmin_2 <- mean(.svd_truncated(dcca_res$distinct_score_2[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F], K = rank_c, K_full_rank = T)$d)
   
   if(verbose) print("D-CCA: Done")
   structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],

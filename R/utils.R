@@ -2,20 +2,23 @@
 
 ##############
 
-.svd_truncated <- function(mat, K = min(dim(mat)), symmetric = F){
+.svd_truncated <- function(mat, K = min(dim(mat)), symmetric = F, rescale = F,
+                           K_full_rank = F){
   stopifnot(min(dim(mat)) >= K)
   
   if(min(dim(mat)) > 2*(K+2)){
     res <- tryCatch({
       # ask for more singular values than needed to ensure stability
       if(symmetric){
-        tmp <- irlba::partial_eigen(mat, n = K+2)
+        tmp <- irlba::partial_eigen(mat, n = ifelse(K_full_rank, K, K+2))
         list(u = tmp$vectors, d = tmp$values, v = tmp$vectors)
       } else {
-        irlba::irlba(mat, nv = K+2)
+        irlba::irlba(mat, nv = ifelse(K_full_rank, K, K+2))
       }
+    }, warning = function(e){
+      RSpectra::svds(mat, k = ifelse(K_full_rank, K, K+2))
     }, error = function(e){
-      RSpectra::svds(mat, k = K+2)
+      RSpectra::svds(mat, k = ifelse(K_full_rank, K, K+2))
     })
   } else {
     res <- svd(mat)
@@ -26,6 +29,16 @@
   # pass row-names and column-names
   if(length(rownames(mat)) != 0) rownames(res$u) <- rownames(mat)
   if(length(colnames(mat)) != 0) rownames(res$v) <- colnames(mat)
+  
+  # useful only if your application requires only the singular vectors
+  # if the number of rows or columns is too large, the singular vectors themselves
+  # are often a bit too small numerically
+  if(rescale){
+    n <- nrow(mat); p <- ncol(mat)
+    res$u <- res$u * sqrt(n)
+    res$v <- res$v * sqrt(p)
+    res$d <- res$d / (sqrt(n)*sqrt(p))
+  }
   
   res
 }

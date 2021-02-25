@@ -54,33 +54,6 @@ generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2,
        rank_c = Matrix::rankMatrix(common_score))
 }
 
-generate_data_dmca <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
-                               noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
-  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
-            nrow(score_2) > ncol(score_2))
-  stopifnot(ncol(score_1) == ncol(score_2))
-  
-  rank_1 <- ncol(score_1); rank_2 <- ncol(score_2)
-  mat_1 <- score_1 %*% coef_mat_1; mat_2 <- score_2 %*% coef_mat_2
-  dmca_res <- dmca_factor(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2, 
-                          apply_shrinkage = F, verbose = F)
-  res <- dmca_decomposition(dmca_res, verbose = F)
- 
-  mat_1 <- res$common_mat_1 + res$distinct_mat_1
-  mat_2 <- res$common_mat_2 + res$distinct_mat_2
-  
-  mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
-  
-  list(mat_1 = mat_1, mat_2 = mat_2, 
-       common_score_1 = res$common_score_1, common_score_2 = res$common_score_2,
-       distinct_score_1 = res$distinct_score_1, distinct_score_2 = res$distinct_score_2,
-       common_mat_1 = res$common_mat_1, common_mat_2 = res$common_mat_2, 
-       distinct_mat_1 = res$distinct_mat_1, distinct_mat_2 = res$distinct_mat_2)
-}
-
-
-
-
 form_seurat_obj <- function(mat_1, mat_2){
   stopifnot(nrow(mat_1) == nrow(mat_2))
   
@@ -104,8 +77,7 @@ generate_sbm_orthogonal <- function(B_mat, membership_vec){
   
   prob_mat <- .compute_prob_mat(B_mat, membership_vec)
   adj_mat <- .generate_adjaceny_mat(prob_mat)
-  svd_res <- .svd_truncated(adj_mat, K = K)
-  .mult_mat_vec(svd_res$u, svd_res$d)
+  .svd_truncated(adj_mat, K = K)$u
 }
 
 generate_random_orthogonal <- function(n, K){

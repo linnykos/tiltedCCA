@@ -781,7 +781,7 @@ test_that("(Basic) dcca_decomposition works", {
                                              "distinct_score_1", 
                                              "distinct_score_2",
                                              "common_mat_1", "common_mat_2",
-                                             "distinct_mat_1", "distinct_mat_2"))))
+                                             "distinct_mat_1", "distinct_mat_2", "vis_param"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 

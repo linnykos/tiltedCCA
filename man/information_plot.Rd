@@ -28,6 +28,8 @@ and 1) and the third column is the label}
 \item{col_vec}{vector of colors}
 
 \item{y_offset}{numeric}
+
+\item{cex_text}{numeric}
 }
 \value{
 none

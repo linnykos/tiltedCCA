@@ -4,7 +4,7 @@
 \alias{extract_svd_embedding}
 \title{Extract SVD embedding}
 \usage{
-extract_svd_embedding(obj, mode = "dcca")
+extract_svd_embedding(obj)
 }
 \arguments{
 \item{obj}{return object from \code{dcca_decomposition}}

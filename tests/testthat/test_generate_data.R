@@ -26,7 +26,7 @@ test_that("generate_data_dcca works", {
                                              "distinct_mat_1", "distinct_mat_2",
                                              "common_score", 
                                              "distinct_score_1", "distinct_score_2",
-                                             "rank_c"))))
+                                             "rank_c", "vis_param"))))
   expect_true(all(dim(res$mat_1) == c(n, p_1)))
   expect_true(all(dim(res$mat_2) == c(n, p_2)))
 })

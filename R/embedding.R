@@ -81,12 +81,9 @@ extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
 #'
 #' @return list
 #' @export
-extract_svd_embedding <- function(obj, mode = "dcca"){
-  if(class(obj) == "dcca_decomp" | mode == "dcca") {
-    rank_c <- ncol(obj$common_score)
-  } else {
-    rank_c <- ncol(obj$common_score_1)
-  }
+extract_svd_embedding <- function(obj){
+  rank_c <- ncol(obj$common_score)
+  
   n <- nrow(obj$common_mat_1)
   rank_1 <- ncol(obj$distinct_score_1)
   rank_2 <- ncol(obj$distinct_score_2)
