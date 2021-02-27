@@ -8,8 +8,6 @@ extract_svd_embedding(obj)
 }
 \arguments{
 \item{obj}{return object from \code{dcca_decomposition}}
-
-\item{mode}{\code{"dcca"} or \code{"dmca"}}
 }
 \value{
 list

@@ -77,7 +77,6 @@ extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
 #' Extract SVD embedding
 #'
 #' @param obj return object from \code{dcca_decomposition}
-#' @param mode \code{"dcca"} or \code{"dmca"}
 #'
 #' @return list
 #' @export
