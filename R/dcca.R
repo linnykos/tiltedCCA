@@ -9,13 +9,17 @@
 #' @param meta_clustering optional clustering
 #' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param apply_shrinkage boolean 
+#' @param fix_common_perc boolean. If \code{TRUE}, the output \code{common_perc} will be fixed to at 0.5,
+#' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
+#' If \code{FALSE}, \code{common_perc} will be adaptively estimated via the
+#' \code{.common_decomposition} function.
 #' @param verbose boolean
 #'
 #' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                         num_neigh = max(round(nrow(mat_1)/20), 40),
-                        apply_shrinkage = T, verbose = T){
+                        apply_shrinkage = T, fix_common_perc = F, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
@@ -65,6 +69,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
   }
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
+                            fix_common_perc = fix_common_perc,
                             check_alignment = all(!is.na(meta_clustering)),
                             verbose = verbose, msg = msg)
 
@@ -129,6 +134,10 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 #' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
 #' @param cca_res returned object from \code{.cca}
 #' @param num_neigh number of neighbors to consider to computed the common percentage
+#' @param fix_common_perc boolean. If \code{TRUE}, the output \code{common_perc} will be fixed to at 0.5,
+#' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
+#' If \code{FALSE}, \code{common_perc} will be adaptively estimated via the
+#' \code{.common_decomposition} function.
 #' @param check_alignment boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
 #' after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution
 #' was not computed from exactly \code{svd_1} and \code{svd_2}
@@ -138,6 +147,7 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 #' @return list 
 .dcca_common_score <- function(svd_1, svd_2, cca_res, 
                                num_neigh = max(round(nrow(svd_1$u)/20), 40),
+                               fix_common_perc = F,
                                check_alignment = T, verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
@@ -159,14 +169,18 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
     obj_vec <- cca_res$obj_vec
   }
   
-  nn_1 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v), k = num_neigh)$nn.idx
-  nn_2 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), k = num_neigh)$nn.idx
-  
-  tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  # compute the common scores
+  if(fix_common_perc){
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_common_perc = T)
+  } else {
+    nn_1 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v), k = num_neigh)$nn.idx
+    nn_2 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), k = num_neigh)$nn.idx
+    
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, fix_common_perc = F)
+  }
   common_score <- tmp$common_score; common_perc <- tmp$common_perc
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
-  common_score <- tmp$common_score
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
  
   if(verbose) print(paste0("D-CCA", msg, ": Done"))
@@ -189,7 +203,7 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 #' @param score_2 matrix
 #' @param common_score matrix
 #'
-#' @return list of three matrices
+#' @return list of two matrices
 .compute_distinct_score <- function(score_1, score_2, common_score){
   full_rank <- ncol(common_score)
   distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
@@ -199,8 +213,7 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   distinct_score_1 <- cbind(distinct_score_1, score_1[,-(1:full_rank), drop = F])
   distinct_score_2 <- cbind(distinct_score_2, score_2[,-(1:full_rank), drop = F])
   
-  list(common_score = common_score, distinct_score_1 = distinct_score_1, 
-       distinct_score_2 = distinct_score_2)
+  list(distinct_score_1 = distinct_score_1, distinct_score_2 = distinct_score_2)
 }
 
 ############

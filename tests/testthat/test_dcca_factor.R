@@ -41,12 +41,21 @@ test_that("(Coding) dcca_factor preserves rownames and colnames", {
   
   res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
   
+  expect_true(length(res$common_score) > 1)
+  expect_true(length(res$distinct_score_1) > 1)
+  expect_true(length(res$distinct_score_2) > 1)
+  expect_true(length(res$score_1) > 1)
+  expect_true(length(res$score_2) > 1)
   expect_true(all(rownames(mat_1) == rownames(res$common_score)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
   expect_true(all(rownames(mat_1) == rownames(res$score_1)))
   expect_true(all(rownames(mat_1) == rownames(res$score_2)))
   
+  expect_true(length(rownames(res$svd_1$u)) > 1)
+  expect_true(length(rownames(res$svd_2$u)) > 1)
+  expect_true(length(rownames(res$svd_1$v)) > 1)
+  expect_true(length(rownames(res$svd_2$v)) > 1)
   expect_true(all(rownames(mat_1) == rownames(res$svd_1$u)))
   expect_true(all(rownames(mat_1) == rownames(res$svd_2$u)))
   expect_true(all(colnames(mat_1) == rownames(res$svd_1$v)))
@@ -74,12 +83,21 @@ test_that("(Coding) dcca_factor preserves rownames and colnames with metacells",
   res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
                      apply_shrinkage = T, verbose = F)
   
+  expect_true(length(res$common_score) > 1)
+  expect_true(length(res$distinct_score_1) > 1)
+  expect_true(length(res$distinct_score_2) > 1)
+  expect_true(length(res$score_1) > 1)
+  expect_true(length(res$score_2) > 1)
   expect_true(all(rownames(mat_1) == rownames(res$common_score)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
   expect_true(all(rownames(mat_1) == rownames(res$score_1)))
   expect_true(all(rownames(mat_1) == rownames(res$score_2)))
   
+  expect_true(length(rownames(res$svd_1$u)) > 1)
+  expect_true(length(rownames(res$svd_2$u)) > 1)
+  expect_true(length(rownames(res$svd_1$v)) > 1)
+  expect_true(length(rownames(res$svd_2$v)) > 1)
   expect_true(all(rownames(mat_1) == rownames(res$svd_1$u)))
   expect_true(all(rownames(mat_1) == rownames(res$svd_2$u)))
   expect_true(all(colnames(mat_1) == rownames(res$svd_1$v)))

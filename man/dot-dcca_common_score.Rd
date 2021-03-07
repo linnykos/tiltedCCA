@@ -9,6 +9,7 @@
   svd_2,
   cca_res,
   num_neigh = max(round(nrow(svd_1$u)/20), 40),
+  fix_common_perc = F,
   check_alignment = T,
   verbose = T,
   msg = ""
@@ -22,6 +23,11 @@
 \item{cca_res}{returned object from \code{.cca}}
 
 \item{num_neigh}{number of neighbors to consider to computed the common percentage}
+
+\item{fix_common_perc}{boolean. If \code{TRUE}, the output \code{common_perc} will be fixed to at 0.5,
+meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
+If \code{FALSE}, \code{common_perc} will be adaptively estimated via the
+\code{.common_decomposition} function.}
 
 \item{check_alignment}{boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
 after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution

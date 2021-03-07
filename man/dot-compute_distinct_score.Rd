@@ -14,7 +14,7 @@
 \item{common_score}{matrix}
 }
 \value{
-list of three matrices
+list of two matrices
 }
 \description{
 Given \code{score_1} and \code{score_2}, and having already

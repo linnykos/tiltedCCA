@@ -29,7 +29,6 @@ generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2,
   common_score <- .common_decomposition(score_1, score_2, nn_1, nn_2)$common_score
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
-  common_score <- tmp$common_score
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
   tmp1 <- crossprod(common_score); tmp2 <- crossprod(distinct_score_1); tmp3 <- crossprod(distinct_score_2)

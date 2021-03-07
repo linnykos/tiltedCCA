@@ -1,16 +1,24 @@
-.common_decomposition <- function(score_1, score_2, nn_1, nn_2, tol = 1e-6){
+.common_decomposition <- function(score_1, score_2, nn_1 = NA, nn_2 = NA, 
+                                  fix_common_perc = F, tol = 1e-6){
+  stopifnot((!any(is.na(nn_1)) & !any(is.na(nn_2)) & !fix_common_perc) | 
+              (all(is.na(nn_1)) & all(is.na(nn_2)) & fix_common_perc))
+  
   rank_c <- min(ncol(score_1), ncol(score_2))
   basis_list <- lapply(1:rank_c, function(k){
     .representation_2d(score_1[,k], score_2[,k])
   })
   
-  common_perc <- sapply(1:rank_c, function(k){
-    if(sum(abs(basis_list[[k]]$rep1 - basis_list[[k]]$rep2)) < tol){
-      .5
-    } else {
-      .latent_common_perc(score_1[,k], score_2[,k], nn_1, nn_2)
-    }
-  })
+  if(fix_common_perc){
+    common_perc <- rep(0.5, rank_c)
+  } else {
+    common_perc <- sapply(1:rank_c, function(k){
+      if(sum(abs(basis_list[[k]]$rep1 - basis_list[[k]]$rep2)) < tol){
+        .5
+      } else {
+        .latent_common_perc(score_1[,k], score_2[,k], nn_1, nn_2)
+      }
+    })
+  }
   
   common_score <- sapply(1:rank_c, function(k){
     vec1 <- basis_list[[k]]$rep1; vec2 <-  basis_list[[k]]$rep2
@@ -31,6 +39,8 @@
     
     basis_list[[k]]$basis_mat %*% common_rep
   })
+  
+  if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
   list(common_score = common_score, common_perc = common_perc)
 }
