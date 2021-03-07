@@ -10,6 +10,7 @@ dcca_factor(
   rank_1,
   rank_2,
   meta_clustering = NA,
+  num_neigh = max(round(nrow(mat_1)/20), 40),
   apply_shrinkage = T,
   reorthogonalize = F,
   verbose = T
@@ -25,6 +26,8 @@ dcca_factor(
 \item{rank_2}{desired rank of data matrix 2}
 
 \item{meta_clustering}{optional clustering}
+
+\item{num_neigh}{number of neighbors to consider to computed the common percentage}
 
 \item{apply_shrinkage}{boolean}
 

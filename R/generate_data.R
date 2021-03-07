@@ -5,6 +5,7 @@
 #' @param score_2 \code{n} by \code{rank_2} orthogonal matrix
 #' @param coef_mat_1 \code{rank_1} by \code{p_1} matrix
 #' @param coef_mat_2 \code{rank_2} by \code{p_2} matrix
+#' @param num_neigh number of neighbors to consider to computed the common percentage 
 #' @param noise_func function that takes in a matrix and outputs a matrix of the same dimension
 #'
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
@@ -14,7 +15,7 @@ generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2,
                                noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
             nrow(score_2) > ncol(score_2), ncol(score_1) == nrow(coef_mat_1),
-            ncol(score_2) == nrow(coef_mat_2))
+            ncol(score_2) == nrow(coef_mat_2), num_neigh <= min(nrow(score_1), nrow(score_2)))
 
   
   tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)

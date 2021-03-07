@@ -7,6 +7,7 @@
 #' @param rank_1 desired rank of data matrix 1
 #' @param rank_2 desired rank of data matrix 2
 #' @param meta_clustering optional clustering
+#' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param apply_shrinkage boolean 
 #' @param reorthogonalize boolean
 #' @param verbose boolean
@@ -17,7 +18,8 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                         num_neigh = max(round(nrow(mat_1)/20), 40),
                         apply_shrinkage = T, reorthogonalize = F, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
-            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
+            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
+  
   n <- nrow(mat_1)
   if(verbose) print("D-CCA: Rescaling matrices")
   mat_1 <- scale(mat_1, center = T, scale = F)

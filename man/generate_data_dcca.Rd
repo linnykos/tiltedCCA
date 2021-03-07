@@ -9,6 +9,7 @@ generate_data_dcca(
   score_2,
   coef_mat_1,
   coef_mat_2,
+  num_neigh = max(round(nrow(score_1)/20), 40),
   noise_func = function(mat) {     matrix(stats::rnorm(prod(dim(mat)), mean = mat),
     nrow(mat), ncol(mat)) }
 )
@@ -21,6 +22,8 @@ generate_data_dcca(
 \item{coef_mat_1}{\code{rank_1} by \code{p_1} matrix}
 
 \item{coef_mat_2}{\code{rank_2} by \code{p_2} matrix}
+
+\item{num_neigh}{number of neighbors to consider to computed the common percentage}
 
 \item{noise_func}{function that takes in a matrix and outputs a matrix of the same dimension}
 }
