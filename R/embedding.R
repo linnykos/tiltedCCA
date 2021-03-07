@@ -14,7 +14,7 @@
 #' @export
 extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T,
-                              noise_val = 0.05,
+                              noise_val = 0.05, 
                               vis_param = NA,
                               only_embedding = T, reduction_key = "UMAP"){
   n <- nrow(svd_list[[1]]$u)
