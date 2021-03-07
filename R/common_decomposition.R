@@ -4,6 +4,11 @@
               (all(is.na(nn_1)) & all(is.na(nn_2)) & fix_common_perc))
   
   rank_c <- min(ncol(score_1), ncol(score_2))
+  stopifnot(all(sapply(1:rank_c, function(k){
+    val <- score_1[,k] %*% score_2[,k]; val >= 0 
+  }))) # ensures score matrices contain pair of acute vectors
+  
+
   basis_list <- lapply(1:rank_c, function(k){
     .representation_2d(score_1[,k], score_2[,k])
   })

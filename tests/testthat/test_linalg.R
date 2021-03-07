@@ -30,6 +30,20 @@ test_that("(Math) .representation_2d has the correct representation", {
   expect_true(all(bool_vec))
 })
 
+test_that("(Coding) .representation_2d returns gracefully if both vectors are the same", {
+  set.seed(10)
+  vec <- rnorm(100)
+  
+  res <- .representation_2d(vec, vec)
+  
+  expect_true(sum(abs(res$rep1 - res$rep2)) <= 1e-6)
+  expect_true(abs(.l2norm(res$basis_mat[,1]) - 1) <= 1e-6)
+  expect_true(sum(abs(res$basis_mat[,2])) <= 1e-6)
+  
+  vec2 <- res$basis_mat %*% res$rep1
+  expect_true(sum(abs(vec - vec2)) <= 1e-6)
+})
+
 #############################
 
 ## .cor_vectors is correct
