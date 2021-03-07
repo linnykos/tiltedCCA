@@ -8,7 +8,6 @@
     val <- score_1[,k] %*% score_2[,k]; val >= 0 
   }))) # ensures score matrices contain pair of acute vectors
   
-
   basis_list <- lapply(1:rank_c, function(k){
     .representation_2d(score_1[,k], score_2[,k])
   })
