@@ -14,6 +14,7 @@
 #' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
+                        num_neigh = max(round(nrow(mat_1)/20), 40),
                         apply_shrinkage = T, reorthogonalize = F, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
@@ -62,7 +63,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     cca_res <- .cca(svd_1, svd_2)
   }
   
-  res <- .dcca_common_score(svd_1, svd_2, cca_res,
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
                             check_alignment = all(!is.na(meta_clustering)),
                             reorthogonalize = reorthogonalize,
                             verbose = verbose, msg = msg)
@@ -117,8 +118,9 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 
 #################################
 
-.dcca_common_score <- function(svd_1, svd_2, cca_res, check_alignment = T,
-                               reorthogonalize = F, verbose = T, msg = ""){
+.dcca_common_score <- function(svd_1, svd_2, cca_res, 
+                               num_neigh = max(round(nrow(svd_1$u)/20), 40),
+                               check_alignment = T, reorthogonalize = F, verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
@@ -139,9 +141,11 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
     obj_vec <- cca_res$obj_vec
   }
   
-  # threshold x for numerical stability
-  common_score <- .compute_common_score(score_1, score_2, obj_vec = obj_vec)
-  stopifnot(all(dim(common_score) == c(nrow(score_1), full_rank)))
+  nn_1 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v), k = num_neigh)$nn.idx
+  nn_2 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), k = num_neigh)$nn.idx
+  
+  tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  common_score <- tmp$common_score; common_perc <- tmp$common_perc
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = reorthogonalize)
   common_score <- tmp$common_score
@@ -152,25 +156,8 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
        distinct_score_1 = distinct_score_1,
        distinct_score_2 = distinct_score_2,
        score_1 = score_1, score_2 = score_2, 
-       svd_1 = svd_1, svd_2 = svd_2, cca_obj = obj_vec)
-}
-
-# score is a matrix with n rows. loadings is a mat with p rows
-.compute_common_score <- function(score_1, score_2, obj_vec = NA){
-  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) >= ncol(score_1),
-            nrow(score_2) >= ncol(score_2), is.matrix(score_1), is.matrix(score_2))
-  
-  p <- min(c(ncol(score_1), ncol(score_2)))
-  if(ncol(score_1) > p){ score_1 <- score_1[,1:p,drop = F]}
-  if(ncol(score_2) > p){ score_2 <- score_2[,1:p,drop = F]}
-  
-  n <- nrow(score_1)
-  obj_vec <- diag(crossprod(score_1, score_2))/n
-  
-  R_vec <- sapply(obj_vec, function(x){x <- min(1,max(x,0)); 1-sqrt((1-x)/(1+x))})
-  common_score <- .mult_mat_vec((score_1+score_2)/2, R_vec)
-  
-  common_score
+       svd_1 = svd_1, svd_2 = svd_2, 
+       cca_obj = obj_vec, common_perc = common_perc)
 }
 
 .compute_distinct_score <- function(score_1, score_2, common_score, reorthogonalize = F){

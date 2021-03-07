@@ -465,7 +465,7 @@ test_that("(Basic) .dcca_common_score works", {
   expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
-                                             "distinct_score_2"))))
+                                             "distinct_score_2", "common_perc"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
@@ -642,7 +642,7 @@ test_that("(Basic) dcca_factor works", {
   expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2",
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
-                                             "distinct_score_2"))))
+                                             "distinct_score_2", "common_perc"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
@@ -753,7 +753,7 @@ test_that("(Coding) dcca_factor works with meta-cells", {
   expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
-                                             "distinct_score_2"))))
+                                             "distinct_score_2", "common_perc"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
@@ -1106,99 +1106,6 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_1 - res2$distinct_mat_1)) <= 1e-6)
   expect_true(sum(abs(res$distinct_mat_2 - res2$distinct_mat_2)) <= 1e-6)
-})
-
-####################################
-
-## .compute_common_score is correct
-
-test_that("(Basic) .compute_common_score works", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                    0.4, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3)
-  K <- ncol(B_mat)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec)
-  rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  
-  res <- .compute_common_score(score_1, score_2)
-  
-  expect_true(is.matrix(res))
-  expect_true(all(dim(res) == dim(score_1)))
-})
-
-test_that("(Coding) .compute_common_score can handle when the two scores have different dimensions", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                    0.4, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3)
-  K <- ncol(B_mat)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec)
-  rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  
-  score_1b <- score_1[,1:2]
-  res <- .compute_common_score(score_1b, score_2)
-  expect_true(all(dim(res) == dim(score_1b)))
-  
-  score_2b <- score_2[,1:2]
-  res <- .compute_common_score(score_1, score_2b)
-  expect_true(all(dim(res) == dim(score_2b)))
-})
-
-test_that("(Coding) .compute_common_score works with some of them being K=1", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                    0.4, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3)
-  K <- ncol(B_mat)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec)
-  rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  
-  score_1b <- score_1[, 1,drop = F]
-  res <- .compute_common_score(score_1b, score_2)
-  expect_true(all(dim(res) == dim(score_1b)))
-  
-  score_2b <- score_2[, 1,drop = F]
-  res <- .compute_common_score(score_1, score_2b)
-  expect_true(all(dim(res) == dim(score_2b)))
-  
-  res <- .compute_common_score(score_1b, score_2b)
-  expect_true(all(dim(res) == dim(score_1b)))
-})
-
-test_that(".compute_common_score preserves rownames and colnames", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                    0.4, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3)
-  K <- ncol(B_mat)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec)
-  rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  
-  rownames(score_1) <- paste0("a", 1:n)
-  rownames(score_2) <- paste0("a", 1:n)
-  
-  res <- .compute_common_score(score_1, score_2)
-  expect_true(all(dim(res) == dim(score_1)))
-  expect_true(all(rownames(res) == rownames(score_1)))
-  
-  # observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)
 })
 
 #####################################

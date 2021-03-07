@@ -1,9 +1,13 @@
 ## given 2 vectors, find the hyperplane 2D representation
-.representation_2d <- function(vec1, vec2){
-  stopifnot(length(vec1) == length(vec2))
+.representation_2d <- function(vec1, vec2, tol = 1e-6){
+  stopifnot(length(vec1) == length(vec2), .l2norm(vec1) > tol, .l2norm(vec2) > tol)
   
   unit1 <- vec1/.l2norm(vec1)
   tmp <- .orthogonal_vec2vec(vec2, unit1)
+  if(.l2norm(tmp) < tol){
+    return(list(basis_mat = cbind(unit1, 0), rep1 = c(.l2norm(vec1), 0), 
+                rep2 = c(.l2norm(vec2), 0)))
+  }
   unit2 <- tmp/.l2norm(tmp)
   
   basis_mat <- cbind(unit1, unit2)

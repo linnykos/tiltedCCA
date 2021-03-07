@@ -10,14 +10,22 @@
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
 #' @export
 generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
-                          noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
+                               num_neigh = max(round(nrow(score_1)/20), 40),
+                               noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
-            nrow(score_2) > ncol(score_2))
+            nrow(score_2) > ncol(score_2), ncol(score_1) == nrow(coef_mat_1),
+            ncol(score_2) == nrow(coef_mat_2))
 
+  
   tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  
+  mat_1 <- score_1 %*% coef_mat_1; mat_2 <- score_2 %*% coef_mat_2
+  nn_1 <- RANN::nn2(mat_1, k = num_neigh)$nn.idx
+  nn_2 <- RANN::nn2(mat_2, k = num_neigh)$nn.idx
+  
   full_rank <- length(tmp$obj_vec)
-  common_score <- .compute_common_score(score_1, score_2, obj_vec = tmp$diag_vec)
+  common_score <- .common_decomposition(score_1, score_2, nn_1, nn_2)$common_score
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   common_score <- tmp$common_score
@@ -35,8 +43,6 @@ generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2,
   common_mat_2 <- common_score %*% coef_mat_2[1:rank_c,,drop = F] 
   distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
 
-  mat_1 <- common_mat_1 + distinct_mat_1
-  mat_2 <- common_mat_2 + distinct_mat_2
   mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
   
   cmin_1 <- mean(.svd_truncated(common_mat_1, K = rank_c)$d)
@@ -129,8 +135,3 @@ generate_random_orthogonal <- function(n, K){
   
   adj_mat
 }
-
-  
-  
-  
-  

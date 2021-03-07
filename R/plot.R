@@ -37,6 +37,24 @@ plot_heatmat <- function(dat, luminosity = T, asp = nrow(dat)/ncol(dat),
   invisible()
 }
 
+plot_scores2 <- function(score_1, score_2, membership_vec){
+  graphics::par(mfrow = c(1,2))
+  graphics::plot(NA, xlim = range(score_1), ylim = c(0.5,3.5))
+  n <- nrow(score_1)
+  for(i in 1:ncol(score_1)){
+    graphics::points(x = score_1[,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
+  }
+  
+  graphics::plot(NA, xlim = range(score_2), ylim = c(0.5,3.5))
+  n <- nrow(score_2)
+  for(i in 1:ncol(score_2)){
+    graphics::points(x = score_2[,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
+  }
+  
+  invisible()
+}
+
+#######################################
 
 .colorRamp_custom <- function(vec1, vec2, length, luminosity = T){
   mat <- matrix(0, nrow = length, ncol = 3)

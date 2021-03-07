@@ -12,9 +12,9 @@ Imports:
     MASS,
     RSpectra,
     Matrix,
-    softImpute,
     Seurat,
-    irlba
+    irlba,
+    RANN
 Suggests:
     testthat
 RoxygenNote: 7.1.1
