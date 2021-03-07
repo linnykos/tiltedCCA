@@ -12,7 +12,6 @@ dcca_factor(
   meta_clustering = NA,
   num_neigh = max(round(nrow(mat_1)/20), 40),
   apply_shrinkage = T,
-  reorthogonalize = F,
   verbose = T
 )
 }
@@ -30,8 +29,6 @@ dcca_factor(
 \item{num_neigh}{number of neighbors to consider to computed the common percentage}
 
 \item{apply_shrinkage}{boolean}
-
-\item{reorthogonalize}{boolean}
 
 \item{verbose}{boolean}
 }

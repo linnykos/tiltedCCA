@@ -9,14 +9,13 @@
 #' @param meta_clustering optional clustering
 #' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param apply_shrinkage boolean 
-#' @param reorthogonalize boolean
 #' @param verbose boolean
 #'
 #' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                         num_neigh = max(round(nrow(mat_1)/20), 40),
-                        apply_shrinkage = T, reorthogonalize = F, verbose = T){
+                        apply_shrinkage = T, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
@@ -67,7 +66,6 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
                             check_alignment = all(!is.na(meta_clustering)),
-                            reorthogonalize = reorthogonalize,
                             verbose = verbose, msg = msg)
 
   class(res) <- "dcca"
@@ -120,9 +118,27 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
 
 #################################
 
+#' Main workhorse of dcca_factor
+#' 
+#' Given the two matrices (given by \code{svd_1} and \code{svd_2}) and the
+#' CCA solution in \code{cca_res}, compute the common scores.
+#' This calls the functions
+#' \code{.common_decomposition} and \code{.compute_distinct_score}. 
+#'
+#' @param svd_1 SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}
+#' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
+#' @param cca_res returned object from \code{.cca}
+#' @param num_neigh number of neighbors to consider to computed the common percentage
+#' @param check_alignment boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
+#' after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution
+#' was not computed from exactly \code{svd_1} and \code{svd_2}
+#' @param verbose boolean
+#' @param msg character
+#'
+#' @return list 
 .dcca_common_score <- function(svd_1, svd_2, cca_res, 
                                num_neigh = max(round(nrow(svd_1$u)/20), 40),
-                               check_alignment = T, reorthogonalize = F, verbose = T, msg = ""){
+                               check_alignment = T, verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
@@ -149,7 +165,7 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
   common_score <- tmp$common_score; common_perc <- tmp$common_perc
   
-  tmp <- .compute_distinct_score(score_1, score_2, common_score, reorthogonalize = reorthogonalize)
+  tmp <- .compute_distinct_score(score_1, score_2, common_score)
   common_score <- tmp$common_score
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
  
@@ -162,16 +178,22 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
        cca_obj = obj_vec, common_perc = common_perc)
 }
 
-.compute_distinct_score <- function(score_1, score_2, common_score, reorthogonalize = F){
+#' Compute the distinct scores
+#' 
+#' Given \code{score_1} and \code{score_2}, and having already
+#' computed \code{common_score}, compute the distinct scores.
+#' This is more-or-less a simple subtraction, but we need to handle situations
+#' where we might need to "fill-in extra dimensions"
+#'
+#' @param score_1 matrix
+#' @param score_2 matrix
+#' @param common_score matrix
+#'
+#' @return list of three matrices
+.compute_distinct_score <- function(score_1, score_2, common_score){
   full_rank <- ncol(common_score)
   distinct_score_1 <- score_1[,1:full_rank, drop = F] - common_score
   distinct_score_2 <- score_2[,1:full_rank, drop = F] - common_score
-  
-  if(reorthogonalize){
-    tmp <- .reorthgonalize_scores(common_score, distinct_score_1, distinct_score_2)
-    common_score <- tmp$common_score
-    distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
-  }
   
   # handle different ranks
   distinct_score_1 <- cbind(distinct_score_1, score_1[,-(1:full_rank), drop = F])
@@ -181,27 +203,15 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
        distinct_score_2 = distinct_score_2)
 }
 
-.reorthgonalize_scores <- function(common_score, distinct_score_1, distinct_score_2, check = F){
-  tmp <- solve(crossprod(common_score))
-  tmp2 <- tcrossprod(tmp, common_score)
-  
-  common_comp1 <- common_score %*% (tmp2 %*% distinct_score_1)
-  
-  if(check){
-    common_comp2 <- common_score %*% (tmp2 %*% distinct_score_2)
-    stopifnot(all(abs(common_comp1 - common_comp2) <= 1e-6))
-  }
- 
-  common_score <- common_score + common_comp1
-  distinct_score_1 <- distinct_score_1 - common_comp1
-  distinct_score_2 <- distinct_score_2 - common_comp1
-  
-  list(common_score = common_score, distinct_score_1 = distinct_score_1, 
-       distinct_score_2 = distinct_score_2)
-}
+############
 
-##############################################
 
+#' SPOET for denoising matrices
+#'
+#' @param mat matrix
+#' @param K low-dimension rank
+#'
+#' @return SVD
 .spoet <- function(mat, K){
   n <- nrow(mat); p <- ncol(mat); m <- min(n, p)
   target_full_dim <- min(c(nrow(mat), ncol(mat), K*10))
@@ -223,7 +233,22 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   svd_res
 }
 
-# takes either two matrices or two SVDs
+#' Perform CCA
+#' 
+#' This function takes either two matrices or two SVDs. Both \code{input_1}
+#' and \code{input_2} must be "of the same type." Calls the \code{.compute_cca_aggregate_matrix} function.
+#'
+#' @param input_1 first input
+#' @param input_2 second input
+#' @param rank_1 scalar
+#' @param rank_2 scalar
+#' @param return_scores boolean. If \code{TRUE}, return the scores (i.e., matrices where the rows are the cells).
+#' If \code{FALSE}, return the loadings (i.e., matrices where the rows are the variables).
+#' Either way, one of the output matrices will have \code{rank_1} columns and another
+#' will have \code{rank_2} columns
+#' @param tol small numeric
+#'
+#' @return list
 .cca <- function(input_1, input_2, rank_1 = NA, rank_2 = NA, 
                  return_scores = F, tol = 1e-6){
   if(is.matrix(input_1) & is.matrix(input_2)){
@@ -272,6 +297,21 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   
 }
 
+#' Helper function with the CCA function
+#' 
+#' Called by the \code{.cca} function. Recall when computing CCA,
+#' the main matrix we need compute is, roughly speaking, 
+#' half-inverse of the first covariance times the cross-covariance matrix
+#' times the half-inverse of the second covariance. If we had the SVD
+#' of the two original matrices, this is actually equivalent to the product
+#' of the left singular vectors.
+#'
+#' @param svd_1 SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}
+#' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
+#' @param augment boolean. If \code{TRUE}, augment the matrix with either rows or columns
+#' with 0's so the dimension of the output matrix matches those in \code{svd_1} and \code{svd_2}
+#'
+#' @return matrix
 .compute_cca_aggregate_matrix <- function(svd_1, svd_2, augment = T){
   res <- crossprod(svd_1$u, svd_2$u)
   
@@ -283,7 +323,18 @@ dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
   res
 }
 
-# unnoramlized means that while score_1 is orthogonal, it is not orthonormal
+#' Using the CCA solution, compute the score matrices.
+#' 
+#' This is called by \code{.dcca_common_score}. It's called unnormalized
+#' scores since if there are \code{n} rows (i.e., \code{nrow(svd_1$u)}),
+#' then the return matrices will be orthogonal matrices where the
+#' matrix multiplied by itself is a diagonal matrix with all values \code{n}.
+#'
+#' @param svd_1 SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}
+#' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
+#' @param cca_res returned object from \code{.cca}
+#'
+#' @return list of two matrices
 .compute_unnormalized_scores <- function(svd_1, svd_2, cca_res){
   score_1 <- .mult_mat_vec(svd_1$u, svd_1$d) %*% crossprod(svd_1$v, cca_res$loading_1) 
   score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, cca_res$loading_2)
