@@ -5,73 +5,61 @@
 #' @param common_2 boolean
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
-#' @param noise_val non-negative numeric (set to 0 to essentially ignore)
-#' @param vis_param list containing 4 scalars: \code{cmin_1}, \code{cmin_2}, \code{dmin_1}, \code{dmin_2}
 #' @param only_embedding boolean
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
 #' @return 2-column matrix or \code{Seurat} object
 #' @export
-extract_umap_embedding <- function(svd_list, common_1 = T, common_2 = T,
+extract_umap_embedding <- function(prep_list, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T,
-                              noise_val = 0.05, 
-                              vis_param = NA,
                               only_embedding = T, reduction_key = "UMAP"){
-  n <- nrow(svd_list[[1]]$u)
-  rank_1 <- length(svd_list[[3]]$d); rank_2 <- length(svd_list[[4]]$d)
+  stopifnot(common_1 | common_2 | distinct_1 | distinct_2)
   
-  c1 <- svd_list[[1]]$d[1]; c2 <- svd_list[[2]]$d[1]
-  d1 <- svd_list[[3]]$d[1]; d2 <- svd_list[[4]]$d[1]
-  
-  if(all(!is.na(vis_param))){
-    cmin_1 <- vis_param$cmin_1; cmin_2 <- vis_param$cmin_2
-    dmin_1 <- vis_param$dmin_1; dmin_2 <- vis_param$dmin_2
-  } else {
-    cmin_1 <- mean(svd_list[[1]]$d); cmin_2 <- mean(svd_list[[2]]$d)
-    dmin_1 <- mean(svd_list[[3]]$d); dmin_2 <- mean(svd_list[[4]]$d)
-  }
-  
-  if(common_1){ 
-    svd_list[[1]]$d <- svd_list[[1]]$d/(c1 + d1) 
-  } else { 
-    svd_list[[1]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
-    svd_list[[1]]$d <- cmin_1/(c1+d1)*ifelse(distinct_1, noise_val/rank_1, 0)
-  }
-  
-  if(common_2){ 
-    svd_list[[2]]$d <- svd_list[[2]]$d/(c2 + d2) 
-  } else { 
-    svd_list[[2]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
-    svd_list[[2]]$d <- cmin_2/(c2+d2)*ifelse(distinct_2, noise_val/rank_2, 0)
-  }
+  prep_list$svd_list$e1$d <- prep_list$svd_list$e1$d/prep_list$svd_list$e1$d[1]
+  prep_list$svd_list$e2$d <- prep_list$svd_list$e2$d/prep_list$svd_list$e2$d[1]
  
-  if(distinct_1){ 
-    svd_list[[3]]$d <- svd_list[[3]]$d/(c1 + d1) 
-  } else { 
-    svd_list[[3]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
-    svd_list[[3]]$d <- dmin_1/(c1+d1)*ifelse(common_1, noise_val/rank_1, 0)
-  }
-
-  if(distinct_2){ 
-    svd_list[[4]]$d <- svd_list[[4]]$d/(c2 + d2) 
-  } else { 
-    svd_list[[4]]$u <- matrix(stats::rnorm(n), nrow = n, ncol = 1) 
-    svd_list[[4]]$d <- dmin_2/(c2+d2)*ifelse(common_2, noise_val/rank_2, 0)
-  }
+  ###########
   
-  tmp <- do.call(cbind, lapply(svd_list, function(res){
-    .mult_mat_vec(res$u, res$d)
-  }))
+  tmp_list <- vector("list", 1); l <- 1
+  tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_1, prep_list$svd_list$e1, 
+                                common_1, distinct_1)
+  if(!all(is.na(tmp))) { tmp_list[[l]] <- tmp; l <- l+1 }
+  tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_2, prep_list$svd_list$e2, 
+                                common_2, distinct_2)
+  if(!all(is.na(tmp))) { tmp_list[[l]] <- tmp; l <- l+1 }
   
-  if(length(rownames(svd_list[[1]]$u)) != 0){
-    rownames(tmp) <- rownames(svd_list[[1]]$u)
+  #####
+  
+  tmp <- do.call(cbind, tmp_list)
+  if(length(rownames(prep_list$common_score)) != 0){
+    rownames(tmp) <- rownames(prep_list$common_score)
   }
   
   if(only_embedding){
-    Seurat::RunUMAP(tmp, verbose = F)@cell.embeddings
+    Seurat::RunUMAP(tmp, metric = "euclidean", verbose = F)@cell.embeddings
   } else {
-    Seurat::RunUMAP(tmp, reduction.key = reduction_key, verbose = F)
+    Seurat::RunUMAP(tmp, metric = "euclidean", reduction.key = reduction_key, verbose = F)
   }
+}
+
+prepare_umap_embedding <- function(obj){
+  rank_1 <- ncol(obj$distinct_score_1)
+  rank_2 <- ncol(obj$distinct_score_2)
+  
+  svd_list <- vector("list", 2)
+  svd_list[[1]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1)
+  svd_list[[2]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2)
+  names(svd_list) <- c("e1", "e2")
+  
+  if(length(rownames(obj$common_score)) != 0){
+    for(i in 1:nrow(svd_list)){
+      rownames(svd_list[[i]]$u) <- rownames(obj$common_score)
+    }
+  }
+  
+  list(common_score = obj$common_score,
+       distinct_score_1 = obj$distinct_score_1, distinct_score_2 = obj$distinct_score_2,
+       svd_list = svd_list)
 }
 
 #' Extract SVD embedding
@@ -87,18 +75,63 @@ extract_svd_embedding <- function(obj){
   rank_1 <- ncol(obj$distinct_score_1)
   rank_2 <- ncol(obj$distinct_score_2)
   
-  svd_list <- vector("list", 4)
+  svd_list <- vector("list", 6)
   
   svd_list[[1]] <- .svd_truncated(obj$common_mat_1, rank_c)
   svd_list[[2]] <- .svd_truncated(obj$common_mat_2, rank_c)
   svd_list[[3]] <- .svd_truncated(obj$distinct_mat_1, rank_1)
   svd_list[[4]] <- .svd_truncated(obj$distinct_mat_2, rank_2)
+  svd_list[[5]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1)
+  svd_list[[6]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2)
   
   if(length(rownames(obj$common_mat_1)) != 0){
-    for(i in 1:4){
+    for(i in 1:nrow(svd_list)){
       rownames(svd_list[[i]]$u) <- rownames(obj$common_mat_1)
     }
   }
+  
+  names(svd_list) <- c("c1", "c2", "d1", "d2", "e1", "e2")
 
   svd_list
+}
+
+###################################
+
+.extract_matrix_helper <- function(common_score, distinct_score,
+                                   svd_e, common_bool, distinct_bool){
+  stopifnot(all(dim(common_score) == dim(distinct_score)))
+  if(!common_bool & !distinct_bool) return(NA)
+  
+  full_mat <- .mult_mat_vec(svd_e$u, svd_e$d)
+  center_vec <- apply(full_mat, 2, mean)
+  full_mat <- sapply(1:ncol(full_mat), function(k){
+    full_mat[,k] - center_vec[k]
+  })
+  l2_vec <- apply(full_mat, 1, function(x){.l2norm(x)})
+  
+  if(common_bool == distinct_bool){
+    tmp <- full_mat
+  } else {
+    if(ncol(common_score) < ncol(distinct_score)){
+      common_score <- rbind(common_score, matrix(0, nrow = nrow(common_score), ncol = ncol(distinct_score) - ncol(common_score)))
+    }
+    canonical_score <- common_score+distinct_score
+    
+    if(common_bool){ 
+      tmp <- tcrossprod(common_score, canonical_score) %*% full_mat
+    } else { 
+      tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat
+    }
+    
+    # center variables
+    tmp <- sapply(1:ncol(tmp), function(k){
+      tmp[,k] - center_vec[k]
+    })
+  }
+  
+  # normalize cells
+  if(common_bool | distinct_bool){ .mult_vec_mat(1/l2_vec, tmp)
+  } else{
+    NA
+  }
 }
