@@ -1,4 +1,4 @@
-decomposition_2d <- function(vec1, vec2, common_vec,
+plot_decomposition_2d <- function(vec1, vec2, common_vec,
                               xlim = c(0, 1.1*max(c(vec1, vec2))),
                               ylim = c(0, 1.1*max(c(vec1, vec2))), 
                               gridsize = 100, col_levels = 21){

@@ -22,7 +22,7 @@ test_that("(Basic) dcca_decomposition works", {
                                              "distinct_score_1", 
                                              "distinct_score_2",
                                              "common_mat_1", "common_mat_2",
-                                             "distinct_mat_1", "distinct_mat_2", "vis_param"))))
+                                             "distinct_mat_1", "distinct_mat_2", "common_perc"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
@@ -343,7 +343,7 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
   
   set.seed(10)
-  dat <- generate_data_dcca(score_1, score_2, coef_mat_1, coef_mat_2)
+  dat <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
   
   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
                           apply_shrinkage = F, verbose = F)

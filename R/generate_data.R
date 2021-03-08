@@ -10,7 +10,7 @@
 #'
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
 #' @export
-generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
+generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
                                num_neigh = max(round(nrow(score_1)/20), 40),
                                noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
@@ -44,20 +44,13 @@ generate_data_dcca <- function(score_1, score_2, coef_mat_1, coef_mat_2,
   distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
 
   mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
-  
-  cmin_1 <- mean(.svd_truncated(common_mat_1, K = rank_c)$d)
-  cmin_2 <- mean(.svd_truncated(common_mat_2, K = rank_c)$d)
-  dmin_1 <- mean(.svd_truncated(distinct_score_1[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F], K = rank_c)$d)
-  dmin_2 <- mean(.svd_truncated(distinct_score_2[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F], K = rank_c)$d)
-  
+
   list(mat_1 = mat_1, mat_2 = mat_2, 
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
        common_score = common_score, 
        distinct_score_1 = distinct_score_1,
-       distinct_score_2 = distinct_score_2,
-       vis_param = list(cmin_1 = cmin_1, cmin_2 = cmin_2, dmin_1 = dmin_1, dmin_2 = dmin_2),
-       rank_c = Matrix::rankMatrix(common_score))
+       distinct_score_2 = distinct_score_2)
 }
 
 form_seurat_obj <- function(mat_1, mat_2){

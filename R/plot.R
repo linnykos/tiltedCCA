@@ -1,5 +1,16 @@
-# if reserve_zero = T, then reserve zero for white
-# if reserve_zero = F, then all the greens are negative and all the reds are positive
+#' Heatmap of the data
+#' 
+#' If \code{reserve_zero = T}, then reserve zero for white.
+#' If \code{reserve_zero = F}, then all the greens are negative and all the reds are positive
+#'
+#' @param dat matrix
+#' @param luminosity boolean
+#' @param asp numeric
+#' @param reserve_zero boolean
+#' @param ... additional graphical parameters
+#'
+#' @return shows a plot but returns nothing
+#' @export
 plot_heatmat <- function(dat, luminosity = T, asp = nrow(dat)/ncol(dat), 
                          reserve_zero = T, ...){
   if(reserve_zero){
@@ -37,18 +48,137 @@ plot_heatmat <- function(dat, luminosity = T, asp = nrow(dat)/ncol(dat),
   invisible()
 }
 
-plot_scores2 <- function(score_1, score_2, membership_vec){
+#' Side-by-side plot of the canonical scores, colored by membership
+#'
+#' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#' @param membership_vec integer vector
+#'
+#' @return shows a plot but returns nothing
+#' @export
+plot_scores <- function(obj, membership_vec){
+  score_1 <- obj$common_score
+  if(ncol(score_1) < ncol(obj$distinct_score_1)){
+    score_1 <- rbind(score_1, matrix(0, nrow = nrow(score_1), ncol = ncol(obj$distinct_score_1) - ncol(score_1)))
+  }
+  score_1 <- score_1+obj$distinct_score_1
+  
+  score_2 <- obj$common_score
+  if(ncol(score_2) < ncol(obj$distinct_score_2)){
+    score_2 <- rbind(score_1, matrix(0, nrow = nrow(score_2), ncol = ncol(obj$distinct_score_2) - ncol(score_2)))
+  }
+  score_2 <- score_2+obj$distinct_score_2
+  
+  max_col <- max(ncol(score_1), ncol(score_2))
+  
   graphics::par(mfrow = c(1,2))
-  graphics::plot(NA, xlim = range(score_1), ylim = c(0.5,3.5))
+  graphics::plot(NA, xlim = range(score_1), ylim = c(0.5, max_col+.5))
   n <- nrow(score_1)
   for(i in 1:ncol(score_1)){
     graphics::points(x = score_1[,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
   }
   
-  graphics::plot(NA, xlim = range(score_2), ylim = c(0.5,3.5))
+  graphics::plot(NA, xlim = range(score_2), ylim = c(0.5, max_col+.5))
   n <- nrow(score_2)
   for(i in 1:ncol(score_2)){
     graphics::points(x = score_2[,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
+  }
+  
+  invisible()
+}
+
+
+#' Side-by-side plot of the canonical scores as heatmaps
+#'
+#' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#'
+#' @return shows a plot but returns nothing
+#' @export
+plot_scores_heatmap <- function(obj){
+  zlim <- range(c(obj$common_score, obj$distinct_score_1, obj$distinct_score_2))
+  graphics::par(mfrow = c(1,3))
+  graphics::image(t(obj$common_score), zlim = zlim, main = "Common score")
+  graphics::image(t(obj$distinct_score_1), zlim = zlim, main = paste0("Distinct score 1"))
+  graphics::image(t(obj$distinct_score_2), zlim = zlim, main = paste0("Distinct score 2"))
+  
+  invisible()
+}
+
+#' Side-by-side UMAPs of the common, distinct and everything matrix
+#'
+#' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#' @param membership_vec integer vector
+#' @param data_1 boolean
+#' @param data_2 boolean
+#'
+#' @return shows a plot but returns nothing
+#' @export
+plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T){
+  prep_obj <- .prepare_umap_embedding(obj)
+  
+  graphics::par(mfrow = c(1,3))
+  set.seed(10)
+  tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F)
+  graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Common view",
+       xlab = "UMAP 1", ylab = "UMAP 2")
+  
+  set.seed(10)
+  tmp <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2)
+  graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Distinct views",
+       xlab = "UMAP 1", ylab = "UMAP 2")
+  
+  set.seed(10)
+  tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2)
+  graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Entire view",
+       xlab = "UMAP 1", ylab = "UMAP 2")
+  
+  invisible()
+}
+
+#' Side-by-side UMAPs of the data
+#'
+#' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#' @param membership_vec integer vector
+#' @param observed boolean. This should \code{TRUE} if \code{obj} is the output of
+#' \code{generate_data}, and you want to plot the "observed" data.
+#' Otherwise, this is \code{FALSE} by default, meaning that if \code{obj} is the output of
+#' \code{generate_data}, you are plotting the "true" data (i.e., not affected by noise),
+#' or if \code{obj} is the output of \code{dcca_decomposition}, you are plotting
+#' the estimated denoised observed matrix.
+#'
+#' @return shows a plot but returns nothing
+#' @export
+plot_data <- function(obj, membership_vec, observed = F){
+  # plot the noise-affected/"observed" data
+  if(observed){
+    svd_list <- list(.svd_truncated(obj$mat_1, K = ncol(obj$distinct_score_1)), 
+                     .svd_truncated(obj$mat_2, K = ncol(obj$distinct_score_2)))
+    
+    embedding <- lapply(svd_list, function(svd_res){
+      tmp <- .mult_mat_vec(svd_res$u, svd_res$d)
+      set.seed(10)
+      Seurat::RunUMAP(tmp, verbose = F)@cell.embeddings
+    })
+    
+    graphics::par(mfrow = c(1,2))
+    graphics::plot(embedding[[1]][,1], embedding[[1]][,2], asp = T, pch = 16, col = membership_vec, main = "Obs. dataset 1",
+         xlab = "UMAP 1", ylab = "UMAP 2")
+    graphics::plot(embedding[[2]][,1], embedding[[2]][,2], asp = T, pch = 16, col = membership_vec, main = "Obs. dataset 2",
+         xlab = "UMAP 1", ylab = "UMAP 2")
+    
+  } else {
+    # plot the denoised/"true" data
+    prep_list <- .prepare_umap_embedding(obj)
+    
+    graphics::par(mfrow = c(1,2))
+    set.seed(10)
+    tmp <- .extract_umap_embedding(prep_list, common_1 = T, common_2 = F, distinct_1 = T, distinct_2 = F)
+    graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Dataset 1",
+         xlab = "UMAP 1", ylab = "UMAP 2")
+    
+    set.seed(10)
+    tmp <- .extract_umap_embedding(prep_list, common_1 = F, common_2 = T, distinct_1 = F, distinct_2 = T)
+    graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Dataset 2",
+         xlab = "UMAP 1", ylab = "UMAP 2")
   }
   
   invisible()

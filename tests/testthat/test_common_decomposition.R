@@ -77,7 +77,7 @@ test_that("(Test) .common_decomposition is correct when fix_common_perc = T", {
     coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
     
     set.seed(10)
-    res <- generate_data_dcca(score_1, score_2, coef_mat_1, coef_mat_2)
+    res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
     
     svd_1 <- .svd_truncated(res$mat_1, p_1); svd_2 <- .svd_truncated(res$mat_2, p_2) 
     cca_res <- .cca(svd_1, svd_2)
@@ -112,7 +112,7 @@ test_that("(Coding) .compute_common_score preserves rownames and colnames", {
   coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
   
   set.seed(10)
-  res <- generate_data_dcca(score_1, score_2, coef_mat_1, coef_mat_2)
+  res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
   
   svd_1 <- .svd_truncated(res$mat_1, p_1); svd_2 <- .svd_truncated(res$mat_2, p_2) 
   cca_res <- .cca(svd_1, svd_2)

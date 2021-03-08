@@ -1,6 +1,6 @@
 #' Extract UMAP embedding
 #'
-#' @param svd_list return object from \code{extract_svd_embedding}
+#' @param prep_list return object from \code{.prepare_umap_embedding}
 #' @param common_1 boolean
 #' @param common_2 boolean
 #' @param distinct_1 boolean
@@ -9,8 +9,7 @@
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
 #' @return 2-column matrix or \code{Seurat} object
-#' @export
-extract_umap_embedding <- function(prep_list, common_1 = T, common_2 = T,
+.extract_umap_embedding <- function(prep_list, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T,
                               only_embedding = T, reduction_key = "UMAP"){
   stopifnot(common_1 | common_2 | distinct_1 | distinct_2)
@@ -42,7 +41,7 @@ extract_umap_embedding <- function(prep_list, common_1 = T, common_2 = T,
   }
 }
 
-prepare_umap_embedding <- function(obj){
+.prepare_umap_embedding <- function(obj){
   rank_1 <- ncol(obj$distinct_score_1)
   rank_2 <- ncol(obj$distinct_score_2)
   
@@ -67,8 +66,7 @@ prepare_umap_embedding <- function(obj){
 #' @param obj return object from \code{dcca_decomposition}
 #'
 #' @return list
-#' @export
-extract_svd_embedding <- function(obj){
+.extract_svd_embedding <- function(obj){
   rank_c <- ncol(obj$common_score)
   
   n <- nrow(obj$common_mat_1)

@@ -1,6 +1,6 @@
 context("Test generate data")
 
-test_that("generate_data_dcca works", {
+test_that("generate_data works", {
   set.seed(10)
   n_clust <- 100
   B_mat <- matrix(c(0.9, 0.4, 0.1, 
@@ -19,14 +19,13 @@ test_that("generate_data_dcca works", {
   coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
   
   set.seed(10)
-  res <- generate_data_dcca(score_1, score_2, coef_mat_1, coef_mat_2)
+  res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
 
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2", "common_mat_1", "common_mat_2",
                                              "distinct_mat_1", "distinct_mat_2",
                                              "common_score", 
-                                             "distinct_score_1", "distinct_score_2",
-                                             "rank_c", "vis_param"))))
+                                             "distinct_score_1", "distinct_score_2"))))
   expect_true(all(dim(res$mat_1) == c(n, p_1)))
   expect_true(all(dim(res$mat_2) == c(n, p_2)))
 })
