@@ -4,7 +4,7 @@
 \alias{dcca_decomposition}
 \title{D-CCA Decomposition}
 \usage{
-dcca_decomposition(dcca_res, rank_c, verbose = T)
+dcca_decomposition(dcca_res, rank_c = NA, verbose = T)
 }
 \arguments{
 \item{dcca_res}{output from \code{dcca_factor}}

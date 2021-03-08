@@ -90,15 +90,45 @@ plot_scores <- function(obj, membership_vec){
 #' Side-by-side plot of the canonical scores as heatmaps
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#' @param membership_vec integer vector
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores_heatmap <- function(obj){
+plot_scores_heatmap <- function(obj, membership_vec = NA){
+  n <- nrow(obj$common_score)
   zlim <- range(c(obj$common_score, obj$distinct_score_1, obj$distinct_score_2))
+  
+  if(!all(is.na(membership_vec))){
+    stopifnot(all(membership_vec %% 1 == 0), all(membership_vec > 0),
+              max(membership_vec) == length(unique(membership_vec)))
+    
+    idx <- order(membership_vec, decreasing = F)
+    breakpoints <- 1-which(abs(diff(sort(membership_vec, decreasing = F))) >= 1e-6)/n
+  } else {
+    idx <- 1:n
+  }
+  
+  line_func <- function(){
+    if(!all(is.na(membership_vec))){
+      for(i in 1:length(breakpoints)){
+        graphics::lines(c(-10, 10), rep(breakpoints[i], 2), lwd = 2.1, col = "white")
+        graphics::lines(c(-10, 10), rep(breakpoints[i], 2), lwd = 2, lty = 2)
+      }
+    }
+  }
+  
   graphics::par(mfrow = c(1,3))
-  graphics::image(t(obj$common_score), zlim = zlim, main = "Common score")
-  graphics::image(t(obj$distinct_score_1), zlim = zlim, main = paste0("Distinct score 1"))
-  graphics::image(t(obj$distinct_score_2), zlim = zlim, main = paste0("Distinct score 2"))
+  graphics::image(.rotate(obj$common_score[idx,,drop = F]), zlim = zlim, main = "Common score",
+                  col = viridis::inferno(12, direction = -1))
+  line_func()
+  
+  graphics::image(.rotate(obj$distinct_score_1[idx,,drop = F]), zlim = zlim, main = paste0("Distinct score 1"),
+                  col = viridis::inferno(12, direction = -1))
+  line_func()
+  
+  graphics::image(.rotate(obj$distinct_score_2[idx,,drop = F]), zlim = zlim, main = paste0("Distinct score 2"),
+                  col = viridis::inferno(12, direction = -1))
+  line_func()
   
   invisible()
 }

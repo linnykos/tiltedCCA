@@ -4,10 +4,12 @@
 \alias{plot_scores_heatmap}
 \title{Side-by-side plot of the canonical scores as heatmaps}
 \usage{
-plot_scores_heatmap(obj)
+plot_scores_heatmap(obj, membership_vec = NA)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
+
+\item{membership_vec}{integer vector}
 }
 \value{
 shows a plot but returns nothing

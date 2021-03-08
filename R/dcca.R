@@ -85,8 +85,9 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
 #'
 #' @return list of class \code{dcca_decomp}
 #' @export
-dcca_decomposition <- function(dcca_res, rank_c, verbose = T){
+dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
+  if(is.na(rank_c)) rank_c <- min(c(ncol(dcca_res$distinct_score_1), ncol(dcca_res$distinct_score_2)))
   n <- nrow(dcca_res$svd_1$u)
   
   if(verbose) print("D-CCA: Form denoised observation matrices")
