@@ -14,8 +14,7 @@ Imports:
     Matrix,
     Seurat,
     irlba,
-    RANN,
-    viridis
+    RANN
 Suggests:
     testthat
 RoxygenNote: 7.1.1

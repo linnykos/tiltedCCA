@@ -94,7 +94,7 @@ plot_scores <- function(obj, membership_vec){
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores_heatmap <- function(obj, membership_vec = NA){
+plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 20){
   n <- nrow(obj$common_score)
   zlim <- range(c(obj$common_score, obj$distinct_score_1, obj$distinct_score_2))
   
@@ -119,15 +119,15 @@ plot_scores_heatmap <- function(obj, membership_vec = NA){
   
   graphics::par(mfrow = c(1,3))
   graphics::image(.rotate(obj$common_score[idx,,drop = F]), zlim = zlim, main = "Common score",
-                  col = viridis::inferno(12, direction = -1))
+                  col = grDevices::hcl.colors(num_col, "YlOrRd", rev = TRUE))
   line_func()
   
-  graphics::image(.rotate(obj$distinct_score_1[idx,,drop = F]), zlim = zlim, main = paste0("Distinct score 1"),
-                  col = viridis::inferno(12, direction = -1))
+  graphics::image(.rotate(obj$distinct_score_1[idx,,drop = F]), zlim = zlim, main = "Distinct score 1",
+                  col = grDevices::hcl.colors(num_col, "YlOrRd", rev = TRUE))
   line_func()
   
-  graphics::image(.rotate(obj$distinct_score_2[idx,,drop = F]), zlim = zlim, main = paste0("Distinct score 2"),
-                  col = viridis::inferno(12, direction = -1))
+  graphics::image(.rotate(obj$distinct_score_2[idx,,drop = F]), zlim = zlim, main = "Distinct score 2",
+                  col = grDevices::hcl.colors(num_col, "YlOrRd", rev = TRUE))
   line_func()
   
   invisible()
