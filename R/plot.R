@@ -91,6 +91,7 @@ plot_scores <- function(obj, membership_vec){
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
 #' @param membership_vec integer vector
+#' @param num_col positive integers for number of distinct colors
 #'
 #' @return shows a plot but returns nothing
 #' @export
@@ -139,25 +140,30 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 20){
 #' @param membership_vec integer vector
 #' @param data_1 boolean
 #' @param data_2 boolean
+#' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
+#' distinct "on the same scale" by adding appropriately-scaled Gaussian noise
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T){
+plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, add_noise = T){
   prep_obj <- .prepare_umap_embedding(obj)
   
   graphics::par(mfrow = c(1,3))
   set.seed(10)
-  tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F)
+  tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F,
+                                 add_noise = add_noise)
   graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Common view",
        xlab = "UMAP 1", ylab = "UMAP 2")
   
   set.seed(10)
-  tmp <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2)
+  tmp <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2,
+                                 add_noise = add_noise)
   graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Distinct views",
        xlab = "UMAP 1", ylab = "UMAP 2")
   
   set.seed(10)
-  tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2)
+  tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2,
+                                 add_noise = add_noise)
   graphics::plot(tmp[,1], tmp[,2], asp = T, pch = 16, col = membership_vec, main = "Entire view",
        xlab = "UMAP 1", ylab = "UMAP 2")
   

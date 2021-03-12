@@ -10,6 +10,7 @@
   common_2 = T,
   distinct_1 = T,
   distinct_2 = T,
+  add_noise = T,
   only_embedding = T,
   reduction_key = "UMAP"
 )
@@ -24,6 +25,9 @@
 \item{distinct_1}{boolean}
 
 \item{distinct_2}{boolean}
+
+\item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
+distinct "on the same scale" by adding appropriately-scaled Gaussian noise}
 
 \item{only_embedding}{boolean}
 

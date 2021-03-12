@@ -4,7 +4,7 @@
 \alias{plot_embeddings}
 \title{Side-by-side UMAPs of the common, distinct and everything matrix}
 \usage{
-plot_embeddings(obj, membership_vec, data_1 = T, data_2 = T)
+plot_embeddings(obj, membership_vec, data_1 = T, data_2 = T, add_noise = T)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
@@ -14,6 +14,9 @@ plot_embeddings(obj, membership_vec, data_1 = T, data_2 = T)
 \item{data_1}{boolean}
 
 \item{data_2}{boolean}
+
+\item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
+distinct "on the same scale" by adding appropriately-scaled Gaussian noise}
 }
 \value{
 shows a plot but returns nothing

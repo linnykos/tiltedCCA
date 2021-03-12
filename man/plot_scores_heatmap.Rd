@@ -4,12 +4,14 @@
 \alias{plot_scores_heatmap}
 \title{Side-by-side plot of the canonical scores as heatmaps}
 \usage{
-plot_scores_heatmap(obj, membership_vec = NA)
+plot_scores_heatmap(obj, membership_vec = NA, num_col = 20)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
 
 \item{membership_vec}{integer vector}
+
+\item{num_col}{positive integers for number of distinct colors}
 }
 \value{
 shows a plot but returns nothing

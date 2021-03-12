@@ -5,12 +5,15 @@
 #' @param common_2 boolean
 #' @param distinct_1 boolean
 #' @param distinct_2 boolean
+#' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
+#' distinct "on the same scale" by adding appropriately-scaled Gaussian noise
 #' @param only_embedding boolean
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
 #' @return 2-column matrix or \code{Seurat} object
 .extract_umap_embedding <- function(prep_list, common_1 = T, common_2 = T,
                               distinct_1 = T, distinct_2 = T,
+                              add_noise = T,
                               only_embedding = T, reduction_key = "UMAP"){
   stopifnot(common_1 | common_2 | distinct_1 | distinct_2)
   
@@ -21,10 +24,10 @@
   
   tmp_list <- vector("list", 1); l <- 1
   tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_1, prep_list$svd_list$e1, 
-                                common_1, distinct_1)
+                                common_1, distinct_1, add_noise = add_noise)
   if(!all(is.na(tmp))) { tmp_list[[l]] <- tmp; l <- l+1 }
   tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_2, prep_list$svd_list$e2, 
-                                common_2, distinct_2)
+                                common_2, distinct_2, add_noise = add_noise)
   if(!all(is.na(tmp))) { tmp_list[[l]] <- tmp; l <- l+1 }
   
   #####
@@ -96,28 +99,41 @@
 ###################################
 
 .extract_matrix_helper <- function(common_score, distinct_score,
-                                   svd_e, common_bool, distinct_bool){
-  stopifnot(all(dim(common_score) == dim(distinct_score)))
+                                   svd_e, common_bool, distinct_bool, add_noise = T){
+  stopifnot(nrow(common_score) == nrow(distinct_score))
   if(!common_bool & !distinct_bool) return(NA)
   
+  n <- nrow(common_score)
   full_mat <- .mult_mat_vec(svd_e$u, svd_e$d)
   center_vec <- apply(full_mat, 2, mean)
-  full_mat <- sapply(1:ncol(full_mat), function(k){
+  tmp <- sapply(1:ncol(full_mat), function(k){
     full_mat[,k] - center_vec[k]
   })
-  l2_vec <- apply(full_mat, 1, function(x){.l2norm(x)})
+  l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
   
   if(common_bool == distinct_bool){
     tmp <- full_mat
   } else {
     if(ncol(common_score) < ncol(distinct_score)){
-      common_score <- rbind(common_score, matrix(0, nrow = nrow(common_score), ncol = ncol(distinct_score) - ncol(common_score)))
+      common_score <- rbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score) - ncol(common_score)))
     }
     canonical_score <- common_score+distinct_score
     
     if(common_bool){ 
+      if(add_noise){
+        for(i in 1:ncol(common_score)){
+          sd1 <- stats::sd(common_score[,i]); sd2 <- stats::sd(distinct_score[,i])
+          if(sd1 < sd2){common_score[,i] <- common_score[,i] + stats::rnorm(n, sd = max(sd2 - sd1, sd1/3))} 
+        }
+      }
       tmp <- tcrossprod(common_score, canonical_score) %*% full_mat
     } else { 
+      if(add_noise){
+        for(i in 1:ncol(common_score)){
+          sd1 <- stats::sd(common_score[,i]); sd2 <- stats::sd(distinct_score[,i])
+          if(sd2 < sd1){distinct_score[,i] <- distinct_score[,i] + stats::rnorm(n, sd = max(sd1 - sd2, sd2/3))} 
+        }
+      }
       tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat
     }
     
