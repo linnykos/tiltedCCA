@@ -109,6 +109,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],
        distinct_score_1 = dcca_res$distinct_score_1,
        distinct_score_2 = dcca_res$distinct_score_2,
+       score_1 = dcca_res$score_1, score_2 = dcca_res$score_2,
+       svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
        cca_obj = dcca_res$cca_obj, common_perc = dcca_res$common_perc), class = "dcca_decomp")
