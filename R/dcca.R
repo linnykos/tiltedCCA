@@ -169,8 +169,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   if(fix_common_perc){
     tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_common_perc = T)
   } else {
-    nn_1 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v), k = num_neigh)$nn.idx
-    nn_2 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), k = num_neigh)$nn.idx
+    nn_1 <- RANN::nn2(.mult_mat_vec(svd_1$u, svd_1$d), k = num_neigh)$nn.idx
+    nn_2 <- RANN::nn2(.mult_mat_vec(svd_2$u, svd_2$d), k = num_neigh)$nn.idx
     
     tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, fix_common_perc = F)
   }

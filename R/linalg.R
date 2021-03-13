@@ -3,7 +3,7 @@
   stopifnot(length(vec1) == length(vec2), .l2norm(vec1) > tol, .l2norm(vec2) > tol)
   
   unit1 <- vec1/.l2norm(vec1)
-  tmp <- .orthogonal_vec2vec(vec2, unit1)
+  tmp <- .project_vec2vec(vec2, unit1)
   if(.l2norm(tmp) < tol){
     return(list(basis_mat = cbind(unit1, 0), rep1 = c(.l2norm(vec1), 0), 
                 rep2 = c(.l2norm(vec2), 0)))
@@ -58,17 +58,35 @@
 #' Projection of vector onto another vector
 #'
 #' Returns the component of \code{vec1} that is orthogonal to \code{vec2}
+#' if \code{orthogonal} is \code{TRUE}, and the
+#' component of \code{vec1} that is parallel to \code{vec2} if 
+#' \code{orthogonal} is \code{FALSE}.
 #'
 #' @param vec1 vector
 #' @param vec2 vector
+#' @param orthogonal boolean
 #' @param tol small positive number
 #'
 #' @return vector
-.orthogonal_vec2vec <- function(vec1, vec2, tol = 1e-6){
+.project_vec2vec <- function(vec1, vec2, orthogonal = T, tol = 1e-6){
   stopifnot(length(vec1) == length(vec2))
   
   d <- length(vec1)
   vec2 <- vec2/.l2norm(vec2)
-  as.numeric((diag(d) - vec2%*%t(vec2))%*%vec1)
+  if(orthogonal){
+    vec1 - vec2 %*% crossprod(vec2, vec1)
+  } else {
+    vec2 %*% crossprod(vec2, vec1)
+  }
 }
 
+.project_mat2mat_colwise <- function(mat1, mat2, orthogonal = T, tol = 1e-6){
+  r1 <- ncol(mat1); r2 <- ncol(mat2); n <- nrow(mat1)
+  stopifnot(r1 <= r2)
+  
+  tmp <- sapply(1:r1, function(j){
+    .project_vec2vec(mat1[,j], mat2[,j], orthogonal = orthogonal, tol = tol)
+  })
+  if(r1 < r2) tmp <- cbind(tmp, matrix(0, nrow = n, ncol = r2- r1))
+  tmp
+}

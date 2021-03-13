@@ -14,7 +14,8 @@ Imports:
     Matrix,
     Seurat,
     irlba,
-    RANN
+    RANN,
+    igraph
 Suggests:
     testthat
 RoxygenNote: 7.1.1
