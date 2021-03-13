@@ -29,28 +29,36 @@ explained_variance <- function(dcca_decomp, membership_vec){
             all(table(membership_vec) >= 3))
   K <- max(membership_vec); r <- ncol(score); r1 <- ncol(common_score)
   
-  weights <- sapply(1:ncol(score), function(j){
-    abs(score[,j] %*% svd_obj$u) %*% svd_obj$d/sum(svd_obj$d)
-  })
+  weights <- .mult_mat_vec(abs(crossprod(score, svd_obj$u)), svd_obj$d)
   
-  score_var <- apply(score, 2, stats::sd)
-  distinct_var <- apply(distinct_score, 2, stats::sd)
-  common_var <- apply(common_score, 2, stats::sd)
-  if(length(common_var) <= length(score_var)) common_var <- c(common_var, rep(0,length(score_var) - length(common_var)))
+  common_mat <- common_score %*% weights
+  distinct_mat <- distinct_score %*% weights
   
   cell_mat <- t(sapply(1:K, function(k){
     idx <- which(membership_vec == k)
     
-    common_cell <- sum(sapply(1:r, function(j){
-      if(j <= r){(1 - min(stats::sd(common_score[idx,j])/common_var[j], 1)) * common_var[j]/score_var[j] * weights[j]} else 0
-    }))
-    
-    distinct_cell <- sum(sapply(1:r, function(j){
-      (1 - min(stats::sd(distinct_score[idx,j])/distinct_var[j], 1)) * distinct_var[j]/score_var[j] * weights[j]
-    }))
-    
-    c(common_cell, distinct_cell)
+    c(.l2norm(common_mat[idx,])^2, .l2norm(distinct_mat[idx,])^2)
   }))
+  
+  # score_var <- apply(score, 2, stats::sd)
+  # distinct_var <- apply(distinct_score, 2, stats::sd)
+  # common_var <- apply(common_score, 2, stats::sd)
+  # if(length(common_var) <= length(score_var)) common_var <- c(common_var, rep(0,length(score_var) - length(common_var)))
+  # 
+  # cell_mat <- t(sapply(1:K, function(k){
+  #   idx <- which(membership_vec == k)
+  #   
+  #   common_cell <- sum(sapply(1:r, function(j){
+  #     if(j <= r){(1 - min(stats::sd(common_score[idx,j])/common_var[j], 1)) * common_var[j]/score_var[j] * weights[j]} else 0
+  #   }))
+  #   
+  #   distinct_cell <- sum(sapply(1:r, function(j){
+  #     (1 - min(stats::sd(distinct_score[idx,j])/distinct_var[j], 1)) * distinct_var[j]/score_var[j] * weights[j]
+  #   }))
+  #   
+  #   c(common_cell, distinct_cell)
+  # }))
+  
   colnames(cell_mat) <- c("common", "distinct")
   rownames(cell_mat) <- 1:K
   
