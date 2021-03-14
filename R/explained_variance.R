@@ -23,7 +23,7 @@ explained_variance <- function(dcca_decomp, membership_vec, num_pairs = 200){
 
 .explained_variance_single <- function(score, common_score, distinct_score, svd_obj, 
                                        membership_vec, idx_pair_list = NA){
-  idx <- which(membership_vec[!is.na(membership_vec)])
+  idx <- which(!is.na(membership_vec))
   stopifnot(all(membership_vec[idx] > 0), all(membership_vec[idx] %% 1 == 0), max(membership_vec[idx]) == length(unique(membership_vec[idx])),
             all(table(membership_vec[idx]) >= 3))
   K <- max(membership_vec)
@@ -36,9 +36,9 @@ explained_variance <- function(dcca_decomp, membership_vec, num_pairs = 200){
   tmp <- .project_mat2mat_colwise(distinct_score, score, orthogonal = F)
   embedding_di <-.construct_canonical_embedding(score, svd_obj, weight_mat = tmp)
  
-  weight_ev <- .l2norm(embedding_ev)^2
-  weight_co <- .l2norm(embedding_co)^2
-  weight_di <- .l2norm(embedding_di)^2
+  weight_ev <- .l2norm(embedding_ev)^2/(n^(3/2))
+  weight_co <- .l2norm(embedding_co)^2/(n^(3/2))
+  weight_di <- .l2norm(embedding_di)^2/(n^(3/2))
   
   # construct the 3 nearest neighbor graphs
   g_ev <- .construct_nn_graph(embedding_ev)
@@ -64,11 +64,11 @@ explained_variance <- function(dcca_decomp, membership_vec, num_pairs = 200){
                                idx_pair_list[[k]][i,2], membership_vec)
     }))
     
-    c(purity_ev*g_ev, purity_co*g_co, purity_di*g_di)
+    c(purity_ev, weight_ev, purity_co, weight_co, purity_di, weight_di)
   }))
   
   rownames(value_mat) <- 1:K
-  colnames(value_mat) <- c("everything", "common", "distinct")
+  # colnames(value_mat) <- c("everything", "common", "distinct")
   
   value_mat
 }
@@ -124,13 +124,11 @@ explained_variance <- function(dcca_decomp, membership_vec, num_pairs = 200){
     }
    
     num_con <- igraph::components(g)$no
-    if(!is.na(prev_num_con)){
-      if(prev_num_con == num_con){ 
-        break()
-      } else {
-        prev_num_con <- num_con
-        prev_g <- g
-      }
+    if(!is.na(prev_num_con) && prev_num_con == num_con){
+      break()
+    } else {
+      prev_num_con <- num_con
+      prev_g <- g
     }
     
     k <- k+1
