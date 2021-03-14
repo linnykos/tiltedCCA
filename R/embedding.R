@@ -98,27 +98,35 @@
 
 ###################################
 
+# premultiply is only relevant for plotting entire view
 .extract_matrix_helper <- function(common_score, distinct_score,
-                                   svd_e, common_bool, distinct_bool, add_noise = T){
+                                   svd_e, common_bool, distinct_bool, add_noise = T,
+                                   center = T, renormalize = T, premultiply = F){
   stopifnot(nrow(common_score) == nrow(distinct_score))
   if(!common_bool & !distinct_bool) return(NA)
   
   n <- nrow(common_score)
   full_mat <- .mult_mat_vec(svd_e$u, svd_e$d)
   center_vec <- apply(full_mat, 2, mean)
-  tmp <- sapply(1:ncol(full_mat), function(k){
-    full_mat[,k] - center_vec[k]
-  })
-  l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
+  if(center){
+    tmp <- sapply(1:ncol(full_mat), function(k){full_mat[,k] - center_vec[k]})
+  }
+ 
+  if(renormalize){ l2_vec <- apply(tmp, 1, function(x){.l2norm(x)}) }
+  
+  if(ncol(common_score) < ncol(distinct_score)){
+    common_score <- rbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score) - ncol(common_score)))
+  }
+  canonical_score <- common_score+distinct_score
   
   if(common_bool == distinct_bool){
     tmp <- full_mat
-  } else {
-    if(ncol(common_score) < ncol(distinct_score)){
-      common_score <- rbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score) - ncol(common_score)))
-    }
-    canonical_score <- common_score+distinct_score
     
+    if(premultiply){
+      tmp <- canonical_score %*% crossprod(canonical_score, tmp)
+    }
+    
+  } else {
     if(common_bool){ 
       if(add_noise){
         for(i in 1:ncol(common_score)){
@@ -138,13 +146,15 @@
     }
     
     # center variables
-    tmp <- sapply(1:ncol(tmp), function(k){
-      tmp[,k] - center_vec[k]
-    })
+    if(center){
+      tmp <- sapply(1:ncol(tmp), function(k){tmp[,k] - center_vec[k]})
+    }
+    
   }
   
   # normalize cells
-  if(common_bool | distinct_bool){ .mult_vec_mat(1/l2_vec, tmp)
+  if(common_bool | distinct_bool){ 
+    if(renormalize){.mult_vec_mat(1/l2_vec, tmp)} else {tmp}
   } else{
     NA
   }

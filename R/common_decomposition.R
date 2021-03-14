@@ -51,7 +51,7 @@
 
 #####################
 
-.latent_common_perc <- function(score_vec_1, score_vec_2, nn_1, nn_2){
+.latent_common_perc <- function(score_vec_1, score_vec_2, nn_1, nn_2, tol = 1e-6){
   stopifnot(length(score_vec_1) == length(score_vec_2))
   
   n <- length(score_vec_1)
@@ -61,7 +61,10 @@
     val_2in1 <- stats::sd(score_vec_2[i] - score_vec_2[nn_1[i,]])
     val_2in2 <- stats::sd(score_vec_2[i] - score_vec_2[nn_2[i,]])
     
-    .sigmoid_ratio(max(val_1in2/val_1in1, 1), max(val_2in1/val_2in2, 1))
+    ratio1 <- ifelse(abs(val_1in1) <= tol, 0, max(val_1in2/val_1in1, 1))
+    ratio2 <- ifelse(abs(val_2in2) <= tol, 0, max(val_2in1/val_2in2, 1))
+    
+    .sigmoid_ratio(ratio1, ratio2)
   })
   
   1-mean(mode1_common_perc)

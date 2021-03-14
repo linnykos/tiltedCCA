@@ -6,18 +6,19 @@
 #' @param coef_mat_1 \code{rank_1} by \code{p_1} matrix
 #' @param coef_mat_2 \code{rank_2} by \code{p_2} matrix
 #' @param num_neigh number of neighbors to consider to computed the common percentage 
-#' @param noise_func function that takes in a matrix and outputs a matrix of the same dimension
+#' @param noise_val numeric for scalar of centered Gaussian noise
 #'
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
 #' @export
 generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
-                          num_neigh = max(round(nrow(svd_u_1)/20), 40),
-                          noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
+                          num_neigh = max(round(nrow(svd_u_1)/20), 40), 
+                          noise_val = 1){
   stopifnot(nrow(svd_u_1) == nrow(svd_u_2), ncol(svd_u_1) == ncol(svd_u_2), # simplification for now
             ncol(svd_u_1) == length(svd_d_1), ncol(svd_u_2) == length(svd_d_2), 
             ncol(svd_v_1) == length(svd_d_1), ncol(svd_v_2) == length(svd_d_2), 
             num_neigh <= min(nrow(svd_u_1), nrow(svd_u_2)))
 
+  n <- nrow(svd_u_1); p1 <- nrow(svd_v_1); p2 <- nrow(svd_v_2)
   agg_mat <- crossprod(svd_u_1, svd_u_2)
   cca_svd <- svd(agg_mat)
   score_1 <- svd_u_1 %*% cca_svd$u
@@ -44,7 +45,12 @@ generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
   common_mat_2 <- common_score %*% crossprod(score_2, mat_2)
   distinct_mat_2 <- distinct_score_2 %*% crossprod(score_2, mat_2)
 
-  mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
+  noise_1 <- matrix(stats::rnorm(n*p1, mean = 0, sd = noise_val), nrow = n, ncol = p1)
+  noise_1 <- scale(noise_1, center = T, scale = F)
+  noise_2 <- matrix(stats::rnorm(n*p2, mean = 0, sd = noise_val), nrow = n, ncol = p2)
+  noise_2 <- scale(noise_2, center = T, scale = F)
+  mat_1 <- mat_1 + noise_1
+  mat_2 <- mat_2 + noise_2
 
   list(mat_1 = mat_1, mat_2 = mat_2, 
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
@@ -68,7 +74,7 @@ form_seurat_obj <- function(mat_1, mat_2){
   obj
 }
 
-generate_sbm_orthogonal <- function(B_mat, membership_vec){
+generate_sbm_orthogonal <- function(B_mat, membership_vec, centered = T){
   stopifnot(ncol(B_mat) == nrow(B_mat), all(B_mat >= 0), all(B_mat <= 1),
             sum(abs(B_mat - t(B_mat))) <= 1e-6,
             all(membership_vec > 0), all(membership_vec %% 1 == 0), 
@@ -78,14 +84,16 @@ generate_sbm_orthogonal <- function(B_mat, membership_vec){
   
   prob_mat <- .compute_prob_mat(B_mat, membership_vec)
   adj_mat <- .generate_adjaceny_mat(prob_mat)
-  .svd_truncated(adj_mat, K = K)$u
+  if(centered) adj_mat <- scale(adj_mat, center = T, scale = F)
+  .svd_truncated(adj_mat, K = ifelse(centered, K-1, K))$u
 }
 
-generate_random_orthogonal <- function(n, K){
+generate_random_orthogonal <- function(n, K, centered = F){
   stopifnot(K <= n)
   mat <- matrix(stats::rnorm(n^2), n, n)
   mat <- mat + t(mat)
-  eigen(mat)$vectors[, 1:K, drop = F]
+  if(centered) mat <- scale(mat, center = T, scale = F)
+  .svd_truncated(mat, K = ifelse(centered, K-1, K))$u
 }
 
 ###########################
@@ -114,19 +122,12 @@ generate_random_orthogonal <- function(n, K){
 
 #' Simulate adjacency matrix
 #'
-#' @param prob_mat symmetric probability matrix
+#' @param prob_mat probability matrix
 #'
-#' @return symmetric adjacency matrix
+#' @return adjacency matrix
 #' @export
 .generate_adjaceny_mat <- function(prob_mat){
-  upper_tri_idx <- upper.tri(prob_mat)
-  prob_upper <- prob_mat[upper_tri_idx]
-  
   n <- nrow(prob_mat)
-  adj_upper <- stats::rbinom(n*(n-1)/2, 1, prob_upper)
-  adj_mat <- matrix(0, ncol = n, nrow = n)
-  adj_mat[upper_tri_idx] <- adj_upper
-  adj_mat <- adj_mat + t(adj_mat)
-  
-  adj_mat
+  val <- stats::rbinom(n^2, 1, prob_mat)
+  matrix(val, ncol = n, nrow = n)
 }

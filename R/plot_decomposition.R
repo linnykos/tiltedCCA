@@ -1,7 +1,24 @@
-plot_decomposition_2d <- function(vec1, vec2, common_vec,
-                              xlim = c(0, 1.1*max(c(vec1, vec2))),
-                              ylim = c(0, 1.1*max(c(vec1, vec2))), 
-                              gridsize = 100, col_levels = 21){
+plot_decomposition_2d <- function(vec1, vec2, common_vec, 
+                                  gridsize = 100, col_levels = 21){
+  
+  basis <- .representation_2d(vec1, vec2)
+  rep_vec1 <- basis$rep1; rep_vec2 <- basis$rep2
+  rep_common <- as.numeric(crossprod(basis$basis_mat, common_vec))
+  
+  stopifnot(sum(abs(basis$basis_mat %*% rep_common - common_vec)) <= 1e-6)
+  
+  .plot_decomposition_2d_inner(rep_vec1, rep_vec2, rep_common,
+                               gridsize = gridsize,
+                               col_levels = col_levels)
+}
+
+#################3
+
+# vec1, vec2 and common_vec are 2d
+.plot_decomposition_2d_inner <- function(vec1, vec2, common_vec,
+                                  xlim = c(0, 1.1*max(c(vec1, vec2))),
+                                  ylim = c(0, 1.1*max(c(vec1, vec2))), 
+                                  gridsize = 100, col_levels = 21){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
   
