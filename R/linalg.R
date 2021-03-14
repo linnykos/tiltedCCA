@@ -90,3 +90,25 @@
   if(r1 < r2) tmp <- cbind(tmp, matrix(0, nrow = n, ncol = r2- r1))
   tmp
 }
+
+############################
+# both points are lie on opposite ends of the circle
+.construct_circle <- function(endpoint1, endpoint2){
+  stopifnot(length(endpoint1) == 2, length(endpoint2) == 2)
+  
+  center <- c(endpoint1 + endpoint2)/2
+  radius <- .l2norm(endpoint1 - center)
+  
+  list(center = center, radius = radius)
+}
+
+.find_radian <- function(circle, point, tol = 1e-6){
+  stopifnot(length(point) == 2, length(circle$center) == 2,
+            .l2norm(circle$center - point) <= circle$radius+tol)
+  
+  atan2(point[2]-circle$center[2], point[1]-circle$center[1])
+}
+
+.position_from_circle <- function(circle, radian){
+  circle$radius *c(cos(radian),  sin(radian)) + circle$center
+}

@@ -29,16 +29,16 @@
     if(sum(abs(vec1 - vec2)) < tol){
       common_rep <- c(vec1 + vec2)/2
     } else {
-      ang <- .angle_between_vectors(vec1, vec2)
-      vec_right <- .rightmost_vector(vec1, vec2)
-      if(sum(abs(vec_right$vec_right - vec1)) <= sum(abs(vec_right$vec_right - vec1))){
-        common_vec <- .angle_from_vector(vec_right$vec_right, (1-common_perc[k])*ang)
-      } else {
-        common_vec <- .angle_from_vector(vec_right$vec_right, common_perc[k]*ang)
-      }
+      circle <- .construct_circle(vec1, vec2)
+      rad1 <- .find_radian(circle, vec1); rad2 <- .find_radian(circle, vec2)
+      stopifnot(rad1 < 0 & rad2 > 0) # must be true based on how we constructed vec1 and vec2
       
-      a <- .l2norm(common_vec)^2; b <- -as.numeric(common_vec %*% (vec1 + vec2)); c <- as.numeric(vec1 %*% vec2)
-      common_rep <- .quadratic(a,b,c) * common_vec
+      rad1 <- rad1 + 2*pi
+      stopifnot(sum(abs(.position_from_circle(circle, rad1) - vec1)) <= 1e-6,
+                sum(abs(.position_from_circle(circle, rad2) - vec2)) <= 1e-6)
+      
+      common_rad <- .binary_search_radian(circle, rad2, rad1, common_perc[k])
+      common_rep <- .position_from_circle(circle, common_rad)
     }
     
     basis_list[[k]]$basis_mat %*% common_rep
@@ -51,6 +51,7 @@
 
 #####################
 
+# thresholded to be between 0.01 and 0.99
 .latent_common_perc <- function(score_vec_1, score_vec_2, nn_1, nn_2, tol = 1e-6){
   stopifnot(length(score_vec_1) == length(score_vec_2))
   
@@ -67,7 +68,7 @@
     .sigmoid_ratio(ratio1, ratio2)
   })
   
-  1-mean(mode1_common_perc)
+  min(max(1-mean(mode1_common_perc), 0.01), 0.99)
 }
 
 .sigmoid_ratio <- function(a, b, const = 5){
@@ -78,11 +79,37 @@
   min(max(.5*tmp+.5, 0), 1)
 }
 
-.quadratic <- function(a, b, c){
-  tmp <- (-b +c(-1,1) * sqrt(b^2 - 4*a*c))/(2*a)
-  tmp <- tmp[tmp > 0]
-  stopifnot(length(tmp) > 0)
-  min(tmp)
+# by construction, upper_radian is always the vector on the right. common_perc
+# refers to the ratio of (distinct length to left vector)/(distinct length to right vector),
+# meaning the lower common_perc is, the more the resulting vector woud lean left
+# (i.e., further way from the right vector)
+.binary_search_radian <- function(circle, lower_radian, upper_radian, common_perc, max_iter = 10, tol = 1e-6){
+  stopifnot(lower_radian < upper_radian, 0 < common_perc, common_perc < 1)
+  
+  lower <- lower_radian; upper <- upper_radian
+  left_vec <- .position_from_circle(circle, lower_radian)
+  right_vec <- .position_from_circle(circle, upper_radian)
+  iter <- 1; prev_mid <- NA
+  
+  while(iter < max_iter){
+    mid <- (lower+upper)/2
+    common_vec <- .position_from_circle(circle, mid)
+    left_distinct <- left_vec - common_vec
+    right_distinct <- right_vec - common_vec
+    ratio <- .l2norm(left_distinct)/(.l2norm(left_distinct)+.l2norm(right_distinct))
+    if(abs(ratio - common_perc) <= tol) break()
+    
+    if(ratio > common_perc){
+      # need to make left_distinct smaller, so move radian right (i.e., smaller radian)
+      upper <- mid
+    } else {
+      lower <- mid
+    }
+    if(!is.na(prev_mid) && abs(mid - prev_mid) < tol) break()
+    
+    prev_mid <- mid
+    iter <- iter+1
+  }
+  
+  mid
 }
-
-############################
