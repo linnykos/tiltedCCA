@@ -10,24 +10,26 @@
 #'
 #' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
 #' @export
-generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2, 
-                               num_neigh = max(round(nrow(score_1)/20), 40),
-                               noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
-  stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) > ncol(score_1),
-            nrow(score_2) > ncol(score_2), ncol(score_1) == nrow(coef_mat_1),
-            ncol(score_2) == nrow(coef_mat_2), num_neigh <= min(nrow(score_1), nrow(score_2)))
+generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
+                          num_neigh = max(round(nrow(svd_u_1)/20), 40),
+                          noise_func = function(mat){matrix(stats::rnorm(prod(dim(mat)), mean = mat), nrow(mat), ncol(mat))}){
+  stopifnot(nrow(svd_u_1) == nrow(svd_u_2), ncol(svd_u_1) == ncol(svd_u_2), # simplification for now
+            ncol(svd_u_1) == length(svd_d_1), ncol(svd_u_2) == length(svd_d_2), 
+            ncol(svd_v_1) == length(svd_d_1), ncol(svd_v_2) == length(svd_d_2), 
+            num_neigh <= min(nrow(svd_u_1), nrow(svd_u_2)))
 
+  agg_mat <- crossprod(svd_u_1, svd_u_2)
+  cca_svd <- svd(agg_mat)
+  score_1 <- svd_u_1 %*% cca_svd$u
+  score_2 <- svd_u_2 %*% cca_svd$v
+ 
+  mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1)
+  mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
+  nn_1 <- RANN::nn2(.mult_mat_vec(svd_u_1, svd_d_1), k = num_neigh)$nn.idx
+  nn_2 <- RANN::nn2(.mult_mat_vec(svd_u_2, svd_d_2), k = num_neigh)$nn.idx
   
-  tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  
-  mat_1 <- score_1 %*% coef_mat_1; mat_2 <- score_2 %*% coef_mat_2
-  nn_1 <- RANN::nn2(mat_1, k = num_neigh)$nn.idx
-  nn_2 <- RANN::nn2(mat_2, k = num_neigh)$nn.idx
-  
-  full_rank <- length(tmp$obj_vec)
-  common_score <- .common_decomposition(score_1, score_2, nn_1, nn_2)$common_score
-  
+  res <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  common_score <- res$common_score; common_perc <- res$common_perc
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
@@ -37,11 +39,10 @@ generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2,
             abs(sum(abs(tmp2)) - sum(abs(diag(tmp2)))) <= 1e-6,
             abs(sum(abs(tmp3)) - sum(abs(diag(tmp3)))) <= 1e-6)
   
-  rank_c <- ncol(common_score)
-  common_mat_1 <- common_score %*% coef_mat_1[1:rank_c,,drop = F] 
-  distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
-  common_mat_2 <- common_score %*% coef_mat_2[1:rank_c,,drop = F] 
-  distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
+  common_mat_1 <- common_score %*% crossprod(score_1, mat_1)
+  distinct_mat_1 <- distinct_score_1 %*% crossprod(score_1, mat_1)
+  common_mat_2 <- common_score %*% crossprod(score_2, mat_2)
+  distinct_mat_2 <- distinct_score_2 %*% crossprod(score_2, mat_2)
 
   mat_1 <- noise_func(mat_1); mat_2 <- noise_func(mat_2)
 
@@ -50,7 +51,8 @@ generate_data <- function(score_1, score_2, coef_mat_1, coef_mat_2,
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
        common_score = common_score, 
        distinct_score_1 = distinct_score_1,
-       distinct_score_2 = distinct_score_2)
+       distinct_score_2 = distinct_score_2,
+       common_perc = common_perc)
 }
 
 form_seurat_obj <- function(mat_1, mat_2){

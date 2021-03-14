@@ -52,35 +52,44 @@ plot_heatmat <- function(dat, luminosity = T, asp = nrow(dat)/ncol(dat),
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
 #' @param membership_vec integer vector
+#' @param decomposition boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores <- function(obj, membership_vec){
-  score_1 <- obj$common_score
-  if(ncol(score_1) < ncol(obj$distinct_score_1)){
-    score_1 <- rbind(score_1, matrix(0, nrow = nrow(score_1), ncol = ncol(obj$distinct_score_1) - ncol(score_1)))
+plot_scores <- function(obj, membership_vec, decomposition = F){
+  if(decomposition){
+    score_list <- vector("list", 3)
+    
+    score_list[[1]] <- obj$common_score
+    score_list[[2]] <- obj$distinct_score_1
+    score_list[[3]] <- obj$distinct_score_2
+    
+  } else {
+    score_list <- vector("list", 2)
+    
+    score_list[[1]] <- obj$common_score
+    if(ncol(score_list[[1]]) < ncol(obj$distinct_score_1)){
+      score_list[[1]] <- cbind(score_list[[1]], matrix(0, nrow = nrow(score_list[[1]]), ncol = ncol(obj$distinct_score_1) - ncol(score_list[[1]])))
+    }
+    score_list[[1]] <- score_list[[1]]+obj$distinct_score_1
+    
+    score_list[[2]] <- obj$common_score
+    if(ncol(score_list[[2]]) < ncol(obj$distinct_score_2)){
+      score_list[[2]] <- cbind(score_list[[2]], matrix(0, nrow = nrow(score_list[[2]]), ncol = ncol(obj$distinct_score_2) - ncol(score_list[[2]])))
+    }
+    score_list[[2]] <- score_list[[2]]+obj$distinct_score_2
   }
-  score_1 <- score_1+obj$distinct_score_1
+ 
+  n <- nrow(score_list[[1]])
+  max_col <- max(sapply(score_list, ncol)); xlim <- range(do.call(rbind, score_list))
   
-  score_2 <- obj$common_score
-  if(ncol(score_2) < ncol(obj$distinct_score_2)){
-    score_2 <- rbind(score_1, matrix(0, nrow = nrow(score_2), ncol = ncol(obj$distinct_score_2) - ncol(score_2)))
-  }
-  score_2 <- score_2+obj$distinct_score_2
-  
-  max_col <- max(ncol(score_1), ncol(score_2))
-  
-  graphics::par(mfrow = c(1,2))
-  graphics::plot(NA, xlim = range(score_1), ylim = c(0.5, max_col+.5))
-  n <- nrow(score_1)
-  for(i in 1:ncol(score_1)){
-    graphics::points(x = score_1[,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
-  }
-  
-  graphics::plot(NA, xlim = range(score_2), ylim = c(0.5, max_col+.5))
-  n <- nrow(score_2)
-  for(i in 1:ncol(score_2)){
-    graphics::points(x = score_2[,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
+  graphics::par(mfrow = c(1, length(score_list)))
+  for(k in 1:length(score_list)){
+    graphics::plot(NA, xlim = xlim, ylim = c(0.5, max_col+.5))
+    
+    for(i in 1:ncol(score_list[[k]])){
+      graphics::points(x = score_list[[k]][,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
+    }
   }
   
   invisible()
