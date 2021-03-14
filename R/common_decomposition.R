@@ -23,7 +23,7 @@
       }
     })
   }
-  
+   
   common_score <- sapply(1:rank_c, function(k){
     vec1 <- basis_list[[k]]$rep1; vec2 <-  basis_list[[k]]$rep2
     if(sum(abs(vec1 - vec2)) < tol){
