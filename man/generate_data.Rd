@@ -16,20 +16,24 @@ generate_data(
 )
 }
 \arguments{
+\item{svd_u_1}{\code{n} by \code{rank_1} orthogonal matrix}
+
+\item{svd_u_2}{\code{n} by \code{rank_2} orthogonal matrix}
+
+\item{svd_d_1}{vector of length \code{rank_1}}
+
+\item{svd_d_2}{vector of length \code{rank_2}}
+
+\item{svd_v_1}{\code{p1} by \code{rank_1} orthogonal matrix}
+
+\item{svd_v_2}{\code{p2} by \code{rank_2} orthogonal matrix}
+
 \item{num_neigh}{number of neighbors to consider to computed the common percentage}
 
 \item{noise_val}{numeric for scalar of centered Gaussian noise}
-
-\item{score_1}{\code{n} by \code{rank_1} orthogonal matrix}
-
-\item{score_2}{\code{n} by \code{rank_2} orthogonal matrix}
-
-\item{coef_mat_1}{\code{rank_1} by \code{p_1} matrix}
-
-\item{coef_mat_2}{\code{rank_2} by \code{p_2} matrix}
 }
 \value{
-list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
+list of outputs
 }
 \description{
 Generate data
