@@ -1,14 +1,16 @@
 # WARNING: currently requires the latent dimension to be same, ie: ncol(score_1) == ncol(score_2)
 #' Generate data
 #'
-#' @param score_1 \code{n} by \code{rank_1} orthogonal matrix
-#' @param score_2 \code{n} by \code{rank_2} orthogonal matrix
-#' @param coef_mat_1 \code{rank_1} by \code{p_1} matrix
-#' @param coef_mat_2 \code{rank_2} by \code{p_2} matrix
+#' @param svd_u_1 \code{n} by \code{rank_1} orthogonal matrix
+#' @param svd_u_2 \code{n} by \code{rank_2} orthogonal matrix
+#' @param svd_d_1 vector of length \code{rank_1}
+#' @param svd_d_2 vector of length \code{rank_2}
+#' @param svd_v_1 \code{p1} by \code{rank_1} orthogonal matrix
+#' @param svd_v_2 \code{p2} by \code{rank_2} orthogonal matrix
 #' @param num_neigh number of neighbors to consider to computed the common percentage 
 #' @param noise_val numeric for scalar of centered Gaussian noise
 #'
-#' @return list of two matrices, one of dimension \code{n} by \code{p_1} and another of dimension \code{n} by \code{p_2}
+#' @return list of outputs
 #' @export
 generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
                           num_neigh = max(round(nrow(svd_u_1)/20), 40), 
@@ -89,11 +91,11 @@ generate_sbm_orthogonal <- function(B_mat, membership_vec, centered = T){
 }
 
 generate_random_orthogonal <- function(n, K, centered = F){
-  stopifnot(K <= n)
+  stopifnot(K+1 <= n)
   mat <- matrix(stats::rnorm(n^2), n, n)
   mat <- mat + t(mat)
   if(centered) mat <- scale(mat, center = T, scale = F)
-  .svd_truncated(mat, K = ifelse(centered, K-1, K))$u
+  .svd_truncated(mat, K = K)$u
 }
 
 ###########################
@@ -121,6 +123,8 @@ generate_random_orthogonal <- function(n, K, centered = F){
 }
 
 #' Simulate adjacency matrix
+#' 
+#' The matrix is not symmetric.
 #'
 #' @param prob_mat probability matrix
 #'

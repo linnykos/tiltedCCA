@@ -131,7 +131,7 @@
       if(add_noise){
         for(i in 1:ncol(common_score)){
           sd1 <- stats::sd(common_score[,i]); sd2 <- stats::sd(distinct_score[,i])
-          if(sd1 < sd2){common_score[,i] <- common_score[,i] + stats::rnorm(n, sd = max(sd2 - sd1, sd1/3))} 
+          if(sd1 < sd2){common_score[,i] <- common_score[,i] + stats::rnorm(n, sd = min(sd2 - sd1, sd1))} 
         }
       }
       tmp <- tcrossprod(common_score, canonical_score) %*% full_mat
@@ -139,7 +139,7 @@
       if(add_noise){
         for(i in 1:ncol(common_score)){
           sd1 <- stats::sd(common_score[,i]); sd2 <- stats::sd(distinct_score[,i])
-          if(sd2 < sd1){distinct_score[,i] <- distinct_score[,i] + stats::rnorm(n, sd = max(sd1 - sd2, sd2/3))} 
+          if(sd2 < sd1){distinct_score[,i] <- distinct_score[,i] + stats::rnorm(n, sd = min(sd1 - sd2, sd2))} 
         }
       }
       tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat

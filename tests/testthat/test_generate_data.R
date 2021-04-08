@@ -10,22 +10,24 @@ test_that("generate_data works", {
   membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
   n <- length(membership_vec)
   rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  svd_u_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
+  svd_u_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
   
   set.seed(10)
   p_1 <- 20; p_2 <- 40
-  coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-  coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+  svd_v_1 <- generate_random_orthogonal(p_1, K-1)
+  svd_v_2 <- generate_random_orthogonal(p_2, K-1)
   
   set.seed(10)
-  res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
-
+  res <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
+  
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("mat_1", "mat_2", "common_mat_1", "common_mat_2",
                                              "distinct_mat_1", "distinct_mat_2",
                                              "common_score", 
-                                             "distinct_score_1", "distinct_score_2"))))
+                                             "distinct_score_1", "distinct_score_2",
+                                             "common_perc"))))
   expect_true(all(dim(res$mat_1) == c(n, p_1)))
   expect_true(all(dim(res$mat_2) == c(n, p_2)))
 })
@@ -44,7 +46,13 @@ test_that("generate_sbm_orthogonal works", {
   rho <- 0.5
   membership_vec <- c(rep(1,20), rep(2,20), rep(3,20))
   
-  res <- generate_sbm_orthogonal(rho*B, membership_vec)
+  res <- generate_sbm_orthogonal(rho*B, membership_vec, centered = T)
+  
+  expect_true(all(dim(res) == c(60, 2)))
+  tmp <- crossprod(res)
+  expect_true(abs(sum(abs(tmp)) - sum(abs(diag(tmp)))) <= 1e-6)
+  
+  res <- generate_sbm_orthogonal(rho*B, membership_vec, centered = F)
   
   expect_true(all(dim(res) == c(60, 3)))
   tmp <- crossprod(res)
@@ -98,7 +106,6 @@ test_that(".generate_adjaceny_mat works", {
   adj_mat <- .generate_adjaceny_mat(prob_mat)
   
   expect_true(nrow(adj_mat) == ncol(adj_mat))
-  expect_true(sum(abs(adj_mat - t(adj_mat))) <= 1e-4)
   expect_true(all(adj_mat %in% c(0,1)))
 })
 

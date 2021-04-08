@@ -1,6 +1,11 @@
 plot_decomposition_2d <- function(vec1, vec2, common_vec, 
-                                  gridsize = 100, col_levels = 21){
-  
+                                  gridsize = 100, col_levels = 21, 
+                                  renormalize = T, ...){
+  if(renormalize){
+    scalar <- .l2norm(vec1);
+    vec1 <- vec1/scalar; vec2 <- vec2/scalar; common_vec <- common_vec/scalar
+  }
+ 
   basis <- .representation_2d(vec1, vec2)
   rep_vec1 <- basis$rep1; rep_vec2 <- basis$rep2
   rep_common <- as.numeric(crossprod(basis$basis_mat, common_vec))
@@ -9,7 +14,7 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
   
   .plot_decomposition_2d_inner(rep_vec1, rep_vec2, rep_common,
                                gridsize = gridsize,
-                               col_levels = col_levels)
+                               col_levels = col_levels, ...)
 }
 
 #################3
@@ -18,7 +23,7 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
 .plot_decomposition_2d_inner <- function(vec1, vec2, common_vec,
                                   xlim = range(c(0, 1.1*c(vec1, vec2, common_vec))),
                                   ylim = range(c(0, 1.1*c(vec1, vec2, common_vec))), 
-                                  gridsize = 100, col_levels = 21){
+                                  gridsize = 100, col_levels = 21, ...){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
   
@@ -41,8 +46,7 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
                "gray75",
                rev(grDevices::hcl.colors(side_length, palette = "OrRd")))
   graphics::plot(NA, xlim = range(x_seq), ylim = range(y_seq), 
-                 xlab = "Dimension 1", ylab = "Dimension 2",
-                 asp = T)
+                 asp = T, ...)
   graphics::.filled.contour(x = x_seq, y = y_seq,
                             z = mat, levels = c(rev(seq(0, -max_val, length.out = side_length+2)[-1]), seq(0, max_val, length.out = side_length+2)[-1]),
                             col = col_vec)

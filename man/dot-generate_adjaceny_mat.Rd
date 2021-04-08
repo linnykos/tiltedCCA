@@ -7,11 +7,11 @@
 .generate_adjaceny_mat(prob_mat)
 }
 \arguments{
-\item{prob_mat}{symmetric probability matrix}
+\item{prob_mat}{probability matrix}
 }
 \value{
-symmetric adjacency matrix
+adjacency matrix
 }
 \description{
-Simulate adjacency matrix
+The matrix is not symmetric.
 }

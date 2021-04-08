@@ -4,7 +4,7 @@
 \alias{plot_data}
 \title{Side-by-side UMAPs of the data}
 \usage{
-plot_data(obj, membership_vec, observed = F)
+plot_data(obj, membership_vec, observed = F, pca = F)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
@@ -17,6 +17,9 @@ Otherwise, this is \code{FALSE} by default, meaning that if \code{obj} is the ou
 \code{generate_data}, you are plotting the "true" data (i.e., not affected by noise),
 or if \code{obj} is the output of \code{dcca_decomposition}, you are plotting
 the estimated denoised observed matrix.}
+
+\item{pca}{boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
+If \code{FALSE}, plot the UMAP embedding.}
 }
 \value{
 shows a plot but returns nothing

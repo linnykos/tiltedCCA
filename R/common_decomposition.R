@@ -57,10 +57,10 @@
   
   n <- length(score_vec_1)
   mode1_common_perc <- sapply(1:n, function(i){
-    val_1in1 <- stats::sd(score_vec_1[i] - score_vec_1[nn_1[i,]])
-    val_1in2 <- stats::sd(score_vec_1[i] - score_vec_1[nn_2[i,]])
-    val_2in1 <- stats::sd(score_vec_2[i] - score_vec_2[nn_1[i,]])
-    val_2in2 <- stats::sd(score_vec_2[i] - score_vec_2[nn_2[i,]])
+    val_1in1 <- stats::sd(score_vec_1[nn_1[i,]])
+    val_1in2 <- stats::sd(score_vec_1[nn_2[i,]])
+    val_2in1 <- stats::sd(score_vec_2[nn_1[i,]])
+    val_2in2 <- stats::sd(score_vec_2[nn_2[i,]])
     
     ratio1 <- ifelse(abs(val_1in1) <= tol, 0, max(val_1in2/val_1in1, 1))
     ratio2 <- ifelse(abs(val_2in2) <= tol, 0, max(val_2in1/val_2in2, 1))
@@ -71,10 +71,11 @@
   min(max(1-mean(mode1_common_perc), 0.01), 0.99)
 }
 
-.sigmoid_ratio <- function(a, b, const = 5){
-  max_val <- max(a,b); min_val <- min(a,b)
-  tmp <- (max_val - min_val)/min_val
-  if(b > a) tmp <- -tmp
+.sigmoid_ratio <- function(a, b){
+  #max_val <- max(a,b); min_val <- min(a,b)
+  #tmp <- (max_val - min_val)/min_val
+  #if(b > a) tmp <- -tmp
+  tmp <- (a-b)/min(a,b)
   
   min(max(.5*tmp+.5, 0), 1)
 }

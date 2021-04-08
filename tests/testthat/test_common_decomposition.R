@@ -68,16 +68,17 @@ test_that("(Test) .common_decomposition is correct when fix_common_perc = T", {
     membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
     n <- length(membership_vec)
     rho <- 1
-    score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-    score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+    svd_u_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
+    svd_u_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
     
     set.seed(10)
     p_1 <- 20; p_2 <- 40
-    coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-    coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+    svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+    svd_v_1 <- generate_random_orthogonal(p_1, K-1)
+    svd_v_2 <- generate_random_orthogonal(p_2, K-1)
     
     set.seed(10)
-    res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
+    res <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
     
     svd_1 <- .svd_truncated(res$mat_1, p_1); svd_2 <- .svd_truncated(res$mat_2, p_2) 
     cca_res <- .cca(svd_1, svd_2)
@@ -103,16 +104,17 @@ test_that("(Coding) .compute_common_score preserves rownames and colnames", {
   membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
   n <- length(membership_vec)
   rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  svd_u_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
+  svd_u_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
   
   set.seed(10)
   p_1 <- 20; p_2 <- 40
-  coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-  coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+  svd_v_1 <- generate_random_orthogonal(p_1, K-1)
+  svd_v_2 <- generate_random_orthogonal(p_2, K-1)
   
   set.seed(10)
-  res <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
+  res <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
   
   svd_1 <- .svd_truncated(res$mat_1, p_1); svd_2 <- .svd_truncated(res$mat_2, p_2) 
   cca_res <- .cca(svd_1, svd_2)

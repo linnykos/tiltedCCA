@@ -22,7 +22,8 @@ test_that("(Basic) dcca_decomposition works", {
                                              "distinct_score_1", 
                                              "distinct_score_2",
                                              "common_mat_1", "common_mat_2",
-                                             "distinct_mat_1", "distinct_mat_2", "common_perc"))))
+                                             "distinct_mat_1", "distinct_mat_2", "common_perc",
+                                             "svd_1", "svd_2", "score_1", "score_2"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
@@ -334,16 +335,17 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
   n <- length(membership_vec)
   rho <- 1
-  score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
-  score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
+  svd_u_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
+  svd_u_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
   
   set.seed(10)
   p_1 <- 20; p_2 <- 40
-  coef_mat_1 <- matrix(stats::rnorm(K*p_1), K, p_1)
-  coef_mat_2 <- matrix(stats::rnorm(K*p_2), K, p_2)
+  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+  svd_v_1 <- generate_random_orthogonal(p_1, K-1)
+  svd_v_2 <- generate_random_orthogonal(p_2, K-1)
   
   set.seed(10)
-  dat <- generate_data(score_1, score_2, coef_mat_1, coef_mat_2)
+  dat <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
   
   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
                           apply_shrinkage = F, verbose = F)
