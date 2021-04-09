@@ -68,7 +68,7 @@
 #' @param tol small positive number
 #'
 #' @return vector
-.project_vec2vec <- function(vec1, vec2, orthogonal = F, tol = 1e-6){
+.project_vec2vec <- function(vec1, vec2, orthogonal, tol = 1e-6){
   stopifnot(length(vec1) == length(vec2))
   
   d <- length(vec1)
