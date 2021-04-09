@@ -144,9 +144,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #'
 #' @return list 
 .dcca_common_score <- function(svd_1, svd_2, cca_res, 
-                               num_neigh = max(round(nrow(svd_1$u)/20), 40),
-                               fix_distinct_perc = F,
-                               check_alignment = T, verbose = T, msg = ""){
+                               num_neigh, fix_distinct_perc,
+                               check_alignment, verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
