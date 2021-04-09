@@ -41,7 +41,7 @@ test_that("(Basic) .common_decomposition works", {
   nn_1 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v), k = 50)$nn.idx
   nn_2 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), k = 50)$nn.idx
   
-  res <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  res <- .common_decomposition(score_1, score_2, nn_1, nn_2, fix_distinct_perc = F)
 
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_1"))))
@@ -136,7 +136,7 @@ test_that("(Coding) .compute_common_score preserves rownames and colnames", {
   nn_1 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v), k = 50)$nn.idx
   nn_2 <- RANN::nn2(tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v), k = 50)$nn.idx
   
-  res <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  res <- .common_decomposition(score_1, score_2, nn_1, nn_2, fix_distinct_perc = F)
   expect_true(all(dim(res$common_score) == dim(score_1)))
   expect_true(length(rownames(res$common_score)) > 1)
   expect_true(all(rownames(res$common_score) == rownames(score_1)))

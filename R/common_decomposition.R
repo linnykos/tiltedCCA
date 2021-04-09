@@ -1,5 +1,5 @@
-.common_decomposition <- function(score_1, score_2, nn_1 = NA, nn_2 = NA, 
-                                  fix_distinct_perc = F, tol = 1e-6){
+.common_decomposition <- function(score_1, score_2, nn_1, nn_2, 
+                                  fix_distinct_perc, tol = 1e-6){
   stopifnot((!any(is.na(nn_1)) & !any(is.na(nn_2)) & !fix_distinct_perc) | 
               (all(is.na(nn_1)) & all(is.na(nn_2)) & fix_distinct_perc))
   

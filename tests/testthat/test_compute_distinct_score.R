@@ -21,7 +21,7 @@ test_that("(Basic) .compute_distinct_score works", {
   nn_1 <- RANN::nn2(score_1, k = 50)$nn.idx
   nn_2 <- RANN::nn2(score_1, k = 50)$nn.idx
   
-  tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2, fix_distinct_perc = F)
   common_score <- tmp$common_score; distinct_perc_1 <- tmp$distinct_perc_1
   
   res <- .compute_distinct_score(score_1, score_2, common_score)
@@ -56,7 +56,7 @@ test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices
     nn_1 <- RANN::nn2(score_1, k = 50)$nn.idx
     nn_2 <- RANN::nn2(score_1, k = 50)$nn.idx
     
-    tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+    tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2, fix_distinct_perc = F)
     common_score <- tmp$common_score; distinct_perc_1 <- tmp$distinct_perc_1
     
     res <- .compute_distinct_score(score_1, score_2, common_score)

@@ -31,7 +31,7 @@ generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
   nn_1 <- RANN::nn2(.mult_mat_vec(svd_u_1, svd_d_1), k = num_neigh)$nn.idx
   nn_2 <- RANN::nn2(.mult_mat_vec(svd_u_2, svd_d_2), k = num_neigh)$nn.idx
   
-  res <- .common_decomposition(score_1, score_2, nn_1, nn_2)
+  res <- .common_decomposition(score_1, score_2, nn_1, nn_2, fix_distinct_perc = F)
   common_score <- res$common_score; distinct_perc_1 <- res$distinct_perc_1
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
