@@ -1,7 +1,7 @@
 .common_decomposition <- function(score_1, score_2, nn_1 = NA, nn_2 = NA, 
-                                  fix_common_perc = F, tol = 1e-6){
-  stopifnot((!any(is.na(nn_1)) & !any(is.na(nn_2)) & !fix_common_perc) | 
-              (all(is.na(nn_1)) & all(is.na(nn_2)) & fix_common_perc))
+                                  fix_distinct_perc = F, tol = 1e-6){
+  stopifnot((!any(is.na(nn_1)) & !any(is.na(nn_2)) & !fix_distinct_perc) | 
+              (all(is.na(nn_1)) & all(is.na(nn_2)) & fix_distinct_perc))
   
   rank_c <- min(ncol(score_1), ncol(score_2))
   stopifnot(all(sapply(1:rank_c, function(k){
@@ -12,14 +12,14 @@
     .representation_2d(score_1[,k], score_2[,k])
   })
   
-  if(fix_common_perc){
-    common_perc <- rep(0.5, rank_c)
+  if(fix_distinct_perc){
+    distinct_perc_1 <- rep(0.5, rank_c)
   } else {
-    common_perc <- sapply(1:rank_c, function(k){
+    distinct_perc_1 <- sapply(1:rank_c, function(k){
       if(sum(abs(basis_list[[k]]$rep1 - basis_list[[k]]$rep2)) < tol){
         .5
       } else {
-        .latent_common_perc(score_1[,k], score_2[,k], nn_1, nn_2)
+        .latent_distinct_perc_1(score_1[,k], score_2[,k], nn_1, nn_2)
       }
     })
   }
@@ -37,7 +37,7 @@
       stopifnot(sum(abs(.position_from_circle(circle, rad1) - vec1)) <= 1e-6,
                 sum(abs(.position_from_circle(circle, rad2) - vec2)) <= 1e-6)
       
-      common_rad <- .binary_search_radian(circle, rad2, rad1, common_perc[k])
+      common_rad <- .binary_search_radian(circle, rad2, rad1, distinct_perc_1[k])
       common_rep <- .position_from_circle(circle, common_rad)
     }
     
@@ -46,17 +46,17 @@
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
-  list(common_score = common_score, common_perc = common_perc)
+  list(common_score = common_score, distinct_perc_1 = distinct_perc_1)
 }
 
 #####################
 
 # thresholded to be between 0.01 and 0.99
-.latent_common_perc <- function(score_vec_1, score_vec_2, nn_1, nn_2, tol = 1e-6){
+.latent_distinct_perc_1 <- function(score_vec_1, score_vec_2, nn_1, nn_2, tol = 1e-6){
   stopifnot(length(score_vec_1) == length(score_vec_2))
   
   n <- length(score_vec_1)
-  mode1_common_perc <- sapply(1:n, function(i){
+  distinct_perc_1 <- sapply(1:n, function(i){
     val_1in1 <- stats::sd(score_vec_1[nn_1[i,]])
     val_1in2 <- stats::sd(score_vec_1[nn_2[i,]])
     val_2in1 <- stats::sd(score_vec_2[nn_1[i,]])
@@ -68,10 +68,15 @@
     .sigmoid_ratio(ratio1, ratio2)
   })
   
-  min(max(1-mean(mode1_common_perc), 0.01), 0.99)
+  min(max(1-mean(distinct_perc_1), 0.01), 0.99)
 }
 
-.sigmoid_ratio <- function(a, b){
+.sigmoid_ratio <- function(a, b, tol = 1e-6){
+  stopifnot(a >= 0, b >= 0)
+  if(a <= tol & b <= tol) return(0.5)
+  if(a <= tol & b >= tol) return(0)
+  if(a >= tol & b <= tol) return(1)
+  
   #max_val <- max(a,b); min_val <- min(a,b)
   #tmp <- (max_val - min_val)/min_val
   #if(b > a) tmp <- -tmp
@@ -80,12 +85,13 @@
   min(max(.5*tmp+.5, 0), 1)
 }
 
-# by construction, upper_radian is always the vector on the right. common_perc
+# by construction, upper_radian is always the vector on the right. distinct_perc_1
 # refers to the ratio of (distinct length to left vector)/(distinct length to right vector),
-# meaning the lower common_perc is, the more the resulting vector woud lean left
+# meaning the lower distinct_perc_1 is, the more the resulting vector woud lean left
 # (i.e., further way from the right vector)
-.binary_search_radian <- function(circle, lower_radian, upper_radian, common_perc, max_iter = 10, tol = 1e-6){
-  stopifnot(lower_radian < upper_radian, 0 < common_perc, common_perc < 1)
+.binary_search_radian <- function(circle, lower_radian, upper_radian, 
+                                  distinct_perc_1, max_iter = 10, tol = 1e-6){
+  stopifnot(lower_radian < upper_radian, 0 < distinct_perc_1, distinct_perc_1 < 1)
   
   lower <- lower_radian; upper <- upper_radian
   left_vec <- .position_from_circle(circle, lower_radian)
@@ -98,9 +104,9 @@
     left_distinct <- left_vec - common_vec
     right_distinct <- right_vec - common_vec
     ratio <- .l2norm(left_distinct)/(.l2norm(left_distinct)+.l2norm(right_distinct))
-    if(abs(ratio - common_perc) <= tol) break()
+    if(abs(ratio - distinct_perc_1) <= tol) break()
     
-    if(ratio > common_perc){
+    if(ratio > distinct_perc_1){
       # need to make left_distinct smaller, so move radian right (i.e., smaller radian)
       upper <- mid
     } else {

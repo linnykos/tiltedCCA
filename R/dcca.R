@@ -9,9 +9,9 @@
 #' @param meta_clustering optional clustering
 #' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param apply_shrinkage boolean 
-#' @param fix_common_perc boolean. If \code{TRUE}, the output \code{common_perc} will be fixed to at 0.5,
+#' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_1} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
-#' If \code{FALSE}, \code{common_perc} will be adaptively estimated via the
+#' If \code{FALSE}, \code{distinct_perc_1} will be adaptively estimated via the
 #' \code{.common_decomposition} function.
 #' @param verbose boolean
 #'
@@ -19,7 +19,7 @@
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                         num_neigh = max(round(nrow(mat_1)/20), 40),
-                        apply_shrinkage = T, fix_common_perc = F, verbose = T){
+                        apply_shrinkage = T, fix_distinct_perc = F, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
@@ -69,7 +69,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
   }
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
-                            fix_common_perc = fix_common_perc,
+                            fix_distinct_perc = fix_distinct_perc,
                             check_alignment = all(!is.na(meta_clustering)),
                             verbose = verbose, msg = msg)
 
@@ -113,7 +113,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
        svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
-       cca_obj = dcca_res$cca_obj, common_perc = dcca_res$common_perc), class = "dcca_decomp")
+       cca_obj = dcca_res$cca_obj, distinct_perc_1 = dcca_res$distinct_perc_1), class = "dcca_decomp")
 }
 
 
@@ -130,9 +130,9 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
 #' @param cca_res returned object from \code{.cca}
 #' @param num_neigh number of neighbors to consider to computed the common percentage
-#' @param fix_common_perc boolean. If \code{TRUE}, the output \code{common_perc} will be fixed to at 0.5,
+#' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_1} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
-#' If \code{FALSE}, \code{common_perc} will be adaptively estimated via the
+#' If \code{FALSE}, \code{distinct_perc_1} will be adaptively estimated via the
 #' \code{.common_decomposition} function.
 #' @param check_alignment boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
 #' after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution
@@ -143,7 +143,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #' @return list 
 .dcca_common_score <- function(svd_1, svd_2, cca_res, 
                                num_neigh = max(round(nrow(svd_1$u)/20), 40),
-                               fix_common_perc = F,
+                               fix_distinct_perc = F,
                                check_alignment = T, verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
@@ -166,15 +166,15 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   }
   
   # compute the common scores
-  if(fix_common_perc){
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_common_perc = T)
+  if(fix_distinct_perc){
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
   } else {
     nn_1 <- RANN::nn2(.mult_mat_vec(svd_1$u, svd_1$d), k = num_neigh)$nn.idx
     nn_2 <- RANN::nn2(.mult_mat_vec(svd_2$u, svd_2$d), k = num_neigh)$nn.idx
     
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, fix_common_perc = F)
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, fix_distinct_perc = F)
   }
-  common_score <- tmp$common_score; common_perc <- tmp$common_perc
+  common_score <- tmp$common_score; distinct_perc_1 <- tmp$distinct_perc_1
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
@@ -185,7 +185,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
        distinct_score_2 = distinct_score_2,
        score_1 = score_1, score_2 = score_2, 
        svd_1 = svd_1, svd_2 = svd_2, 
-       cca_obj = obj_vec, common_perc = common_perc)
+       cca_obj = obj_vec, distinct_perc_1 = distinct_perc_1)
 }
 
 #' Compute the distinct scores

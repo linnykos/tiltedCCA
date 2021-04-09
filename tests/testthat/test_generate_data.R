@@ -27,7 +27,7 @@ test_that("generate_data works", {
                                              "distinct_mat_1", "distinct_mat_2",
                                              "common_score", 
                                              "distinct_score_1", "distinct_score_2",
-                                             "common_perc"))))
+                                             "distinct_perc_1"))))
   expect_true(all(dim(res$mat_1) == c(n, p_1)))
   expect_true(all(dim(res$mat_2) == c(n, p_2)))
 })

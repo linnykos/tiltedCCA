@@ -22,7 +22,7 @@ test_that("(Basic) .compute_distinct_score works", {
   nn_2 <- RANN::nn2(score_1, k = 50)$nn.idx
   
   tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
-  common_score <- tmp$common_score; common_perc <- tmp$common_perc
+  common_score <- tmp$common_score; distinct_perc_1 <- tmp$distinct_perc_1
   
   res <- .compute_distinct_score(score_1, score_2, common_score)
   expect_true(is.list(res))
@@ -57,7 +57,7 @@ test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices
     nn_2 <- RANN::nn2(score_1, k = 50)$nn.idx
     
     tmp <- .common_decomposition(score_1, score_2, nn_1, nn_2)
-    common_score <- tmp$common_score; common_perc <- tmp$common_perc
+    common_score <- tmp$common_score; distinct_perc_1 <- tmp$distinct_perc_1
     
     res <- .compute_distinct_score(score_1, score_2, common_score)
     
@@ -67,7 +67,7 @@ test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices
   expect_true(all(bool_vec))
 })
 
-test_that("(Math) .compute_distinct_score generates equal-lengthed matrices when fix_common_perc = T", {
+test_that("(Math) .compute_distinct_score generates equal-lengthed matrices when fix_distinct_perc = T", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -89,8 +89,8 @@ test_that("(Math) .compute_distinct_score generates equal-lengthed matrices when
     tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_common_perc = T)
-    common_score <- tmp$common_score; common_perc <- tmp$common_perc
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
+    common_score <- tmp$common_score; distinct_perc_1 <- tmp$distinct_perc_1
     
     res <- .compute_distinct_score(score_1, score_2, common_score)
     

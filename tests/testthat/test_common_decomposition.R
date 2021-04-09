@@ -41,21 +41,21 @@ test_that("(Basic) .common_decomposition works", {
   res <- .common_decomposition(score_1, score_2, nn_1, nn_2)
 
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "common_perc"))))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_1"))))
   expect_true(nrow(res$common_score) == nrow(score_1))
   expect_true(ncol(res$common_score) == min(ncol(score_1), ncol(score_2)))
-  expect_true(length(res$common_perc) == ncol(res$common_score))
+  expect_true(length(res$distinct_perc_1) == ncol(res$common_score))
   
-  res <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_common_perc = T)
+  res <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "common_perc"))))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_1"))))
   expect_true(nrow(res$common_score) == nrow(score_1))
   expect_true(ncol(res$common_score) == min(ncol(score_1), ncol(score_2)))
-  expect_true(length(res$common_perc) == ncol(res$common_score))
+  expect_true(length(res$distinct_perc_1) == ncol(res$common_score))
 })
 
-test_that("(Test) .common_decomposition is correct when fix_common_perc = T", {
+test_that("(Test) .common_decomposition is correct when fix_distinct_perc = T", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -85,7 +85,7 @@ test_that("(Test) .common_decomposition is correct when fix_common_perc = T", {
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     
-    res1 <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_common_perc = T)
+    res1 <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
     res2 <- test_compute_common_score(score_1, score_2, obj_vec = cca_res$obj_vec)
     
     sum(abs(res1$common_score - res2)) <= 1e-6
@@ -132,5 +132,81 @@ test_that("(Coding) .compute_common_score preserves rownames and colnames", {
   expect_true(length(rownames(res$common_score)) > 1)
   expect_true(all(rownames(res$common_score) == rownames(score_1)))
   
-  # observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)
+  # [[note to self: observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)]]
+})
+
+test_that("(Math) .common_decomposition gives sensible numbers in asymmetric information settings", {
+  trials <- 25
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    n_clust <- 100
+    B_mat1 <- matrix(c(0.9, 0, 0, 
+                       0, 0.9, 0,
+                       0, 0, 0.9), 3, 3, byrow = T)
+    B_mat2 <- matrix(c(0.9, 0.85, 0, 
+                       0.85, 0.9, 0,
+                       0, 0, 1), 3, 3, byrow = T)
+    K <- ncol(B_mat1)
+    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+    n <- length(membership_vec); true_membership_vec <- membership_vec
+    svd_u_1 <- generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)
+    svd_u_2 <- generate_sbm_orthogonal(B_mat2, membership_vec, centered = T)
+    
+    set.seed(10)
+    p_1 <- 20; p_2 <- 40
+    svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+    svd_v_1 <- generate_random_orthogonal(p_1, K-1)
+    svd_v_2 <- generate_random_orthogonal(p_2, K-1)
+    
+    set.seed(10)
+    dat <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, 
+                         svd_v_1, svd_v_2, noise_val = 0.1)
+    
+    svd_1 <- .svd_truncated(dat$mat_1, 2); svd_2 <- .svd_truncated(dat$mat_2, 2) 
+    cca_res <- .cca(svd_1, svd_2)
+    tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
+    score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    
+    num_neigh <- 40
+    nn_1 <- RANN::nn2(.mult_mat_vec(svd_1$u, svd_1$d), k = num_neigh)$nn.idx
+    nn_2 <- RANN::nn2(.mult_mat_vec(svd_2$u, svd_2$d), k = num_neigh)$nn.idx
+    
+    res <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, 
+                                 fix_distinct_perc = F)
+    
+    all(res$distinct_perc_1 <= 0.5)
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+###############################
+
+## .sigmoid_ratio is correct
+
+test_that("(Math) .sigmoid_ratio gives an appropriate value w.r.t 0.5 ", {
+  trials <- 50
+  
+  a_vec <- seq(0, 10, length.out = 11)
+  bool_vec <- sapply(a_vec, function(a){
+    all(sapply(1:trials, function(x){
+      b <- runif(1, min = 0, max = 2)*abs(a+rnorm(1, sd = 0.01))
+      val <- .sigmoid_ratio(a, b)
+      if(a < b) val < 0.5 else val > 0.5
+    }))
+  })
+  
+  expect_true(all(bool_vec))
+  
+  b_vec <- seq(0, 10, length.out = 11)
+  bool_vec <- sapply(b_vec, function(b){
+    all(sapply(1:trials, function(x){
+      a <- runif(1, min = 0, max = 2)*abs(b+rnorm(1, sd = 0.01))
+      val <- .sigmoid_ratio(a, b)
+      if(a < b) val < 0.5 else val > 0.5
+    }))
+  })
+  
+  expect_true(all(bool_vec))
 })
