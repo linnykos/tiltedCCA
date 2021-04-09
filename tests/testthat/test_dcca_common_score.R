@@ -21,7 +21,7 @@ test_that("(Basic) .dcca_common_score works", {
   
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -57,7 +57,7 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -85,7 +85,7 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   
   svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = K)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
                             fix_distinct_perc = F,
@@ -96,7 +96,7 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = 1)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
                             fix_distinct_perc = F,
@@ -107,7 +107,7 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   
   svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = 1)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
                             fix_distinct_perc = F,
@@ -139,7 +139,7 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
     
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
     
-    cca_res <- .cca(svd_1, svd_2)
+    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     
     res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -192,7 +192,7 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
       apply(mat_2[idx,,drop = F], 2, mean)
     }))
     
-    cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = K, rank_2 = K)
+    cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = K, rank_2 = K, return_scores = F)
     
     res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               num_neigh = max(round(nrow(svd_1$u)/20), 40), 

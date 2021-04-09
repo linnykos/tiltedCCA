@@ -11,7 +11,7 @@ test_that("(Basic) .cca works", {
   svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  res <- .cca(svd_1, svd_2)
+  res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("loading_1", "loading_2", "obj_vec"))))
@@ -28,7 +28,7 @@ test_that("(Coding) .cca preserves colnames", {
   colnames(mat_1) <- paste0("a", 1:p1)
   colnames(mat_2) <- paste0("b", 1:p2)
   
-  res <- .cca(mat_1, mat_2, rank_1 = 2, rank_2 = 2)
+  res <- .cca(mat_1, mat_2, rank_1 = 2, rank_2 = 2, return_scores = F)
   
   expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
   expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
@@ -41,7 +41,7 @@ test_that("(Coding) .cca preserves colnames", {
                           symmetric = F, rescale = F, K_full_rank = F)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  res <- .cca(svd_1, svd_2)
+  res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
   expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
@@ -54,7 +54,7 @@ test_that("(Coding) .cca works when the two matrices have different ranks larger
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
   rank_1 <- 2; rank_2 <- 4
-  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2)
+  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2, return_scores = F)
   
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
@@ -68,7 +68,7 @@ test_that("(Coding) .cca works when the two matrices have different ranks larger
                           symmetric = F, rescale = F, K_full_rank = F)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  res <- .cca(svd_1, svd_2)
+  res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
@@ -82,17 +82,17 @@ test_that("(Coding) .cca works when either matrix have rank 1 for matrix inputs"
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   rank_1 <- 2; rank_2 <- 4
   
-  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = rank_2)
+  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = rank_2, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = 1)
+  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = 1, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = 1)
+  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = 1, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
@@ -117,17 +117,17 @@ test_that("(Coding) .cca works when either matrix have rank 1 for svd inputs", {
                            symmetric = F, rescale = F, K_full_rank = F)
   svd_1b <- .check_svd(svd_1b); svd_2b <- .check_svd(svd_2b)
   
-  res <- .cca(svd_1b, svd_2)
+  res <- .cca(svd_1b, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(svd_1, svd_2b)
+  res <- .cca(svd_1, svd_2b, rank_1 = NA, rank_2 = NA, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(svd_1b, svd_2b)
+  res <- .cca(svd_1b, svd_2b, rank_1 = NA, rank_2 = NA, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
@@ -151,7 +151,7 @@ test_that("(Math) .cca yields empirically uncorrelated canoncical scores", {
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
     
-    res <- .cca(svd_1, svd_2)
+    res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     
     bool1 <- sum(abs(t(res$loading_1) %*% (stats::cov(mat_1)*(n-1)/n) %*% res$loading_1 - diag(p1))) <= 1e-4
     bool2 <- sum(abs(t(res$loading_2) %*% (stats::cov(mat_2)*(n-1)/n) %*% res$loading_2 - diag(p2))) <= 1e-4
@@ -182,7 +182,7 @@ test_that("(Math) .cca obtains the correlation that is the same value as the obj
     svd_2 <- .svd_truncated(mat_2, K,
                             symmetric = F, rescale = F, K_full_rank = F)
     
-    cca_res <- .cca(svd_1, svd_2)
+    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     
     cov_12 <- crossprod(mat_1, mat_2)/n
     res1 <- t(cca_res$loading_1) %*% cov_12 %*% cca_res$loading_2 
@@ -220,7 +220,7 @@ test_that("(Math) .cca obtains the maximum correlation", {
   svd_2 <- .svd_truncated(mat_2, K,
                           symmetric = F, rescale = F, K_full_rank = F)
   
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   score_1 <- mat_1 %*% cca_res$loading_1
   score_2 <- mat_2 %*% cca_res$loading_2

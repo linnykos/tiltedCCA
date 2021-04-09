@@ -61,13 +61,14 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     
     if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
     # note, since we're already doing averaging, we don't further shrink the spectrum
-    cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = rank_1, rank_2 = rank_2)
+    cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = rank_1, rank_2 = rank_2,
+                    return_scores = F)
   } else {
     
     # alternatively, apply D-CCA to all cells
     msg <- " (all cells)"
     if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
-    cca_res <- .cca(svd_1, svd_2)
+    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   }
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
@@ -251,8 +252,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #'
 #' @param input_1 first input
 #' @param input_2 second input
-#' @param rank_1 scalar
-#' @param rank_2 scalar
+#' @param rank_1 scalar. Only used if \code{input_1} is a list representing the SVD
+#' @param rank_2 scalar. Only used if \code{input_2} is a list representing the SVD
 #' @param return_scores boolean. If \code{TRUE}, return the scores (i.e., matrices where the rows are the cells).
 #' If \code{FALSE}, return the loadings (i.e., matrices where the rows are the variables).
 #' Either way, one of the output matrices will have \code{rank_1} columns and another
@@ -260,8 +261,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #' @param tol small numeric
 #'
 #' @return list
-.cca <- function(input_1, input_2, rank_1 = NA, rank_2 = NA, 
-                 return_scores = F, tol = 1e-6){
+.cca <- function(input_1, input_2, rank_1, rank_2, 
+                 return_scores, tol = 1e-6){
   if(is.matrix(input_1) & is.matrix(input_2)){
     stopifnot(nrow(input_1) == nrow(input_2), 
               rank_1 <= ncol(input_1), rank_2 <= ncol(input_2))

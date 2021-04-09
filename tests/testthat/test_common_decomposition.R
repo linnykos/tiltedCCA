@@ -34,7 +34,7 @@ test_that("(Basic) .common_decomposition works", {
                           symmetric = F, rescale = F, K_full_rank = F)
   svd_2 <- .svd_truncated(mat_2, p2,
                           symmetric = F, rescale = F, K_full_rank = F) 
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   
@@ -87,7 +87,7 @@ test_that("(Test) .common_decomposition is correct when fix_distinct_perc = T", 
                             symmetric = F, rescale = F, K_full_rank = F)
     svd_2 <- .svd_truncated(res$mat_2, p_2,
                             symmetric = F, rescale = F, K_full_rank = F) 
-    cca_res <- .cca(svd_1, svd_2)
+    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     
@@ -126,7 +126,7 @@ test_that("(Coding) .compute_common_score preserves rownames and colnames", {
                           symmetric = F, rescale = F, K_full_rank = F)
   svd_2 <- .svd_truncated(res$mat_2, p_2,
                           symmetric = F, rescale = F, K_full_rank = F) 
-  cca_res <- .cca(svd_1, svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   
@@ -176,7 +176,7 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
                             symmetric = F, rescale = F, K_full_rank = F)
     svd_2 <- .svd_truncated(dat$mat_2, 2,
                             symmetric = F, rescale = F, K_full_rank = F) 
-    cca_res <- .cca(svd_1, svd_2)
+    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     

@@ -4,6 +4,7 @@
 
 .svd_truncated <- function(mat, K, symmetric, rescale,
                            K_full_rank){
+  if(is.na(K)) K <- min(dim(mat))
   stopifnot(min(dim(mat)) >= K)
   if(K == min(dim(mat))) K_full_rank <- T
   
