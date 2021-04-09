@@ -11,7 +11,7 @@ test_that("(Basic) .compute_cca_aggregate_matrix works", {
   svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  res <- .compute_cca_aggregate_matrix(svd_1, svd_2)
+  res <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
   
   expect_true(is.matrix(res))
   expect_true(all(dim(res) == c(length(svd_1$d), length(svd_2$d))))
@@ -85,7 +85,7 @@ test_that("(Math) .compute_cca_aggregate_matrix is correct", {
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
     
-    res <- .compute_cca_aggregate_matrix(svd_1, svd_2)
+    res <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
     
     cov_1 <- stats::cov(mat_1) * (n-1)/n
     cov_2 <- stats::cov(mat_2) * (n-1)/n
@@ -116,7 +116,7 @@ test_that("(Math) .compute_cca_aggregate_matrix is gives the correct svd", {
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
     
-    res1 <- .compute_cca_aggregate_matrix(svd_1, svd_2)
+    res1 <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
     svd_res1 <- svd(res1)
     
     cov_1 <- stats::cov(mat_1) * (n-1)/n

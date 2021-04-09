@@ -22,7 +22,7 @@ test_that("(Math) .compute_unnormalized_scores computes the correct scores", {
     
     cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     res <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-    rank_val <- Matrix::rankMatrix(.compute_cca_aggregate_matrix(svd_1, svd_2))
+    rank_val <- Matrix::rankMatrix(.compute_cca_aggregate_matrix(svd_1, svd_2, augment = T))
     
     bool1 <- sum(crossprod(res$score_1) - n*diag(p1)) <= 1e-4
     bool2 <- sum(crossprod(res$score_2) - n*diag(p2)) <= 1e-4

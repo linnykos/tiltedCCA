@@ -326,7 +326,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #' with 0's so the dimension of the output matrix matches those in \code{svd_1} and \code{svd_2}
 #'
 #' @return matrix
-.compute_cca_aggregate_matrix <- function(svd_1, svd_2, augment = T){
+.compute_cca_aggregate_matrix <- function(svd_1, svd_2, augment){
   res <- crossprod(svd_1$u, svd_2$u)
   
   if(augment){
