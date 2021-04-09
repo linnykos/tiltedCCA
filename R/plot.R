@@ -217,7 +217,8 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, add_noi
     }
     
     for(i in 1:3){
-      tmp <- .svd_truncated(embedding[[i]], K = 2)
+      tmp <- .svd_truncated(embedding[[i]], K = 2, 
+                            symmetric = F, rescale = F, K_full_rank = F)
       embedding[[i]] <- .mult_mat_vec(tmp$u, tmp$d)
     }
     xlim <- range(sapply(embedding, function(x){x[,1]}))
@@ -280,8 +281,10 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
   
   # plot the noise-affected/"observed" data
   if(observed){
-    svd_list <- list(.svd_truncated(obj$mat_1, K = ncol(obj$distinct_score_1)), 
-                     .svd_truncated(obj$mat_2, K = ncol(obj$distinct_score_2)))
+    svd_list <- list(.svd_truncated(obj$mat_1, K = ncol(obj$distinct_score_1), 
+                                    symmetric = F, rescale = F, K_full_rank = F), 
+                     .svd_truncated(obj$mat_2, K = ncol(obj$distinct_score_2), 
+                                    symmetric = F, rescale = F, K_full_rank = F))
     
     embedding <- lapply(svd_list, function(svd_res){
       tmp <- .mult_mat_vec(svd_res$u, svd_res$d)

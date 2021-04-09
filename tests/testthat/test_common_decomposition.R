@@ -30,7 +30,10 @@ test_that("(Basic) .common_decomposition works", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
   
-  svd_1 <- .svd_truncated(mat_1, p1); svd_2 <- .svd_truncated(mat_2, p2) 
+  svd_1 <- .svd_truncated(mat_1, p1,
+                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, p2,
+                          symmetric = F, rescale = F, K_full_rank = F) 
   cca_res <- .cca(svd_1, svd_2)
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
@@ -80,7 +83,10 @@ test_that("(Test) .common_decomposition is correct when fix_distinct_perc = T", 
     set.seed(10)
     res <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
     
-    svd_1 <- .svd_truncated(res$mat_1, p_1); svd_2 <- .svd_truncated(res$mat_2, p_2) 
+    svd_1 <- .svd_truncated(res$mat_1, p_1,
+                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_2 <- .svd_truncated(res$mat_2, p_2,
+                            symmetric = F, rescale = F, K_full_rank = F) 
     cca_res <- .cca(svd_1, svd_2)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
@@ -116,7 +122,10 @@ test_that("(Coding) .compute_common_score preserves rownames and colnames", {
   set.seed(10)
   res <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
   
-  svd_1 <- .svd_truncated(res$mat_1, p_1); svd_2 <- .svd_truncated(res$mat_2, p_2) 
+  svd_1 <- .svd_truncated(res$mat_1, p_1,
+                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_2 <- .svd_truncated(res$mat_2, p_2,
+                          symmetric = F, rescale = F, K_full_rank = F) 
   cca_res <- .cca(svd_1, svd_2)
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
@@ -163,7 +172,10 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
     dat <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, 
                          svd_v_1, svd_v_2, noise_val = 0.1)
     
-    svd_1 <- .svd_truncated(dat$mat_1, 2); svd_2 <- .svd_truncated(dat$mat_2, 2) 
+    svd_1 <- .svd_truncated(dat$mat_1, 2,
+                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_2 <- .svd_truncated(dat$mat_2, 2,
+                            symmetric = F, rescale = F, K_full_rank = F) 
     cca_res <- .cca(svd_1, svd_2)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2

@@ -3,7 +3,7 @@
   stopifnot(length(vec1) == length(vec2), .l2norm(vec1) > tol, .l2norm(vec2) > tol)
   
   unit1 <- vec1/.l2norm(vec1)
-  tmp <- .project_vec2vec(vec2, unit1)
+  tmp <- .project_vec2vec(vec2, unit1, orthogonal = T)
   if(.l2norm(tmp) < tol){
     return(list(basis_mat = cbind(unit1, 0), rep1 = c(.l2norm(vec1), 0), 
                 rep2 = c(.l2norm(vec2), 0)))
@@ -68,7 +68,7 @@
 #' @param tol small positive number
 #'
 #' @return vector
-.project_vec2vec <- function(vec1, vec2, orthogonal = T, tol = 1e-6){
+.project_vec2vec <- function(vec1, vec2, orthogonal = F, tol = 1e-6){
   stopifnot(length(vec1) == length(vec2))
   
   d <- length(vec1)
@@ -78,17 +78,6 @@
   } else {
     vec2 %*% crossprod(vec2, vec1)
   }
-}
-
-.project_mat2mat_colwise <- function(mat1, mat2, orthogonal = T, tol = 1e-6){
-  r1 <- ncol(mat1); r2 <- ncol(mat2); n <- nrow(mat1)
-  stopifnot(r1 <= r2)
-  
-  tmp <- sapply(1:r1, function(j){
-    .project_vec2vec(mat1[,j], mat2[,j], orthogonal = orthogonal, tol = tol)
-  })
-  if(r1 < r2) tmp <- cbind(tmp, matrix(0, nrow = n, ncol = r2- r1))
-  tmp
 }
 
 ############################

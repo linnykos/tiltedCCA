@@ -29,8 +29,10 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   if(verbose) print(paste0("D-CCA: Starting matrix shrinkage"))
-  if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1)
-  if(apply_shrinkage) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2)
+  if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1, 
+                                                                                  symmetric = F, rescale = F, K_full_rank = F)
+  if(apply_shrinkage) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2, 
+                                                                                  symmetric = F, rescale = F, K_full_rank = F)
   
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
@@ -224,7 +226,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 .spoet <- function(mat, K){
   n <- nrow(mat); p <- ncol(mat); m <- min(n, p)
   target_full_dim <- min(c(nrow(mat), ncol(mat), K*10))
-  svd_res <- .svd_truncated(mat, target_full_dim)
+  svd_res <- .svd_truncated(mat, target_full_dim, 
+                            symmetric = F, rescale = F, K_full_rank = F)
   tau <- sum((svd_res$d[(K+1):length(svd_res$d)])^2)/(n*p - n*K - p*K)
   sing_vec <- sapply(svd_res$d[1:K], function(x){
     sqrt(max(c(x^2-tau*p, 0)))
@@ -263,8 +266,10 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   if(is.matrix(input_1) & is.matrix(input_2)){
     stopifnot(nrow(input_1) == nrow(input_2), 
               rank_1 <= ncol(input_1), rank_2 <= ncol(input_2))
-    svd_1 <- .svd_truncated(input_1, rank_1)
-    svd_2 <- .svd_truncated(input_2, rank_2)
+    svd_1 <- .svd_truncated(input_1, rank_1, 
+                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_2 <- .svd_truncated(input_2, rank_2, 
+                            symmetric = F, rescale = F, K_full_rank = F)
     
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   } else {

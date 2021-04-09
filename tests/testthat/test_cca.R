@@ -35,7 +35,10 @@ test_that("(Coding) .cca preserves colnames", {
   
   ##
   
-  svd_1 <- .svd_truncated(mat_1); svd_2 <- .svd_truncated(mat_2)
+  svd_1 <- .svd_truncated(mat_1, K = min(dim(mat_1)),
+                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = min(dim(mat_2)),
+                          symmetric = F, rescale = F, K_full_rank = F)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
   res <- .cca(svd_1, svd_2)
@@ -59,7 +62,10 @@ test_that("(Coding) .cca works when the two matrices have different ranks larger
   
   ####
   
-  svd_1 <- .svd_truncated(mat_1, K = rank_1); svd_2 <- .svd_truncated(mat_2, K = rank_2)
+  svd_1 <- .svd_truncated(mat_1, K = rank_1,
+                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = rank_2,
+                          symmetric = F, rescale = F, K_full_rank = F)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
   res <- .cca(svd_1, svd_2)
@@ -99,10 +105,16 @@ test_that("(Coding) .cca works when either matrix have rank 1 for svd inputs", {
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   rank_1 <- 2; rank_2 <- 4
   
-  svd_1 <- .svd_truncated(mat_1, K = rank_1); svd_2 <- .svd_truncated(mat_2, K = rank_2)
+  svd_1 <- .svd_truncated(mat_1, K = rank_1,
+                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = rank_2,
+                          symmetric = F, rescale = F, K_full_rank = F)
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
   
-  svd_1b <- .svd_truncated(mat_1, K = 1); svd_2b <- .svd_truncated(mat_2, K = 1)
+  svd_1b <- .svd_truncated(mat_1, K = 1,
+                           symmetric = F, rescale = F, K_full_rank = F)
+  svd_2b <- .svd_truncated(mat_2, K = 1,
+                           symmetric = F, rescale = F, K_full_rank = F)
   svd_1b <- .check_svd(svd_1b); svd_2b <- .check_svd(svd_2b)
   
   res <- .cca(svd_1b, svd_2)
@@ -165,7 +177,10 @@ test_that("(Math) .cca obtains the correlation that is the same value as the obj
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
     
-    svd_1 <- .svd_truncated(mat_1, K); svd_2 <- .svd_truncated(mat_2, K)
+    svd_1 <- .svd_truncated(mat_1, K,
+                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_2 <- .svd_truncated(mat_2, K,
+                            symmetric = F, rescale = F, K_full_rank = F)
     
     cca_res <- .cca(svd_1, svd_2)
     
@@ -200,7 +215,10 @@ test_that("(Math) .cca obtains the maximum correlation", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  svd_1 <- .svd_truncated(mat_1, K); svd_2 <- .svd_truncated(mat_2, K)
+  svd_1 <- .svd_truncated(mat_1, K,
+                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K,
+                          symmetric = F, rescale = F, K_full_rank = F)
   
   cca_res <- .cca(svd_1, svd_2)
   

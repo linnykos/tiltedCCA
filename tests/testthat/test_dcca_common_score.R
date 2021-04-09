@@ -156,7 +156,10 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
     mat_1 <- scale(mat_1, center = T, scale = F)
     mat_2 <- scale(mat_2, center = T, scale = F)
     
-    svd_1 <- .svd_truncated(mat_1, K); svd_2 <- .svd_truncated(mat_2, K)
+    svd_1 <- .svd_truncated(mat_1, K,
+                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_2 <- .svd_truncated(mat_2, K,
+                            symmetric = F, rescale = F, K_full_rank = F)
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
     
     num_meta <- max(meta_clustering)

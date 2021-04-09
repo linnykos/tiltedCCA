@@ -87,7 +87,8 @@ generate_sbm_orthogonal <- function(B_mat, membership_vec, centered = T){
   prob_mat <- .compute_prob_mat(B_mat, membership_vec)
   adj_mat <- .generate_adjaceny_mat(prob_mat)
   if(centered) adj_mat <- scale(adj_mat, center = T, scale = F)
-  .svd_truncated(adj_mat, K = ifelse(centered, K-1, K))$u
+  .svd_truncated(adj_mat, K = ifelse(centered, K-1, K), 
+                 symmetric = F, rescale = F, K_full_rank = F)$u
 }
 
 generate_random_orthogonal <- function(n, K, centered = F){
@@ -95,7 +96,8 @@ generate_random_orthogonal <- function(n, K, centered = F){
   mat <- matrix(stats::rnorm(n^2), n, n)
   mat <- mat + t(mat)
   if(centered) mat <- scale(mat, center = T, scale = F)
-  .svd_truncated(mat, K = K)$u
+  .svd_truncated(mat, K = K, 
+                 symmetric = F, rescale = F, K_full_rank = F)$u
 }
 
 ###########################

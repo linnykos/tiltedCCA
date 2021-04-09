@@ -49,8 +49,10 @@
   rank_2 <- ncol(obj$distinct_score_2)
   
   svd_list <- vector("list", 2)
-  svd_list[[1]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1)
-  svd_list[[2]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2)
+  svd_list[[1]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_list[[2]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
   names(svd_list) <- c("e1", "e2")
   
   if(length(rownames(obj$common_score)) != 0){
@@ -78,12 +80,18 @@
   
   svd_list <- vector("list", 6)
   
-  svd_list[[1]] <- .svd_truncated(obj$common_mat_1, rank_c)
-  svd_list[[2]] <- .svd_truncated(obj$common_mat_2, rank_c)
-  svd_list[[3]] <- .svd_truncated(obj$distinct_mat_1, rank_1)
-  svd_list[[4]] <- .svd_truncated(obj$distinct_mat_2, rank_2)
-  svd_list[[5]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1)
-  svd_list[[6]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2)
+  svd_list[[1]] <- .svd_truncated(obj$common_mat_1, rank_c, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_list[[2]] <- .svd_truncated(obj$common_mat_2, rank_c, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_list[[3]] <- .svd_truncated(obj$distinct_mat_1, rank_1, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_list[[4]] <- .svd_truncated(obj$distinct_mat_2, rank_2, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_list[[5]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_list[[6]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2, 
+                                  symmetric = F, rescale = F, K_full_rank = F)
   
   if(length(rownames(obj$common_mat_1)) != 0){
     for(i in 1:nrow(svd_list)){

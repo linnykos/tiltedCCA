@@ -2,9 +2,10 @@
 
 ##############
 
-.svd_truncated <- function(mat, K = min(dim(mat)), symmetric = F, rescale = F,
-                           K_full_rank = F){
+.svd_truncated <- function(mat, K, symmetric, rescale,
+                           K_full_rank){
   stopifnot(min(dim(mat)) >= K)
+  if(K == min(dim(mat))) K_full_rank <- T
   
   if(min(dim(mat)) > 2*(K+2)){
     res <- tryCatch({
@@ -52,18 +53,6 @@
   svd_res$d <- svd_res$d[idx]
   
   svd_res
-}
-
-.recover_mat_from_svd <- function(svd_res){
-  tcrossprod(.mult_mat_vec(svd_res$u, svd_res$d), svd_res$v)
-}
-
-.equalize_norm <- function(mat_1, mat_2){
-  vec_1 <- apply(mat_1, 2, .l2norm)
-  vec_2 <- apply(mat_2, 2, .l2norm)
-  
-  mat_1 <- .mult_mat_vec(mat_1, vec_2/vec_1)
-  mat_1
 }
 
 #######################
