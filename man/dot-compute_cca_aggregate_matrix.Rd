@@ -4,7 +4,7 @@
 \alias{.compute_cca_aggregate_matrix}
 \title{Helper function with the CCA function}
 \usage{
-.compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
+.compute_cca_aggregate_matrix(svd_1, svd_2, augment)
 }
 \arguments{
 \item{svd_1}{SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}}

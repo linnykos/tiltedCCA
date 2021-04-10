@@ -4,23 +4,16 @@
 \alias{.cca}
 \title{Perform CCA}
 \usage{
-.cca(
-  input_1,
-  input_2,
-  rank_1 = NA,
-  rank_2 = NA,
-  return_scores = F,
-  tol = 1e-06
-)
+.cca(input_1, input_2, rank_1, rank_2, return_scores, tol = 1e-06)
 }
 \arguments{
 \item{input_1}{first input}
 
 \item{input_2}{second input}
 
-\item{rank_1}{scalar}
+\item{rank_1}{scalar. Only used if \code{input_1} is a list representing the SVD}
 
-\item{rank_2}{scalar}
+\item{rank_2}{scalar. Only used if \code{input_2} is a list representing the SVD}
 
 \item{return_scores}{boolean. If \code{TRUE}, return the scores (i.e., matrices where the rows are the cells).
 If \code{FALSE}, return the loadings (i.e., matrices where the rows are the variables).

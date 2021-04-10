@@ -4,7 +4,7 @@
 \alias{.project_vec2vec}
 \title{Projection of vector onto another vector}
 \usage{
-.project_vec2vec(vec1, vec2, orthogonal = T, tol = 1e-06)
+.project_vec2vec(vec1, vec2, orthogonal, tol = 1e-06)
 }
 \arguments{
 \item{vec1}{vector}

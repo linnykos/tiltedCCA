@@ -12,7 +12,7 @@ dcca_factor(
   meta_clustering = NA,
   num_neigh = max(round(nrow(mat_1)/20), 40),
   apply_shrinkage = T,
-  fix_common_perc = F,
+  fix_distinct_perc = F,
   verbose = T
 )
 }
@@ -31,9 +31,9 @@ dcca_factor(
 
 \item{apply_shrinkage}{boolean}
 
-\item{fix_common_perc}{boolean. If \code{TRUE}, the output \code{common_perc} will be fixed to at 0.5,
+\item{fix_distinct_perc}{boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
-If \code{FALSE}, \code{common_perc} will be adaptively estimated via the
+If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
 \code{.common_decomposition} function.}
 
 \item{verbose}{boolean}

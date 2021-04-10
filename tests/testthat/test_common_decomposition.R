@@ -17,6 +17,7 @@ test_compute_common_score <- function(score_1, score_2, obj_vec = NA){
   common_score
 }
 
+## .common_decomposition is correct
 
 test_that("(Basic) .common_decomposition works", {
   set.seed(5)
@@ -100,7 +101,7 @@ test_that("(Test) .common_decomposition is correct when fix_distinct_perc = T", 
   expect_true(all(bool_vec))
 })
 
-test_that("(Coding) .compute_common_score preserves rownames and colnames", {
+test_that("(Coding) .common_decomposition preserves rownames and colnames", {
   set.seed(10)
   n_clust <- 100
   B_mat <- matrix(c(0.9, 0.4, 0.1, 
@@ -378,6 +379,40 @@ test_that(".binary_search_radian gives the correct value", {
     ratio <- .l2norm(distinct2)/(.l2norm(distinct1) + .l2norm(distinct2))
     
     abs(distinct_perc_2 - ratio) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that(".binary_search_radian gives the correct value after basis transformation", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    vec1 <- abs(rnorm(2)); vec1 <- vec1/.l2norm(vec1)
+    vec2 <- abs(rnorm(2)); vec2 <- vec2/.l2norm(vec2)
+    n <- 100
+    basis_mat <- svd(matrix(rnorm(2*n), n, 2))$u[,1:2]
+    vec1 <- as.numeric(basis_mat%*%vec1); vec2 <- as.numeric(basis_mat%*%vec2)
+    basis_res <- .representation_2d(vec1, vec2)
+    
+    circle <- .construct_circle(basis_res$rep1, basis_res$rep2)
+    tmp <- .rightmost_vector(basis_res$rep1, basis_res$rep2)
+    lower_radian <- .find_radian(circle, tmp$vec_right)
+    upper_radian <- .find_radian(circle, tmp$vec_left)
+    stopifnot(lower_radian < upper_radian)
+    
+    distinct_perc_2 <- runif(1)
+    
+    res <- .binary_search_radian(circle, lower_radian, upper_radian, 
+                                 distinct_perc_2, max_iter = 50, tol = 1e-6)
+    common_vec <- basis_res$basis_mat %*% .position_from_circle(circle, res)
+    
+    distinct1 <- vec1 - common_vec
+    distinct2 <- vec2 - common_vec
+    ratio <- .l2norm(distinct2)/(.l2norm(distinct1) + .l2norm(distinct2))
+    
+    abs(distinct_perc_2 - ratio) <= 1e-3
   })
   
   expect_true(all(bool_vec))
