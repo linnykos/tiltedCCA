@@ -20,7 +20,7 @@ test_that("(Basic) dcca_factor works", {
   expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2",
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
-                                             "distinct_score_2", "distinct_perc_1"))))
+                                             "distinct_score_2", "distinct_perc_2"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
@@ -149,6 +149,6 @@ test_that("(Coding) dcca_factor works with meta-cells", {
   expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
-                                             "distinct_score_2", "distinct_perc_1"))))
+                                             "distinct_score_2", "distinct_perc_2"))))
   expect_true(all(dim(res$common_score) == c(n, K)))
 })

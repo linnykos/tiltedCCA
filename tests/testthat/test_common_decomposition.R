@@ -44,18 +44,18 @@ test_that("(Basic) .common_decomposition works", {
   res <- .common_decomposition(score_1, score_2, nn_1, nn_2, fix_distinct_perc = F)
 
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_1"))))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_2"))))
   expect_true(nrow(res$common_score) == nrow(score_1))
   expect_true(ncol(res$common_score) == min(ncol(score_1), ncol(score_2)))
-  expect_true(length(res$distinct_perc_1) == ncol(res$common_score))
+  expect_true(length(res$distinct_perc_2) == ncol(res$common_score))
   
   res <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_1"))))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "distinct_perc_2"))))
   expect_true(nrow(res$common_score) == nrow(score_1))
   expect_true(ncol(res$common_score) == min(ncol(score_1), ncol(score_2)))
-  expect_true(length(res$distinct_perc_1) == ncol(res$common_score))
+  expect_true(length(res$distinct_perc_2) == ncol(res$common_score))
 })
 
 test_that("(Test) .common_decomposition is correct when fix_distinct_perc = T", {
@@ -187,7 +187,7 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
     res <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, 
                                  fix_distinct_perc = F)
     
-    all(res$distinct_perc_1 <= 0.5)
+    all(res$distinct_perc_2 <= 0.5)
   })
   
   expect_true(all(bool_vec))
@@ -222,3 +222,165 @@ test_that("(Math) .sigmoid_ratio gives an appropriate value w.r.t 0.5 ", {
   
   expect_true(all(bool_vec))
 })
+
+#####################
+
+## .sigmoid_ratio is correct
+
+test_that(".sigmoid_ratio lies between 0 and 1", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    a <- abs(rnorm(1)); b <- abs(rnorm(1))
+    res <- .sigmoid_ratio(a,b)
+    res >= 0 & res <= 1
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that(".sigmoid_ratio is correctly above/below 0.5", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    a <- abs(rnorm(1)); b <- abs(rnorm(1))
+    res <- .sigmoid_ratio(a,b)
+    
+    if(a < b) return(res < 0.5)
+    if(a > b) return(res > 0.5)
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that(".sigmoid_ratio is symmetric", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    a <- abs(rnorm(1)); b <- abs(rnorm(1))
+    res1 <- .sigmoid_ratio(a,b)
+    res2 <- .sigmoid_ratio(b,a)
+    
+    abs(res1 - (1-res2)) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+test_that(".sigmoid_ratio appropriately scales", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    
+    a <- abs(rnorm(1)); b <- abs(rnorm(1))
+    res1 <- .sigmoid_ratio(a,b)
+    if(a < b){
+      res2 <- .sigmoid_ratio(a/2,b)
+      res3 <- .sigmoid_ratio(a,2*b)
+      
+      bool2 <- res2 <= res1
+      bool3 <- res3 <= res1
+    } else {
+      res2 <- .sigmoid_ratio(a,b/2)
+      res3 <- .sigmoid_ratio(2*a,b)
+      
+      bool2 <- res2 >= res1
+      bool3 <- res3 >= res1
+    }
+    
+    res4 <- .sigmoid_ratio(2*a,2*b)
+    bool1 <- abs(res1 - res4) <= 1e-6
+  
+    bool1 & bool2 & bool3
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+#######################
+
+## .latent_distinct_perc_2 is correct
+
+test_that(".latent_distinct_perc_2 works", {
+  set.seed(10)
+  n <- 100; k <- 5
+  score_vec_1 <- rnorm(n); score_vec_1 <- score_vec_1/.l2norm(score_vec_1)
+  score_vec_2 <- rnorm(n); score_vec_2 <- score_vec_2/.l2norm(score_vec_2)
+  nn_1 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
+  nn_2 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
+  
+  res <- .latent_distinct_perc_2(score_vec_1, score_vec_2, nn_1, nn_2)
+  
+  expect_true(is.numeric(res))
+})
+
+test_that(".latent_distinct_perc_2 roughly has the correct magnitude", {
+  trials <- 25
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    n <- 150; k <- 5
+    score_vec_1 <- rnorm(n)
+    score_vec_1 <- score_vec_1-mean(score_vec_1); score_vec_1 <- score_vec_1/.l2norm(score_vec_1)
+    score_vec_2 <- rnorm(n)
+    score_vec_2 <- score_vec_2-mean(score_vec_2); score_vec_2 <- score_vec_2/.l2norm(score_vec_2)
+    nn_1 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
+    nn_2 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
+    res1 <- .latent_distinct_perc_2(score_vec_1, score_vec_2, nn_1, nn_2)
+    
+    score_vec_3 <- c(rnorm(50, mean = -5), rnorm(50, mean = 0), rnorm(50, mean = 5))
+    score_vec_3 <- score_vec_3-mean(score_vec_3); score_vec_3 <- score_vec_3/.l2norm(score_vec_3)
+    nn_3 <- do.call(rbind, lapply(1:3, function(x){
+      matrix(sample(1:50, size = 50*k, replace = T)+(x-1)*50, n, k)
+    }))
+    res2 <- .latent_distinct_perc_2(score_vec_1, score_vec_3, nn_1, nn_3)
+    res3 <- .latent_distinct_perc_2(score_vec_3, score_vec_1, nn_3, nn_1)
+    
+    res1 < res2 & res1 > res3
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+################################
+
+## .binary_search_radian is correct
+
+test_that(".binary_search_radian works", {
+  circle <- .construct_circle(c(0,1), c(1,0))
+  res <- .binary_search_radian(circle, lower_radian = 0, upper_radian = pi/2, distinct_perc_2 = 0.5)
+  expect_true(is.numeric(res))
+})
+
+test_that(".binary_search_radian gives the correct value", {
+  trials <- 50
+  
+  bool_vec <- sapply(1:trials, function(x){
+    set.seed(x)
+    vec1 <- abs(rnorm(2)); vec1 <- vec1/.l2norm(vec1)
+    vec2 <- abs(rnorm(2)); vec2 <- vec2/.l2norm(vec2)
+    circle <- .construct_circle(vec1, vec2)
+    tmp <- .rightmost_vector(vec1, vec2)
+    vec1 <- tmp$vec_right; vec2 <- tmp$vec_left
+    lower_radian <- .find_radian(circle, tmp$vec_right)
+    upper_radian <- .find_radian(circle, tmp$vec_left)
+    stopifnot(lower_radian < upper_radian)
+    
+    distinct_perc_2 <- runif(1)
+    
+    res <- .binary_search_radian(circle, lower_radian, upper_radian, 
+                                 distinct_perc_2, max_iter = 50, tol = 1e-6)
+    common_vec <- .position_from_circle(circle, res)
+    
+    distinct1 <- vec1 - common_vec
+    distinct2 <- vec2 - common_vec
+    ratio <- .l2norm(distinct2)/(.l2norm(distinct1) + .l2norm(distinct2))
+    
+    abs(distinct_perc_2 - ratio) <= 1e-6
+  })
+  
+  expect_true(all(bool_vec))
+})
+
+
