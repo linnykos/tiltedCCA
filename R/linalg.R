@@ -35,6 +35,8 @@
 }
 
 .angle_from_vector <- function(vec, angle){
+  stopifnot(.l2norm(vec) > 1e-6)
+  
   ang <- .angle_between_vectors(vec, c(1,0))
   ang <- ang + angle
   
@@ -43,7 +45,8 @@
 }
 
 .rightmost_vector <- function(vec1, vec2){
-  stopifnot(length(vec1) == 2, length(vec2) == 2, all(c(vec1,vec2) >= 0))
+  stopifnot(length(vec1) == 2, length(vec2) == 2, all(c(vec1,vec2) >= 0),
+            .l2norm(vec1) > 1e-6, .l2norm(vec2) > 1e-6)
   
   ang1 <- .angle_between_vectors(vec1, c(1,0))
   ang2 <- .angle_between_vectors(vec2, c(1,0))
@@ -69,14 +72,24 @@
 #'
 #' @return vector
 .project_vec2vec <- function(vec1, vec2, orthogonal, tol = 1e-6){
-  stopifnot(length(vec1) == length(vec2))
+  stopifnot(length(vec1) == length(vec2), !is.matrix(vec1), !is.matrix(vec2),
+            all(!is.na(vec1)), all(!is.na(vec2)))
   
   d <- length(vec1)
-  vec2 <- vec2/.l2norm(vec2)
+  val <- .l2norm(vec2)
+  if(val < tol){
+    warning("When projecting, vec2 has length too close to 0")
+    if(orthogonal){
+      return(vec1)
+    } else {
+      return(rep(0, length(vec1)))
+    }
+  }
+  vec2 <- vec2/val
   if(orthogonal){
-    vec1 - vec2 %*% crossprod(vec2, vec1)
+    vec1 - as.numeric(vec2 %*% crossprod(vec2, vec1))
   } else {
-    vec2 %*% crossprod(vec2, vec1)
+    as.numeric(vec2 %*% crossprod(vec2, vec1))
   }
 }
 
