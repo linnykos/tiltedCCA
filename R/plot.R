@@ -182,7 +182,8 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, add_noise = T, pca = F, main_addition = ""){
+plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, 
+                            add_noise = T, pca = F, main_addition = ""){
   stopifnot(data_1 | data_2)
   if(pca){
     label1 <- "PCA 1"; label2 <- "PCA 2"
@@ -197,23 +198,23 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, add_noi
     if(data_1){
       embedding[[1]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_1,
                                                obj$svd_1, common_bool = T, distinct_bool = F,
-                                               center = F, renormalize = F, add_noise = F, premultiply = T)
+                                               center = F, renormalize = F, add_noise = F)
       embedding[[2]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_1,
                                                obj$svd_1, common_bool = F, distinct_bool = T,
-                                               center = F, renormalize = F, add_noise = F, premultiply = T)
+                                               center = F, renormalize = F, add_noise = F)
       embedding[[3]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_1,
                                                obj$svd_1, common_bool = T, distinct_bool = T,
-                                               center = F, renormalize = F, add_noise = F, premultiply = T)
+                                               center = F, renormalize = F, add_noise = F)
     } else {
       embedding[[1]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_2,
                                                obj$svd_2, common_bool = T, distinct_bool = F,
-                                               center = F, renormalize = F, add_noise = F, premultiply = T)
+                                               center = F, renormalize = F, add_noise = F)
       embedding[[2]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_2,
                                                obj$svd_2, common_bool = F, distinct_bool = T,
-                                               center = F, renormalize = F, add_noise = F, premultiply = T)
+                                               center = F, renormalize = F, add_noise = F)
       embedding[[3]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_2,
                                                obj$svd_2, common_bool = T, distinct_bool = T,
-                                               center = F, renormalize = F, add_noise = F, premultiply = T)
+                                               center = F, renormalize = F, add_noise = F)
     }
     
     for(i in 1:3){

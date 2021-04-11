@@ -54,13 +54,13 @@ generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
   mat_1 <- mat_1 + noise_1
   mat_2 <- mat_2 + noise_2
 
-  list(mat_1 = mat_1, mat_2 = mat_2, 
+  structure(list(mat_1 = mat_1, mat_2 = mat_2, 
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
        common_score = common_score, 
        distinct_score_1 = distinct_score_1,
        distinct_score_2 = distinct_score_2,
-       distinct_perc_2 = distinct_perc_2)
+       distinct_perc_2 = distinct_perc_2), class = "dcca_data")
 }
 
 form_seurat_obj <- function(mat_1, mat_2){

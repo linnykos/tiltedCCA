@@ -27,7 +27,7 @@
 \item{distinct_2}{boolean}
 
 \item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
-distinct "on the same scale" by adding appropriately-scaled Gaussian noise}
+distinct scores "on the same scale" by adding appropriately-scaled Gaussian noise}
 
 \item{only_embedding}{boolean}
 

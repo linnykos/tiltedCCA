@@ -7,7 +7,7 @@
 .extract_svd_embedding(obj)
 }
 \arguments{
-\item{obj}{return object from \code{dcca_decomposition}}
+\item{obj}{output from either \code{generate_data} or \code{dcca_decomposition}}
 }
 \value{
 list
