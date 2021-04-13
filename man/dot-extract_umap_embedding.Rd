@@ -6,12 +6,12 @@
 \usage{
 .extract_umap_embedding(
   prep_list,
-  common_1 = T,
-  common_2 = T,
-  distinct_1 = T,
-  distinct_2 = T,
-  add_noise = T,
-  only_embedding = T,
+  common_1,
+  common_2,
+  distinct_1,
+  distinct_2,
+  add_noise,
+  only_embedding,
   reduction_key = "UMAP"
 )
 }

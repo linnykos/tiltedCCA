@@ -11,10 +11,9 @@
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
 #' @return 2-column matrix or \code{Seurat} object
-.extract_umap_embedding <- function(prep_list, common_1 = T, common_2 = T,
-                              distinct_1 = T, distinct_2 = T,
-                              add_noise = T,
-                              only_embedding = T, reduction_key = "UMAP"){
+.extract_umap_embedding <- function(prep_list, common_1, common_2,
+                              distinct_1, distinct_2,
+                              add_noise, only_embedding, reduction_key = "UMAP"){
   stopifnot(common_1 | common_2 | distinct_1 | distinct_2)
   
   prep_list$svd_list$e1$d <- prep_list$svd_list$e1$d/prep_list$svd_list$e1$d[1]
@@ -148,17 +147,19 @@
                                    svd_e, common_bool, distinct_bool, add_noise,
                                    center, renormalize){
   stopifnot(nrow(common_score) == nrow(distinct_score),
+            nrow(common_score) == nrow(svd_e$u), nrow(distinct_score) == nrow(svd_e$u),
+            ncol(common_score) <= length(svd_e$d), ncol(distinct_score) == length(svd_e$d),
             common_bool | distinct_bool)
   
   n <- nrow(common_score)
+  canonical_score <- .add_two_matrices(common_score, distinct_score)
   full_mat <- .mult_mat_vec(svd_e$u, svd_e$d)
   full_mat <- canonical_score %*% crossprod(canonical_score, full_mat) # reorient for consistency for the rest of the pipeline
   center_vec <- apply(full_mat, 2, mean)
   tmp <- full_mat
   if(center) tmp <- sapply(1:ncol(full_mat), function(k){full_mat[,k] - center_vec[k]})
   if(renormalize) l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
-  canonical_score <- .add_two_matrices(common_score, distinct_score)
-  
+ 
   if(common_bool == distinct_bool){
     tmp <- full_mat
     

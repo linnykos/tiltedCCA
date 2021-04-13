@@ -11,7 +11,7 @@
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_heatmat <- function(dat, luminosity = T, asp = nrow(dat)/ncol(dat), 
+plot_heatmat <- function(dat, luminosity = F, asp = nrow(dat)/ncol(dat), 
                          reserve_zero = T, ...){
   if(reserve_zero){
     col_vec <- .colorRamp_custom(c(0.584, 0.858, 0.564), c(0.803, 0.156, 0.211), 19,
@@ -333,7 +333,7 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
 
 #######################################
 
-.colorRamp_custom <- function(vec1, vec2, length, luminosity = T){
+.colorRamp_custom <- function(vec1, vec2, length, luminosity){
   mat <- matrix(0, nrow = length, ncol = 3)
   for(i in 1:3){
     mat[,i] <- seq(vec1[i], vec2[i], length.out = length)

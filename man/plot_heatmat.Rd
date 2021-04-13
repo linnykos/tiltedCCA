@@ -6,7 +6,7 @@
 \usage{
 plot_heatmat(
   dat,
-  luminosity = T,
+  luminosity = F,
   asp = nrow(dat)/ncol(dat),
   reserve_zero = T,
   ...

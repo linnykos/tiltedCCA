@@ -15,7 +15,8 @@ Imports:
     Seurat,
     irlba,
     RANN,
-    igraph
+    igraph,
+    dbscan
 Suggests:
     testthat
 RoxygenNote: 7.1.1
