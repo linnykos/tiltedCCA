@@ -25,7 +25,8 @@
   }
    
   common_score <- sapply(1:rank_c, function(k){
-    vec1 <- basis_list[[k]]$rep1; vec2 <-  basis_list[[k]]$rep2
+    vec1 <- basis_list[[k]]$rep1; vec2 <- basis_list[[k]]$rep2
+    
     if(sum(abs(vec1 - vec2)) < tol){
       common_rep <- c(vec1 + vec2)/2
     } else {
@@ -34,10 +35,10 @@
       rad1 <- .find_radian(circle, vec1); rad2 <- .find_radian(circle, vec2)
       stopifnot(rad1 < 0 & rad2 > 0) # must be true based on how we constructed vec1 and vec2
       
-      rad1 <- rad1 + 2*pi
       stopifnot(sum(abs(.position_from_circle(circle, rad1) - vec1)) <= 1e-6,
                 sum(abs(.position_from_circle(circle, rad2) - vec2)) <= 1e-6)
       
+      rad1 <- rad1 + 2*pi # to ensure rad1 is larger than rad2
       common_rad <- .binary_search_radian(circle, rad2, rad1, distinct_perc_2[k])
       common_rep <- .position_from_circle(circle, common_rad)
     }
@@ -89,34 +90,35 @@
 #' Find the appropriate radian for the common vector
 #' 
 #' Usage note: By \code{.representation_2d} works, the vector for
-#' Modality 1 is always encoded by \code{lower_radian}, and the
-#' vector for Modality 2 is always encoded by \code{upper_radian}.
+#' Modality 1 is always encoded by \code{right_radian}, and the
+#' vector for Modality 2 is always encoded by \code{left_radian}.
 #' 
 #' If \code{distinct_perc_2} is close to 1, this means all the distinct information
 #' (relatively speaking) lies in Modality 2. This means the returned
-#' value should be very close to \code{lower_radian}, meaning the distinct
+#' value should be very close to \code{right_radian}, meaning the distinct
 #' vector for Modality 1 is near-0 (since the common vector is approximately
 #' equal to the vector of Modality 1).
 #'
 #' @param circle object from \code{.construct_circle}
-#' @param lower_radian radian (between \code{-pi} and \code{pi}) of the right-most vector
-#' @param upper_radian radian (between \code{-pi} and \code{pi}) of the left-most vector
+#' @param left_radian radian (between \code{-pi} and \code{pi}) of the left-most vector
+#' @param right_radian radian (between \code{-pi} and \code{pi}) of the right-most vector
 #' @param distinct_perc_2 the output of \code{.latent_distinct_perc_2}
 #' @param max_iter positive integer
 #' @param tol numeric
 #'
-#' @return radian (value between \code{lower_radian} and \code{upper_radian})
-.binary_search_radian <- function(circle, lower_radian, upper_radian, 
+#' @return radian (value between \code{right_radian} and \code{upper_radian})
+.binary_search_radian <- function(circle, left_radian, right_radian, 
                                   distinct_perc_2, max_iter = 10, tol = 1e-6){
-  stopifnot(lower_radian < upper_radian, 0 < distinct_perc_2, distinct_perc_2 < 1)
+  stopifnot(right_radian > left_radian) # by design, we want always find a radian in the bottom-left of the circle
+  stopifnot(0 < distinct_perc_2, distinct_perc_2 < 1)
   
-  lower <- lower_radian; upper <- upper_radian
-  right_vec <- .position_from_circle(circle, lower_radian)
-  left_vec <- .position_from_circle(circle, upper_radian)
+  upper <- right_radian; lower <- left_radian
+  right_vec <- .position_from_circle(circle, right_radian)
+  left_vec <- .position_from_circle(circle, left_radian)
   iter <- 1; prev_mid <- NA
   
   while(iter < max_iter){
-    mid <- (lower+upper)/2
+    mid <- (upper+lower)/2
     common_vec <- .position_from_circle(circle, mid)
     left_distinct <- left_vec - common_vec
     right_distinct <- right_vec - common_vec
@@ -126,10 +128,10 @@
     if(ratio > distinct_perc_2){
       # the left distinct vector is too large, so to make it smaller,
       ## move the midpoint towards the larger (i.e., left) by the making
-      ## the lower larger
-      lower <- mid
-    } else {
+      ## the upper larger
       upper <- mid
+    } else {
+      lower <- mid
     }
     if(!is.na(prev_mid) && abs(mid - prev_mid) < tol) break()
     

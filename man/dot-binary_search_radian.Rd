@@ -6,8 +6,8 @@
 \usage{
 .binary_search_radian(
   circle,
-  lower_radian,
-  upper_radian,
+  left_radian,
+  right_radian,
   distinct_perc_2,
   max_iter = 10,
   tol = 1e-06
@@ -16,9 +16,9 @@
 \arguments{
 \item{circle}{object from \code{.construct_circle}}
 
-\item{lower_radian}{radian (between \code{-pi} and \code{pi}) of the right-most vector}
+\item{left_radian}{radian (between \code{-pi} and \code{pi}) of the left-most vector}
 
-\item{upper_radian}{radian (between \code{-pi} and \code{pi}) of the left-most vector}
+\item{right_radian}{radian (between \code{-pi} and \code{pi}) of the right-most vector}
 
 \item{distinct_perc_2}{the output of \code{.latent_distinct_perc_2}}
 
@@ -27,17 +27,17 @@
 \item{tol}{numeric}
 }
 \value{
-radian (value between \code{lower_radian} and \code{upper_radian})
+radian (value between \code{right_radian} and \code{upper_radian})
 }
 \description{
 Usage note: By \code{.representation_2d} works, the vector for
-Modality 1 is always encoded by \code{lower_radian}, and the
-vector for Modality 2 is always encoded by \code{upper_radian}.
+Modality 1 is always encoded by \code{right_radian}, and the
+vector for Modality 2 is always encoded by \code{left_radian}.
 }
 \details{
 If \code{distinct_perc_2} is close to 1, this means all the distinct information
 (relatively speaking) lies in Modality 2. This means the returned
-value should be very close to \code{lower_radian}, meaning the distinct
+value should be very close to \code{right_radian}, meaning the distinct
 vector for Modality 1 is near-0 (since the common vector is approximately
 equal to the vector of Modality 1).
 }

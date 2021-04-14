@@ -237,19 +237,19 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
     graphics::par(mfrow = c(1,3))
     set.seed(10)
     tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F,
-                                   add_noise = add_noise)
+                                   add_noise = add_noise, only_embedding = T)
     graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0("Common view", main_addition),
                    xlab = label1, ylab = label2)
     
     set.seed(10)
     tmp <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2,
-                                   add_noise = add_noise)
+                                   add_noise = add_noise, only_embedding = T)
     graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0("Distinct view", main_addition),
                    xlab = label1, ylab = label2)
     
     set.seed(10)
     tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2,
-                                   add_noise = add_noise)
+                                   add_noise = add_noise, only_embedding = T)
     graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0("Entire view", main_addition),
                    xlab = label1, ylab = label2)
   }
@@ -313,7 +313,8 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
       tmp <- .mult_mat_vec(prep_list$svd_list[[1]]$u, prep_list$svd_list[[1]]$d)[,1:2]
     } else {
       set.seed(10)
-      tmp <- .extract_umap_embedding(prep_list, common_1 = T, common_2 = F, distinct_1 = T, distinct_2 = F)
+      tmp <- .extract_umap_embedding(prep_list, common_1 = T, common_2 = F, distinct_1 = T, distinct_2 = F, 
+                                     add_noise = F, only_embedding = T)
     }
     graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = "Dataset 1",
          xlab = label1, ylab = label2)
@@ -322,7 +323,8 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
       tmp <- .mult_mat_vec(prep_list$svd_list[[2]]$u, prep_list$svd_list[[2]]$d)[,1:2]
     } else {
       set.seed(10)
-      tmp <- .extract_umap_embedding(prep_list, common_1 = F, common_2 = T, distinct_1 = F, distinct_2 = T)
+      tmp <- .extract_umap_embedding(prep_list, common_1 = F, common_2 = T, distinct_1 = F, distinct_2 = T, 
+                                     add_noise = F, only_embedding = T)
     }
     graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = "Dataset 2",
          xlab = label1, ylab = label2)

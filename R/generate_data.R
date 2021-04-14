@@ -76,6 +76,15 @@ form_seurat_obj <- function(mat_1, mat_2){
   obj
 }
 
+#' Generate orthogonal matrices correspond to an SBM
+#'
+#' @param B_mat symmetric matrix
+#' @param membership_vec vector of positive integers
+#' @param centered boolean, where if \code{TRUE}, one less dimension
+#' is provided but the singular vectors are centered
+#'
+#' @return matrix
+#' @export
 generate_sbm_orthogonal <- function(B_mat, membership_vec, centered = T){
   stopifnot(ncol(B_mat) == nrow(B_mat), all(B_mat >= 0), all(B_mat <= 1),
             sum(abs(B_mat - t(B_mat))) <= 1e-6,
@@ -91,6 +100,15 @@ generate_sbm_orthogonal <- function(B_mat, membership_vec, centered = T){
                  symmetric = F, rescale = F, K_full_rank = F)$u
 }
 
+#' Generate orthogonal matrices via Gaussian noise
+#'
+#' @param n integer
+#' @param K integer
+#' @param centered boolean, where if \code{TRUE}, one less dimension
+#' is provided but the singular vectors are centered
+#'
+#' @return matrix
+#' @export
 generate_random_orthogonal <- function(n, K, centered = F){
   stopifnot(K+1 <= n)
   mat <- matrix(stats::rnorm(n^2), n, n)

@@ -22,16 +22,21 @@
   ###########
   
   tmp_list <- vector("list", 1); l <- 1
-  tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_1, 
-                                svd_e = prep_list$svd_list$e1, 
-                                common_bool = common_1, distinct_bool = distinct_1, 
-                                add_noise = add_noise, center = T, renormalize = T)
-  if(!all(is.na(tmp))) { tmp_list[[l]] <- tmp; l <- l+1 }
-  tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_2, 
-                                svd_e = prep_list$svd_list$e2, 
-                                common_bool = common_2, distinct_bool = distinct_2, 
-                                add_noise = add_noise, center = T, renormalize = T)
-  if(!all(is.na(tmp))) { tmp_list[[l]] <- tmp; l <- l+1 }
+  if(common_1 | distinct_1){
+    tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_1, 
+                                  svd_e = prep_list$svd_list$e1, 
+                                  common_bool = common_1, distinct_bool = distinct_1, 
+                                  add_noise = add_noise, center = T, renormalize = T)
+    tmp_list[[l]] <- tmp; l <- l+1
+  }
+  
+  if(common_2 | distinct_2){
+    tmp <- .extract_matrix_helper(prep_list$common_score, prep_list$distinct_score_2, 
+                                  svd_e = prep_list$svd_list$e2, 
+                                  common_bool = common_2, distinct_bool = distinct_2, 
+                                  add_noise = add_noise, center = T, renormalize = T)
+    tmp_list[[l]] <- tmp; l <- l+1
+  }
   
   #####
   

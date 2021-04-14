@@ -188,7 +188,18 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
     res <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, 
                                  fix_distinct_perc = F)
     
-    all(res$distinct_perc_2 <= 0.5)
+    bool1 <- all(res$distinct_perc_2 <= 0.5)
+    
+    distinct_1 <- score_1 - res$common_score
+    distinct_2 <- score_2 - res$common_score
+    
+    bool2_vec <- rep(NA, 2)
+    for(i in 1:2){
+      d1_norm <- .l2norm(distinct_1[,i]); d2_norm <- .l2norm(distinct_2[,i])
+      bool2_vec[i] <- abs(d2_norm/(d1_norm + d2_norm) - res$distinct_perc_2[i]) <= 1e-2
+    }
+    
+    bool1 & all(bool2_vec)
   })
   
   expect_true(all(bool_vec))
@@ -350,7 +361,7 @@ test_that(".latent_distinct_perc_2 roughly has the correct magnitude", {
 
 test_that(".binary_search_radian works", {
   circle <- .construct_circle(c(0,1), c(1,0))
-  res <- .binary_search_radian(circle, lower_radian = 0, upper_radian = pi/2, distinct_perc_2 = 0.5)
+  res <- .binary_search_radian(circle, left_radian = 0, right_radian = pi/2, distinct_perc_2 = 0.5)
   expect_true(is.numeric(res))
 })
 
@@ -364,13 +375,13 @@ test_that(".binary_search_radian gives the correct value", {
     circle <- .construct_circle(vec1, vec2)
     tmp <- .rightmost_vector(vec1, vec2)
     vec1 <- tmp$vec_right; vec2 <- tmp$vec_left
-    lower_radian <- .find_radian(circle, tmp$vec_right)
-    upper_radian <- .find_radian(circle, tmp$vec_left)
-    stopifnot(lower_radian < upper_radian)
+    right_radian <- .find_radian(circle, tmp$vec_right)
+    left_radian <- .find_radian(circle, tmp$vec_left)
+    stopifnot(right_radian < left_radian)
     
     distinct_perc_2 <- runif(1)
-    
-    res <- .binary_search_radian(circle, lower_radian, upper_radian, 
+    right_radian <- right_radian + 2*pi
+    res <- .binary_search_radian(circle, left_radian, right_radian, 
                                  distinct_perc_2, max_iter = 50, tol = 1e-6)
     common_vec <- .position_from_circle(circle, res)
     
@@ -398,13 +409,13 @@ test_that(".binary_search_radian gives the correct value after basis transformat
     
     circle <- .construct_circle(basis_res$rep1, basis_res$rep2)
     tmp <- .rightmost_vector(basis_res$rep1, basis_res$rep2)
-    lower_radian <- .find_radian(circle, tmp$vec_right)
-    upper_radian <- .find_radian(circle, tmp$vec_left)
-    stopifnot(lower_radian < upper_radian)
+    right_radian <- .find_radian(circle, tmp$vec_right)
+    left_radian <- .find_radian(circle, tmp$vec_left)
+    stopifnot(right_radian < left_radian)
     
     distinct_perc_2 <- runif(1)
-    
-    res <- .binary_search_radian(circle, lower_radian, upper_radian, 
+    right_radian <- right_radian + 2*pi
+    res <- .binary_search_radian(circle, left_radian, right_radian, 
                                  distinct_perc_2, max_iter = 50, tol = 1e-6)
     common_vec <- basis_res$basis_mat %*% .position_from_circle(circle, res)
     
