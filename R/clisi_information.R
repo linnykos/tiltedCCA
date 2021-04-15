@@ -95,7 +95,7 @@ clisi_information <- function(common_mat, distinct_mat, everything_mat,
       tmp <- which(res$membership == x)
       len <- length(tmp)
       if(len >= min_subsample){
-        tmp <- tmp[sample(1:len, size = ceiling(len*subsampling_rate), replace = F)]
+        tmp <- tmp[sample(1:len, size = max(ceiling(len*subsampling_rate), min_subsample), replace = F)]
       }
       tmp
     })
@@ -117,19 +117,41 @@ clisi_information <- function(common_mat, distinct_mat, everything_mat,
 
 .clisi <- function(g, membership_vec){
   n <- igraph::vcount(g)
-  clisi_score <- sapply(1:n, function(i){
+  bg_prop <- as.numeric(table(membership_vec))/n
+  
+  clisi_info <- sapply(1:n, function(i){
     neigh <- igraph::neighbors(g, v = i)
     len <- length(neigh)
     mem_vec <- membership_vec[neigh]
     target_mem <- membership_vec[i]
-    in_val <- length(which(mem_vec == target_mem))
+    in_len <- length(which(mem_vec == target_mem))
     
-    in_val/len
+    target_bg <- bg_prop[target_mem]
+    clisi_score <- max((in_len/len - target_bg)/(1-target_bg), 0)
+    
+    c(len = len, in_ratio = in_len/len, clisi_score = clisi_score)
   })
   
+  # convert into df
+  clisi_info <- data.frame(len = clisi_info["len",], 
+                           in_ratio = clisi_info["in_ratio",], 
+                           clisi_score = clisi_info["clisi_score",])
+  
   k <- max(membership_vec)
-  sapply(1:k, function(x){
+  res <- sapply(1:k, function(x){
     idx <- which(membership_vec == x)
-    mean(clisi_score[idx])
+    mean_vec <- colMeans(clisi_info[idx,])
+    sd_vec <- apply(clisi_info[idx,], 2, stats::sd)
+    
+    c(mean_len = as.numeric(mean_vec["len"]), 
+      mean_ratio = as.numeric(mean_vec["in_ratio"]),
+      mean_clisi = as.numeric(mean_vec["clisi_score"]),
+      sd_len = as.numeric(sd_vec["len"]), 
+      sd_ratio = as.numeric(sd_vec["in_ratio"]),
+      sd_clisi = as.numeric(sd_vec["clisi_score"]))
   })
+  
+  res <- as.data.frame(t(res))
+  
+  list(cell_info = clisi_info, membership_info = res)
 }

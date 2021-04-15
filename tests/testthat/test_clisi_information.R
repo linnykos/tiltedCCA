@@ -115,8 +115,13 @@ test_that(".clisi works", {
   res2 <- .clisi(g, rep(c(1,2), times = n))
   
   expect_true(length(res1) == 2)
-  expect_true(is.numeric(res1))
-  expect_true(all(res1 >= res2))
+  expect_true(all(sort(names(res1)) == sort(c("cell_info", "membership_info"))))
+  expect_true(all(sort(names(res1$cell_info)) == sort(c("len", "in_ratio", "clisi_score"))))
+  expect_true(all(sort(names(res1$membership_info)) == sort(c("mean_len", "mean_ratio", "mean_clisi", 
+                                                              "sd_len", "sd_ratio", "sd_clisi"))))
+  expect_true(all(dim(res1$cell_info) == c(2*n, 3)))
+  expect_true(all(res1$membership_info$mean_ratio >= res2$membership_info$mean_ratio))
+  expect_true(all(res1$membership_info$mean_clisi >= res2$membership_info$mean_clisi))
 })
 
 #########################
