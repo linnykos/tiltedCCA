@@ -202,7 +202,7 @@ clisi_information <- function(common_mat, distinct_mat,
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
   clisi_info <- sapply(1:length(cell_subidx), function(i){
-    if(verbose && length(cell_subidx) > 10 && i %% floor(cell_subidx/10) == 0) cat('*')
+    if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
     neigh <- igraph::neighbors(g, v = cell_subidx[i])
     len <- length(neigh)

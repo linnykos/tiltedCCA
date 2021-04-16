@@ -71,7 +71,7 @@
   names(svd_list) <- c("e1", "e2")
   
   if(length(rownames(obj$common_score)) != 0){
-    for(i in 1:nrow(svd_list)){
+    for(i in 1:length(svd_list)){
       rownames(svd_list[[i]]$u) <- rownames(obj$common_score)
     }
   }
@@ -111,7 +111,7 @@
                                   symmetric = F, rescale = F, K_full_rank = T)
   
   if(length(rownames(obj$common_mat_1)) != 0){
-    for(i in 1:nrow(svd_list)){
+    for(i in 1:length(svd_list)){
       rownames(svd_list[[i]]$u) <- rownames(obj$common_mat_1)
     }
   }
