@@ -64,17 +64,17 @@ clisi_information <- function(common_mat, distinct_mat,
   c_g <- .construct_frnn(c_embedding, radius = sub_rad,
                               frnn_approx = frnn_approx,
                               subsampling_rate = subsampling_rate,
-                              min_subsample = min_subsample)
+                              min_subsample = min_subsample, verbose = verbose)
   if(verbose) print("cLISI: Construct graph -- distinct")
   d_g <- .construct_frnn(d_embedding, radius = sub_rad,
                               frnn_approx = frnn_approx,
                               subsampling_rate = subsampling_rate,
-                              min_subsample = min_subsample)
+                              min_subsample = min_subsample, verbose = verbose)
   if(verbose) print("cLISI: Construct graph -- everything")
   e_g <- .construct_frnn(e_embedding, radius = e_rad,
                               frnn_approx = frnn_approx,
                               subsampling_rate = subsampling_rate,
-                              min_subsample = min_subsample)
+                              min_subsample = min_subsample, verbose = verbose)
   
   cell_subidx <- .construct_celltype_subsample(membership_vec, subsampling_rate_cell, min_subsample_cell)
   if(verbose) print("cLISI: Compute cLISI -- common")
@@ -96,7 +96,8 @@ clisi_information <- function(common_mat, distinct_mat,
 }
 
 .construct_frnn <- function(mat, radius, frnn_approx, subsampling_rate, min_subsample,
-                            debug = F){
+                            debug = F, verbose = F){
+  if(verbose) print("cLISI: Computing frNN graph")
   frnn_obj <- dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)$id
   if(debug) return(frnn_obj)
   
@@ -104,7 +105,10 @@ clisi_information <- function(common_mat, distinct_mat,
     if(length(frnn_obj[[i]]) == 0) frnn_obj[[i]] <- i
   }
   
+  if(verbose) print("cLISI: Converting frNN into igraph")
   g <- .convert_frnn2igraph(frnn_obj)
+  
+  if(verbose) print("cLISI: Connecting igraph")
   .connect_graph(g, mat, subsampling_rate, min_subsample)
 }
 
