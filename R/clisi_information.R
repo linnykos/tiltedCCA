@@ -9,6 +9,7 @@
 #' for the frNN graph
 #' @param ensure_connected boolean
 #' @param frnn_approx small non-negative number
+#' @param radius_quantile value between 0 and 1
 #' @param subsampling_rate value between 0 and 1, used for ensuring frNN graph is connected
 #' @param min_subsample positive integer, used for ensuring frNN graph is connected
 #' @param min_subsample_cell positive integer, used for determining number of cells to 
@@ -19,8 +20,8 @@
 #' @export
 clisi_information <- function(common_mat, distinct_mat,
                               membership_vec, rank_c, rank_d, nn, 
-                              frnn_approx = 0, 
-                              ensure_connected = F,
+                              frnn_approx = 0, radius_quantile = 0.95,
+                              ensure_connected = F, 
                               subsampling_rate = 0.1, min_subsample = 50, 
                               min_subsample_cell = 50,
                               verbose = T){
@@ -49,11 +50,11 @@ clisi_information <- function(common_mat, distinct_mat,
   
   # compute the radius
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
-  c_rad <- .compute_radius(c_embedding, nn)
+  c_rad <- .compute_radius(c_embedding, nn, radius_quantile)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
-  d_rad <- .compute_radius(d_embedding, nn)
+  d_rad <- .compute_radius(d_embedding, nn, radius_quantile)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- everything"))
-  e_rad <- .compute_radius(e_embedding, nn)
+  e_rad <- .compute_radius(e_embedding, nn, radius_quantile)
   sub_rad <- max(c_rad, d_rad)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
@@ -89,9 +90,9 @@ clisi_information <- function(common_mat, distinct_mat,
 
 #############
 
-.compute_radius <- function(mat, nn){
+.compute_radius <- function(mat, nn, radius_quantile){
   res <- RANN::nn2(mat, k = nn)
-  stats::median(res$nn.dists[,nn])
+  as.numeric(stats::quantile(res$nn.dists[,nn], probs = radius_quantile))[1]
 }
 
 .construct_frnn <- function(mat, radius, frnn_approx, ensure_connected, subsampling_rate, min_subsample,
