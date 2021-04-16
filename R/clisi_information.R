@@ -106,21 +106,25 @@ clisi_information <- function(common_mat, distinct_mat,
   }
   
   if(verbose) print("cLISI: Converting frNN into igraph")
-  g <- .convert_frnn2igraph(frnn_obj)
+  g <- .convert_frnn2igraph(frnn_obj, verbose = verbose)
   
   if(verbose) print("cLISI: Connecting igraph")
   .connect_graph(g, mat, subsampling_rate, min_subsample)
 }
 
-.convert_frnn2igraph <- function(frnn_obj){
+.convert_frnn2igraph <- function(frnn_obj, verbose = F){
   n <- length(frnn_obj)
   g <- igraph::graph.empty(n = n, directed = F)
-  for(i in 1:n){
-    stopifnot(length(frnn_obj[[i]]) > 0)
-    
-    edge_mat <- rbind(i, frnn_obj[[i]])
-    g <- igraph::add_edges(g, edges = edge_mat)
-  }
+  
+  if(verbose) print("cLISI: Constructing massive list of edges")
+  edge_mat <- do.call(cbind, lapply(1:n, function(i){
+    rbind(i, frnn_obj[[i]])
+  }))
+  
+  if(verbose) print("cLISI: Adding edges into igraph")
+  g <- igraph::add_edges(g, edges = edge_mat)
+  
+  if(verbose) print("cLISI: Simplifying graph")
   g <- igraph::simplify(g)
   
   g
