@@ -223,7 +223,7 @@ clisi_information <- function(common_mat, distinct_mat,
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
   res <- sapply(levels(membership_vec), function(x){
-    idx <- which(membership_vec == x)
+    idx <- which(membership_vec[cell_subidx] == x)
     mean_vec <- colMeans(clisi_info[idx,])
     sd_vec <- apply(clisi_info[idx,], 2, stats::sd)
     

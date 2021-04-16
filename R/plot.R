@@ -178,12 +178,14 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
 #' distinct "on the same scale" by adding appropriately-scaled Gaussian noise
 #' @param pca boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 #' If \code{FALSE}, plot the UMAP embedding.
+#' @param only_embedding boolean
 #' @param main_addition additional string to append to main of each plot
 #'
 #' @return shows a plot but returns nothing
 #' @export
 plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, 
-                            add_noise = T, pca = F, main_addition = ""){
+                            add_noise = T, pca = F, only_embedding = F,
+                            main_addition = ""){
   stopifnot(data_1 | data_2)
   if(pca){
     label1 <- "PCA 1"; label2 <- "PCA 2"
@@ -193,7 +195,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
   n_idx <- sample(1:nrow(obj$common_score))
   
   if(pca){
-    stopifnot(!data_1 | !data_2) # restriction for now
+    stopifnot(!data_1 | !data_2) # [[note to self: restriction for now]]
     embedding <- vector("list", 3)
     if(data_1){
       embedding[[1]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_1,
@@ -233,25 +235,31 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
     }
   } else {
     prep_obj <- .prepare_umap_embedding(obj)
+    embedding <- vector("list", 3)
     
     graphics::par(mfrow = c(1,3))
     set.seed(10)
-    tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F,
+    embedding[[1]] <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F,
                                    add_noise = add_noise, only_embedding = T)
-    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0("Common view", main_addition),
+    if(!only_embedding) graphics::plot(embedding[[1]][n_idx,1], embedding[[1]][n_idx,2], asp = T, pch = 16, 
+                   col = membership_vec[n_idx], main = paste0("Common view", main_addition),
                    xlab = label1, ylab = label2)
     
     set.seed(10)
-    tmp <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2,
+    embedding[[2]] <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2,
                                    add_noise = add_noise, only_embedding = T)
-    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0("Distinct view", main_addition),
+    if(!only_embedding) graphics::plot(embedding[[2]][n_idx,1], embedding[[2]][n_idx,2], asp = T, pch = 16, 
+                   col = membership_vec[n_idx], main = paste0("Distinct view", main_addition),
                    xlab = label1, ylab = label2)
     
     set.seed(10)
-    tmp <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2,
+    embedding[[3]] <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2,
                                    add_noise = add_noise, only_embedding = T)
-    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0("Entire view", main_addition),
+    if(!only_embedding) graphics::plot(embedding[[3]][n_idx,1], embedding[[3]][n_idx,2], asp = T, pch = 16, 
+                   col = membership_vec[n_idx], main = paste0("Entire view", main_addition),
                    xlab = label1, ylab = label2)
+    
+    if(only_embedding) return(embedding)
   }
   
   invisible()
