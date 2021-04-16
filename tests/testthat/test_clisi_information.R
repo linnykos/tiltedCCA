@@ -111,13 +111,13 @@ test_that(".clisi works", {
   g <- .construct_frnn(mat, rad, frnn_approx = 0, subsampling_rate = 1,
                        min_subsample = 1)
   
-  res1 <- .clisi(g, rep(c(1,2), each = n))
-  res2 <- .clisi(g, rep(c(1,2), times = n))
+  res1 <- .clisi(g, as.factor(rep(c(1,2), each = n)), cell_subidx = 1:(2*n))
+  res2 <- .clisi(g, as.factor(rep(c(1,2), times = n)), cell_subidx = 1:(2*n))
   
   expect_true(length(res1) == 2)
   expect_true(all(sort(names(res1)) == sort(c("cell_info", "membership_info"))))
   expect_true(all(sort(names(res1$cell_info)) == sort(c("len", "in_ratio", "clisi_score"))))
-  expect_true(all(sort(names(res1$membership_info)) == sort(c("mean_len", "mean_ratio", "mean_clisi", 
+  expect_true(all(sort(names(res1$membership_info)) == sort(c("celltype", "mean_len", "mean_ratio", "mean_clisi", 
                                                               "sd_len", "sd_ratio", "sd_clisi"))))
   expect_true(all(dim(res1$cell_info) == c(2*n, 3)))
   expect_true(all(res1$membership_info$mean_ratio >= res2$membership_info$mean_ratio))
@@ -141,10 +141,9 @@ test_that("clisi_information works", {
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
-                           dcca_decomp$common_mat_1+dcca_decomp$distinct_mat_1, 
-                           membership_vec = sample(c(1,2), size = n, replace = T),
-                           p = 10, nn = 10, frnn_approx = 0, 
-                           subsampling_rate = 0.1, min_subsample = 10)
+                           membership_vec = as.factor(sample(c(1,2), size = n, replace = T)),
+                           rank_c = p1, rank_d = p1, nn = 10, frnn_approx = 0, 
+                           subsampling_rate = 0.1, min_subsample = 10, verbose = F)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_clisi", "distinct_clisi", "everything_clisi"))))

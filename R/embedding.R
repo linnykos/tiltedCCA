@@ -98,17 +98,17 @@
   svd_list <- vector("list", 6)
   
   svd_list[[1]] <- .svd_truncated(obj$common_mat_1, rank_c, 
-                                  symmetric = F, rescale = F, K_full_rank = F)
+                                  symmetric = F, rescale = F, K_full_rank = T)
   svd_list[[2]] <- .svd_truncated(obj$common_mat_2, rank_c, 
-                                  symmetric = F, rescale = F, K_full_rank = F)
+                                  symmetric = F, rescale = F, K_full_rank = T)
   svd_list[[3]] <- .svd_truncated(obj$distinct_mat_1, rank_1, 
-                                  symmetric = F, rescale = F, K_full_rank = F)
+                                  symmetric = F, rescale = F, K_full_rank = T)
   svd_list[[4]] <- .svd_truncated(obj$distinct_mat_2, rank_2, 
-                                  symmetric = F, rescale = F, K_full_rank = F)
+                                  symmetric = F, rescale = F, K_full_rank = T)
   svd_list[[5]] <- .svd_truncated(obj$common_mat_1 + obj$distinct_mat_1, rank_1, 
-                                  symmetric = F, rescale = F, K_full_rank = F)
+                                  symmetric = F, rescale = F, K_full_rank = T)
   svd_list[[6]] <- .svd_truncated(obj$common_mat_2 + obj$distinct_mat_2, rank_2, 
-                                  symmetric = F, rescale = F, K_full_rank = F)
+                                  symmetric = F, rescale = F, K_full_rank = T)
   
   if(length(rownames(obj$common_mat_1)) != 0){
     for(i in 1:nrow(svd_list)){

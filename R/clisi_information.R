@@ -1,50 +1,88 @@
-clisi_information <- function(common_mat, distinct_mat, everything_mat, 
-                              membership_vec, p, nn, 
+#' Compute cLISI information
+#'
+#' @param common_mat output from \code{dcca_decomposition}
+#' @param distinct_mat output from \code{dcca_decomposition}
+#' @param membership_vec factor
+#' @param rank_c rank of \code{common_mat}
+#' @param rank_d rank of \code{distinct_mat}
+#' @param nn integer of number of nearest neighbors to determine the appropriate radius
+#' for the frNN graph
+#' @param frnn_approx small non-negative number
+#' @param subsampling_rate value between 0 and 1, used for ensuring frNN graph is connected
+#' @param min_subsample positive integer, used for ensuring frNN graph is connected
+#' @param subsampling_rate_cell value between 0 and 1, used for determining number of cells to 
+#' compute cLISI for
+#' @param min_subsample_cell positive integer, used for determining number of cells to 
+#' compute cLISI for
+#' @param verbose boolean
+#'
+#' @return two lists
+#' @export
+clisi_information <- function(common_mat, distinct_mat,
+                              membership_vec, rank_c, rank_d, nn, 
                               frnn_approx = 0, 
-                              subsampling_rate = 0.1, min_subsample = 50){
+                              subsampling_rate = 0.1, min_subsample = 50, 
+                              subsampling_rate_cell = 0.1, 
+                              min_subsample_cell = 50,
+                              verbose = T){
   
-  stopifnot(all(membership_vec %% 1 == 0), all(membership_vec >= 1),
-            length(unique(membership_vec)) == max(membership_vec),
-            max(membership_vec) <= nrow(common_mat))
+  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_mat))
+  # stopifnot(all(membership_vec %% 1 == 0), all(membership_vec >= 1),
+  #           length(unique(membership_vec)) == max(membership_vec),
+  #           max(membership_vec) <= nrow(common_mat))
   stopifnot(all(dim(common_mat) == dim(distinct_mat)),
-            all(dim(common_mat) == dim(everything_mat)),
-            p <= ncol(common_mat))
+            rank_c <= ncol(common_mat), rank_d <= ncol(distinct_mat))
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
             subsampling_rate >= 0, subsampling_rate <= 1)
   
+  everything_mat <- common_mat + distinct_mat
+  
   # compute the 3 matrices
-  tmp <- .svd_truncated(common_mat, K = p, 
-                        symmetric = F, rescale = F, K_full_rank = F)
+  if(verbose) print("cLISI: Computing SVD -- common")
+  tmp <- .svd_truncated(common_mat, K = rank_c, 
+                        symmetric = F, rescale = F, K_full_rank = T)
   c_embedding <- .mult_mat_vec(tmp$u, tmp$d)
-  tmp <- .svd_truncated(distinct_mat, K = p, 
-                        symmetric = F, rescale = F, K_full_rank = F)
+  if(verbose) print("cLISI: Computing SVD -- distinct")
+  tmp <- .svd_truncated(distinct_mat, K = rank_d, 
+                        symmetric = F, rescale = F, K_full_rank = T)
   d_embedding <- .mult_mat_vec(tmp$u, tmp$d)
-  tmp <- .svd_truncated(everything_mat, K = p, 
-                        symmetric = F, rescale = F, K_full_rank = F)
+  if(verbose) print("cLISI: Computing SVD -- everything")
+  tmp <- .svd_truncated(everything_mat, K = rank_d, 
+                        symmetric = F, rescale = F, K_full_rank = T)
   e_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   
   # compute the radius
+  if(verbose) print("cLISI: Computing radius -- common")
   c_rad <- .compute_radius(c_embedding, nn)
+  if(verbose) print("cLISI: Computing radius -- distinct")
   d_rad <- .compute_radius(d_embedding, nn)
+  if(verbose) print("cLISI: Computing radius -- everything")
   e_rad <- .compute_radius(e_embedding, nn)
   sub_rad <- max(c_rad, d_rad)
   
+  if(verbose) print("cLISI: Construct graph -- common")
   c_g <- .construct_frnn(c_embedding, radius = sub_rad,
                               frnn_approx = frnn_approx,
                               subsampling_rate = subsampling_rate,
                               min_subsample = min_subsample)
+  if(verbose) print("cLISI: Construct graph -- distinct")
   d_g <- .construct_frnn(d_embedding, radius = sub_rad,
                               frnn_approx = frnn_approx,
                               subsampling_rate = subsampling_rate,
                               min_subsample = min_subsample)
+  if(verbose) print("cLISI: Construct graph -- everything")
   e_g <- .construct_frnn(e_embedding, radius = e_rad,
                               frnn_approx = frnn_approx,
                               subsampling_rate = subsampling_rate,
                               min_subsample = min_subsample)
   
-  c_score <- .clisi(c_g, membership_vec)
-  d_score <- .clisi(d_g, membership_vec)
-  e_score <- .clisi(e_g, membership_vec)
+  cell_subidx <- .construct_celltype_subsample(membership_vec, subsampling_rate_cell, min_subsample_cell)
+  if(verbose) print("cLISI: Compute cLISI -- common")
+  c_score <- .clisi(c_g, membership_vec, cell_subidx)
+  if(verbose) print("cLISI: Compute cLISI -- distinct")
+  d_score <- .clisi(d_g, membership_vec, cell_subidx)
+  if(verbose) print("cLISI: Compute cLISI -- everything")
+  e_score <- .clisi(e_g, membership_vec, cell_subidx)
   
   list(common_clisi = c_score, distinct_clisi = d_score,
        everything_clisi = e_score)
@@ -115,11 +153,24 @@ clisi_information <- function(common_mat, distinct_mat, everything_mat,
   igraph::simplify(g)
 }
 
-.clisi <- function(g, membership_vec){
+.construct_celltype_subsample <- function(membership_vec, subsampling_rate_cell, 
+                                          min_subsample_cell){
+  res <- lapply(levels(membership_vec), function(x){
+    idx <- which(membership_vec == x)
+    if(length(idx) <= min_subsample_cell) return(idx)
+    
+    sample(idx, max(ceiling(subsampling_rate_cell*length(idx)), min_subsample_cell), replace = F)
+  })
+  
+  sort(unlist(res))
+}
+
+.clisi <- function(g, membership_vec, cell_subidx){
+  stopifnot(all(table(membership_vec[cell_subidx]) > 0))
   n <- igraph::vcount(g)
   bg_prop <- as.numeric(table(membership_vec))/n
   
-  clisi_info <- sapply(1:n, function(i){
+  clisi_info <- sapply(cell_subidx, function(i){
     neigh <- igraph::neighbors(g, v = i)
     len <- length(neigh)
     mem_vec <- membership_vec[neigh]
@@ -137,13 +188,13 @@ clisi_information <- function(common_mat, distinct_mat, everything_mat,
                            in_ratio = clisi_info["in_ratio",], 
                            clisi_score = clisi_info["clisi_score",])
   
-  k <- max(membership_vec)
-  res <- sapply(1:k, function(x){
+  res <- sapply(levels(membership_vec), function(x){
     idx <- which(membership_vec == x)
     mean_vec <- colMeans(clisi_info[idx,])
     sd_vec <- apply(clisi_info[idx,], 2, stats::sd)
     
-    c(mean_len = as.numeric(mean_vec["len"]), 
+    c(celltype = x,
+      mean_len = as.numeric(mean_vec["len"]), 
       mean_ratio = as.numeric(mean_vec["in_ratio"]),
       mean_clisi = as.numeric(mean_vec["clisi_score"]),
       sd_len = as.numeric(sd_vec["len"]), 
