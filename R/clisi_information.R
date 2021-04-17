@@ -99,27 +99,27 @@ clisi_information <- function(common_mat, distinct_mat,
                             debug = F, verbose = F){
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing frNN graph"))
   frnn_obj <- dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)$id
-  if(debug) return(frnn_obj)
-  
-  for(i in 1:length(frnn_obj)){
-    if(length(frnn_obj[[i]]) == 0) frnn_obj[[i]] <- i
-  }
-  
-  if(verbose) print(paste0(Sys.time(),": cLISI: Converting frNN into igraph"))
-  g <- .convert_frnn2igraph(frnn_obj, verbose = verbose)
-  
-  if(ensure_connected){
-    if(verbose) print(paste0(Sys.time(),": cLISI: Connecting igraph"))
-    .connect_graph(g, mat, subsampling_rate, min_subsample, verbose = verbose)
-  } else {
-    if(verbose) {
-      print(paste0(Sys.time(),": cLISI: Computing number of connected components"))
-      res <- igraph::components(g)
-      print(paste0(Sys.time(),": cLISI: Number of connected components: ", res$no))
-    }
-    
-    g
-  }
+  # if(debug) return(frnn_obj)
+  # 
+  # for(i in 1:length(frnn_obj)){
+  #   if(length(frnn_obj[[i]]) == 0) frnn_obj[[i]] <- i
+  # }
+  # 
+  # if(verbose) print(paste0(Sys.time(),": cLISI: Converting frNN into igraph"))
+  # g <- .convert_frnn2igraph(frnn_obj, verbose = verbose)
+  # 
+  # if(ensure_connected){
+  #   if(verbose) print(paste0(Sys.time(),": cLISI: Connecting igraph"))
+  #   .connect_graph(g, mat, subsampling_rate, min_subsample, verbose = verbose)
+  # } else {
+  #   if(verbose) {
+  #     print(paste0(Sys.time(),": cLISI: Computing number of connected components"))
+  #     res <- igraph::components(g)
+  #     print(paste0(Sys.time(),": cLISI: Number of connected components: ", res$no))
+  #   }
+  #   
+  #   g
+  # }
   
 }
 
@@ -197,18 +197,37 @@ clisi_information <- function(common_mat, distinct_mat,
 }
 
 .clisi <- function(g, membership_vec, cell_subidx, verbose = F){
-  stopifnot(all(table(membership_vec[cell_subidx]) > 0))
-  n <- igraph::vcount(g)
-  bg_prop <- as.numeric(table(membership_vec))/n
+  # stopifnot(all(table(membership_vec[cell_subidx]) > 0))
+  # n <- igraph::vcount(g)
+  # bg_prop <- as.numeric(table(membership_vec))/n
+  # 
+  # if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
+  # clisi_info <- sapply(1:length(cell_subidx), function(i){
+  #   if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
+  #   
+  #   neigh <- igraph::neighbors(g, v = cell_subidx[i])
+  #   len <- length(neigh)
+  #   mem_vec <- membership_vec[neigh]
+  #   target_mem <- membership_vec[cell_subidx[i]]
+  #   in_len <- length(which(mem_vec == target_mem))
+  #   
+  #   target_bg <- bg_prop[target_mem]
+  #   clisi_score <- max((in_len/len - target_bg)/(1-target_bg), 0)
+  #   
+  #   c(len = len, in_ratio = in_len/len, clisi_score = clisi_score)
+  # })
   
+  bg_prop <- as.numeric(table(membership_vec))/n
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
+  
   clisi_info <- sapply(1:length(cell_subidx), function(i){
     if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
-    
-    neigh <- igraph::neighbors(g, v = cell_subidx[i])
-    len <- length(neigh)
-    mem_vec <- membership_vec[neigh]
+    neigh <- g[[cell_subidx[i]]]
+    if(length(neigh) == 0){
+      return(c(len = 0, in_ratio = 0, clisi_score = 0))
+    }
     target_mem <- membership_vec[cell_subidx[i]]
+    mem_vec <- membership_vec[neigh]
     in_len <- length(which(mem_vec == target_mem))
     
     target_bg <- bg_prop[target_mem]
