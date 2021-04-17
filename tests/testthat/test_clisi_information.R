@@ -5,7 +5,7 @@ context("Test clisi information")
 test_that(".compute_radius works", {
   set.seed(10)
   mat <- matrix(rnorm(100), 20, 5)
-  res <- .compute_radius(mat, 2)
+  res <- .compute_radius(mat, 2, radius_quantile = 0.95)
   
   expect_true(length(res) == 1)
   expect_true(is.numeric(res))
@@ -18,7 +18,7 @@ test_that(".compute_radius increases as neighbor increases", {
   mat <- matrix(rnorm(n*p), n, p)
   k_vec <- 5:50
   rad_vec <- sapply(k_vec, function(k){
-    .compute_radius(mat, k)
+    .compute_radius(mat, k, radius_quantile = 0.95)
   })
   
   expect_true(all(diff(rad_vec) >= 0))
@@ -28,14 +28,12 @@ test_that(".compute_radius increases as neighbor increases", {
 
 ## .construct_frnn is correct
 
-test_that(".construct_frnn works with debugging = T", {
+test_that(".construct_frnn works", {
   set.seed(10)
   n <- 100; p <- 2
   mat <- matrix(rnorm(n*p), n, p)
-  rad <- .compute_radius(mat, 5)
-  res <- .construct_frnn(mat, radius = rad, frnn_approx = 0,
-                         subsampling_rate = 1, min_subsample = 1,
-                         debug = T)
+  rad <- .compute_radius(mat, 5, radius_quantile = 0.95)
+  res <- .construct_frnn(mat, radius = rad, frnn_approx = 0)
   
   expect_true(is.list(res))
   expect_true(length(res) == n)
@@ -45,56 +43,6 @@ test_that(".construct_frnn works with debugging = T", {
       expect_true(!i %in% res[[i]])
     }
   }
-})
-
-test_that(".construct_frnn always outputs a graph with all nodes", {
-  set.seed(10)
-  n <- 100; p <- 2
-  mat <- matrix(rnorm(n*p), n, p)
-  mat <- rbind(mat, c(100,100))
-  rad <- .compute_radius(mat, 50)
-  res <- .construct_frnn(mat, radius = rad, frnn_approx = 0,
-                         subsampling_rate = 1, min_subsample = 1,
-                         debug = F)
-  
-  expect_true(igraph::vcount(res) == n+1)
-})
-
-########################
-
-## .convert_frnn2igraph is correct
-
-test_that(".convert_frnn2igraph is correct", {
-  set.seed(10)
-  n <- 100; p <- 2
-  mat <- matrix(rnorm(n*p), n, p)
-  rad <- .compute_radius(mat, 50)
-  frnn_obj <- .construct_frnn(mat, radius = rad, frnn_approx = 0,
-                         subsampling_rate = 1, min_subsample = 1,
-                         debug = T)
-  res <- .convert_frnn2igraph(frnn_obj)
-  
-  expect_true(class(res) == "igraph")
-  expect_true(igraph::vcount(res) == n)
-})
-
-########################
-
-## .connect_graph is correct
-
-test_that(".connect_graph works", {
-  set.seed(10)
-  n <- 100; p <- 2
-  mat1 <- matrix(rnorm(n*p), n, p)
-  mat2 <- matrix(rnorm(n*p), n, p)+50
-  mat <- rbind(mat1, mat2)
-  rad <- .compute_radius(mat, 50)
-  frnn_obj <- dbscan::frNN(mat, eps = rad, sort = F, approx = 0)$id
-  g <- .convert_frnn2igraph(frnn_obj)
-  expect_true(igraph::components(g)$no == 2)
-  
-  res <- .connect_graph(g, mat, subsampling_rate = 1, min_subsample = 1)
-  expect_true(igraph::components(res)$no == 1)
 })
 
 ######################
@@ -107,19 +55,25 @@ test_that(".clisi works", {
   mat1 <- matrix(rnorm(n*p), n, p)
   mat2 <- matrix(rnorm(n*p), n, p)+50
   mat <- rbind(mat1, mat2)
-  rad <- .compute_radius(mat, 10)
-  g <- .construct_frnn(mat, rad, frnn_approx = 0, subsampling_rate = 1,
-                       min_subsample = 1)
+  rad <- .compute_radius(mat, 10, radius_quantile = 0.95)
+  g <- .construct_frnn(mat, rad, frnn_approx = 0)
+  membership_vec1 <- as.factor(rep(c("a","b"), each = n))
+  membership_vec2 <- as.factor(rep(c("a","b"), times = n))
+  cell_subidx1 <- .construct_celltype_subsample(membership_vec1, 50)
+  cell_subidx2 <- .construct_celltype_subsample(membership_vec2, 50)
   
-  res1 <- .clisi(g, as.factor(rep(c(1,2), each = n)), cell_subidx = 1:(2*n))
-  res2 <- .clisi(g, as.factor(rep(c(1,2), times = n)), cell_subidx = 1:(2*n))
+  res1 <- .clisi(g, membership_vec1, cell_subidx1)
+  res2 <- .clisi(g, membership_vec2, cell_subidx2)
   
+  expect_true(class(res1) == "clisi")
   expect_true(length(res1) == 2)
   expect_true(all(sort(names(res1)) == sort(c("cell_info", "membership_info"))))
-  expect_true(all(sort(names(res1$cell_info)) == sort(c("len", "in_ratio", "clisi_score"))))
+  expect_true(all(sort(names(res1$cell_info)) == sort(c("idx", "celltype", "len", "in_ratio", "clisi_score"))))
+  expect_true(all(sapply(1:ncol(res1$cell_info), function(j){class(res1$cell_info[,j])}) == c("integer", "factor", "numeric", "numeric", "numeric")))
+  expect_true(all(sapply(1:ncol(res1$membership_info), function(j){class(res1$membership_info[,j])}) == c("character", rep("numeric", 6))))
   expect_true(all(sort(names(res1$membership_info)) == sort(c("celltype", "mean_len", "mean_ratio", "mean_clisi", 
                                                               "sd_len", "sd_ratio", "sd_clisi"))))
-  expect_true(all(dim(res1$cell_info) == c(2*n, 3)))
+  expect_true(all(dim(res1$cell_info) == c(length(cell_subidx1), 5)))
   expect_true(all(res1$membership_info$mean_ratio >= res2$membership_info$mean_ratio))
   expect_true(all(res1$membership_info$mean_clisi >= res2$membership_info$mean_clisi))
 })
@@ -143,7 +97,7 @@ test_that("clisi_information works", {
   res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
                            membership_vec = as.factor(sample(c(1,2), size = n, replace = T)),
                            rank_c = p1, rank_d = p1, nn = 10, frnn_approx = 0, 
-                           subsampling_rate = 0.1, min_subsample = 10, verbose = F)
+                           verbose = F)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_clisi", "distinct_clisi", "everything_clisi"))))

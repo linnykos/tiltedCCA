@@ -11,6 +11,7 @@ plot_embeddings(
   data_2 = T,
   add_noise = T,
   pca = F,
+  only_embedding = F,
   main_addition = ""
 )
 }
@@ -28,6 +29,8 @@ distinct "on the same scale" by adding appropriately-scaled Gaussian noise}
 
 \item{pca}{boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 If \code{FALSE}, plot the UMAP embedding.}
+
+\item{only_embedding}{boolean}
 
 \item{main_addition}{additional string to append to main of each plot}
 }

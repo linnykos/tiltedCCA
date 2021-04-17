@@ -12,9 +12,7 @@ clisi_information(
   rank_d,
   nn,
   frnn_approx = 0,
-  subsampling_rate = 0.1,
-  min_subsample = 50,
-  subsampling_rate_cell = 0.1,
+  radius_quantile = 0.95,
   min_subsample_cell = 50,
   verbose = T
 )
@@ -35,12 +33,7 @@ for the frNN graph}
 
 \item{frnn_approx}{small non-negative number}
 
-\item{subsampling_rate}{value between 0 and 1, used for ensuring frNN graph is connected}
-
-\item{min_subsample}{positive integer, used for ensuring frNN graph is connected}
-
-\item{subsampling_rate_cell}{value between 0 and 1, used for determining number of cells to 
-compute cLISI for}
+\item{radius_quantile}{value between 0 and 1}
 
 \item{min_subsample_cell}{positive integer, used for determining number of cells to 
 compute cLISI for}
