@@ -224,7 +224,8 @@ clisi_information <- function(common_mat, distinct_mat,
   clisi_info <- sapply(1:length(cell_subidx), function(i){
     if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     neigh <- g[[cell_subidx[i]]]
-    if(length(neigh) == 0){
+    len <- length(neigh)
+    if(len == 0){
       return(c(len = 0, in_ratio = 0, clisi_score = 0))
     }
     target_mem <- membership_vec[cell_subidx[i]]
