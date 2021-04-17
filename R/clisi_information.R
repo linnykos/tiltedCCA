@@ -217,6 +217,7 @@ clisi_information <- function(common_mat, distinct_mat,
   #   c(len = len, in_ratio = in_len/len, clisi_score = clisi_score)
   # })
   
+  n <- length(g)
   bg_prop <- as.numeric(table(membership_vec))/n
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
   
