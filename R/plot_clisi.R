@@ -5,6 +5,7 @@
 #' @param clisi_1 output of \code{clisi_information} on one Modality
 #' @param clisi_2 output of \code{clisi_information} on the other Modality
 #' @param col_vec vector of colors
+#' @param cell_max number of cells of each cell-type to plot
 #' @param par_mar \code{mar} parameter for \code{par}
 #' @param par_oma \code{oma} parameter for \code{par}
 #' @param asp graphical \code{asp} parameter

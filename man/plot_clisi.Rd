@@ -8,6 +8,7 @@ plot_clisi(
   clisi_1,
   clisi_2,
   col_vec = (scales::hue_pal())(nrow(clisi_1$common_clisi$membership_info)),
+  cell_max = 5000,
   par_mar = c(4, 2.5, 0.5, 0.5),
   par_oma = c(0, 0, 2, 0),
   asp = T,
@@ -42,6 +43,8 @@ plot_clisi(
 \item{clisi_2}{output of \code{clisi_information} on the other Modality}
 
 \item{col_vec}{vector of colors}
+
+\item{cell_max}{number of cells of each cell-type to plot}
 
 \item{par_mar}{\code{mar} parameter for \code{par}}
 

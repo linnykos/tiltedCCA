@@ -32,16 +32,15 @@ test_that(".construct_frnn works", {
   set.seed(10)
   n <- 100; p <- 2
   mat <- matrix(rnorm(n*p), n, p)
-  rad <- .compute_radius(mat, 5, radius_quantile = 0.95)
-  res <- .construct_frnn(mat, radius = rad, frnn_approx = 0)
+  rad <- .compute_radius(mat, 5, radius_quantile = 0.5)
+  res <- .construct_frnn(mat, radius = rad, nn = 5, frnn_approx = 0)
   
   expect_true(is.list(res))
   expect_true(length(res) == n)
   for(i in 1:n){
-    if(length(res[[i]] > 0)){
-      expect_true(all(res[[i]] %% 1 == 0))
-      expect_true(!i %in% res[[i]])
-    }
+    expect_true(length(res[[i]]) > 0)
+    expect_true(all(res[[i]] %% 1 == 0))
+    expect_true(!i %in% res[[i]])
   }
 })
 
@@ -56,7 +55,7 @@ test_that(".clisi works", {
   mat2 <- matrix(rnorm(n*p), n, p)+50
   mat <- rbind(mat1, mat2)
   rad <- .compute_radius(mat, 10, radius_quantile = 0.95)
-  g <- .construct_frnn(mat, rad, frnn_approx = 0)
+  g <- .construct_frnn(mat, rad, nn = 10, frnn_approx = 0)
   membership_vec1 <- as.factor(rep(c("a","b"), each = n))
   membership_vec2 <- as.factor(rep(c("a","b"), times = n))
   cell_subidx1 <- .construct_celltype_subsample(membership_vec1, 50)

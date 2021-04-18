@@ -17,7 +17,7 @@
 #' @export
 clisi_information <- function(common_mat, distinct_mat,
                               membership_vec, rank_c, rank_d, nn, 
-                              frnn_approx = 0, radius_quantile = 0.95,
+                              frnn_approx = 0, radius_quantile = 0.5,
                               min_subsample_cell = 50,
                               verbose = T){
   
@@ -52,13 +52,13 @@ clisi_information <- function(common_mat, distinct_mat,
   sub_rad <- max(c_rad, d_rad)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
-  c_g <- .construct_frnn(c_embedding, radius = sub_rad,
+  c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn,
                          frnn_approx = frnn_approx)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
-  d_g <- .construct_frnn(d_embedding, radius = sub_rad,
+  d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn,
                          frnn_approx = frnn_approx)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
-  e_g <- .construct_frnn(e_embedding, radius = e_rad,
+  e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn,
                          frnn_approx = frnn_approx)
   
   cell_subidx <- .construct_celltype_subsample(membership_vec, min_subsample_cell)
@@ -80,8 +80,22 @@ clisi_information <- function(common_mat, distinct_mat,
   as.numeric(stats::quantile(res$nn.dists[,nn], probs = radius_quantile))[1]
 }
 
-.construct_frnn <- function(mat, radius, frnn_approx){
-  dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)$id
+.construct_frnn <- function(mat, radius, nn, frnn_approx, verbose = F){
+  if(verbose) print(paste0(Sys.time(),": cLISI: Computing frNN"))
+  res <- dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)$id
+  
+  idx <- which(sapply(res, length) < nn)
+  if(verbose) print(paste0(Sys.time(),": cLISI: ", idx, " cells with too few neighbors"))
+  if(length(idx) > 0){
+    res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1)
+    
+    if(verbose) print(paste0(Sys.time(),": cLISI: Plugging in kNN neighbors"))
+    for(i in 1:length(idx)){
+      res[[idx[i]]] <- unique(c(res[[idx[i]]], res2$nn.idx[i,-1]))
+    }
+  }
+  
+  res
 }
 
 .construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
