@@ -18,14 +18,68 @@ test_that("(Basic) .dcca_common_score works", {
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-  
   svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  
   cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                            fix_distinct_perc = F,
+                            fix_distinct_perc = F, cell_max = nrow(svd_1$u),
+                            check_alignment = F, verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
+                                             "score_1", "score_2", 
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2", "distinct_perc_2"))))
+  expect_true(all(dim(res$common_score) == c(n, K)))
+  
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, 
+                            num_neigh = max(round(nrow(svd_1$u)/20), 40), 
+                            fix_distinct_perc = T, cell_max = nrow(svd_1$u),
+                            check_alignment = F, verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
+                                             "score_1", "score_2", 
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2", "distinct_perc_2"))))
+  expect_true(all(dim(res$common_score) == c(n, K)))
+})
+
+test_that("(Basic) .dcca_common_score works with subsampling", {
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
+  
+  mat_1 <- scale(mat_1, center = T, scale = F)
+  mat_2 <- scale(mat_2, center = T, scale = F)
+  
+  svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
+  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, 
+                            num_neigh = max(round(nrow(svd_1$u)/20), 40), 
+                            fix_distinct_perc = F, cell_max = round(nrow(svd_1$u)/2),
+                            check_alignment = F, verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
+                                             "score_1", "score_2", 
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2", "distinct_perc_2"))))
+  expect_true(all(dim(res$common_score) == c(n, K)))
+  
+  res <- .dcca_common_score(svd_1, svd_2, cca_res, 
+                            num_neigh = max(round(nrow(svd_1$u)/20), 40), 
+                            fix_distinct_perc = T, cell_max = round(nrow(svd_1$u)/2),
                             check_alignment = F, verbose = F)
   
   expect_true(is.list(res))
@@ -61,7 +115,7 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                            fix_distinct_perc = F,
+                            fix_distinct_perc = F, cell_max = nrow(svd_1$u),
                             check_alignment = F, verbose = F)
   expect_true(all(rownames(mat_1) == rownames(res$common_score)))
   expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
@@ -88,7 +142,7 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                            fix_distinct_perc = F,
+                            fix_distinct_perc = F, cell_max = nrow(svd_1$u),
                             check_alignment = F, verbose = F)
   expect_true(all(dim(res$common_score) == c(n,1)))
   expect_true(all(dim(res$distinct_score_1) == c(n,1)))
@@ -99,7 +153,7 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                            fix_distinct_perc = F,
+                            fix_distinct_perc = F, cell_max = nrow(svd_1$u),
                             check_alignment = F, verbose = F)
   expect_true(all(dim(res$common_score) == c(n,1)))
   expect_true(all(dim(res$distinct_score_1) == c(n,K)))
@@ -110,7 +164,7 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                            fix_distinct_perc = F,
+                            fix_distinct_perc = F, cell_max = nrow(svd_1$u),
                             check_alignment = F, verbose = F)
   expect_true(all(dim(res$common_score) == c(n,1)))
   expect_true(all(dim(res$distinct_score_1) == c(n,1)))
@@ -136,14 +190,12 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
     mat_2 <- scale(mat_2, center = T, scale = F)
     
     svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-    
     svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-    
     cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
     
     res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                              fix_distinct_perc = F,
+                              fix_distinct_perc = F, cell_max = nrow(svd_1$u),
                               check_alignment = F, verbose = F)
     
     prod_mat <- t(res$distinct_score_1) %*% res$distinct_score_2
@@ -196,7 +248,7 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
     
     res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               num_neigh = max(round(nrow(svd_1$u)/20), 40), 
-                              fix_distinct_perc = F,
+                              fix_distinct_perc = F, cell_max = nrow(svd_1$u),
                               check_alignment = T, verbose = F)
     
     prod_mat <- t(res$distinct_score_1) %*% res$distinct_score_2

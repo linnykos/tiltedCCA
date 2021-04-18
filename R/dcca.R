@@ -8,6 +8,7 @@
 #' @param rank_2 desired rank of data matrix 2
 #' @param meta_clustering optional clustering
 #' @param num_neigh number of neighbors to consider to computed the common percentage
+#' @param cell_max number of cells used to compute the distinct percentaage
 #' @param apply_shrinkage boolean 
 #' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
@@ -19,16 +20,17 @@
 #' @export
 dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
                         num_neigh = max(round(nrow(mat_1)/20), 40),
+                        cell_max = nrow(mat_1),
                         apply_shrinkage = T, fix_distinct_perc = F, verbose = T){
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
   n <- nrow(mat_1)
-  if(verbose) print("D-CCA: Rescaling matrices")
+  if(verbose) print(Sys.time(),": D-CCA: Rescaling matrices")
   mat_1 <- scale(mat_1, center = T, scale = F)
   mat_2 <- scale(mat_2, center = T, scale = F)
   
-  if(verbose) print(paste0("D-CCA: Starting matrix shrinkage"))
+  if(verbose) print(paste0(Sys.time(),": D-CCA: Starting matrix shrinkage"))
   if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1, 
                                                                                   symmetric = F, rescale = F, K_full_rank = F)
   if(apply_shrinkage) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2, 
@@ -45,21 +47,21 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
               length(meta_clustering) == nrow(mat_1))
     num_meta <- max(meta_clustering)
     
-    if(verbose) print(paste0("D-CCA", msg, ": Constructing meta-cells for matrix 1"))
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 1"))
     mat_1_meta <- t(sapply(1:num_meta, function(x){
       if(verbose & x %% floor(num_meta/10) == 0) cat('*')
       idx <- which(meta_clustering == x)
       apply(mat_1[idx,,drop = F], 2, mean)
     }))
     
-    if(verbose) print(paste0("D-CCA", msg, ": Constructing meta-cells for matrix 2"))
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 2"))
     mat_2_meta <- t(sapply(1:num_meta, function(x){
       if(verbose & x %% floor(num_meta/10) == 0) cat('*')
       idx <- which(meta_clustering == x)
       apply(mat_2[idx,,drop = F], 2, mean)
     }))
     
-    if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
     # note, since we're already doing averaging, we don't further shrink the spectrum
     cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = rank_1, rank_2 = rank_2,
                     return_scores = F)
@@ -67,12 +69,13 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     
     # alternatively, apply D-CCA to all cells
     msg <- " (all cells)"
-    if(verbose) print(paste0("D-CCA", msg, ": Computing CCA"))
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
     cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
   }
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
                             fix_distinct_perc = fix_distinct_perc,
+                            cell_max = cell_max,
                             check_alignment = all(!is.na(meta_clustering)),
                             verbose = verbose, msg = msg)
 
@@ -93,22 +96,22 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   if(is.na(rank_c)) rank_c <- min(c(ncol(dcca_res$distinct_score_1), ncol(dcca_res$distinct_score_2)))
   n <- nrow(dcca_res$svd_1$u)
   
-  if(verbose) print("D-CCA: Form denoised observation matrices")
+  if(verbose) print(paste0(Sys.time(),": D-CCA: Form denoised observation matrices"))
   mat_1 <- tcrossprod(.mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d) , dcca_res$svd_1$v)
   mat_2 <- tcrossprod(.mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d) , dcca_res$svd_2$v)
   
-  if(verbose) print("D-CCA: Computing common matrices")
+  if(verbose) print(paste0(Sys.time(),": D-CCA: Computing common matrices"))
   coef_mat_1 <- crossprod(dcca_res$score_1, mat_1)/n
   coef_mat_2 <- crossprod(dcca_res$score_2, mat_2)/n
   
   common_mat_1 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
   common_mat_2 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
    
-  if(verbose) print("D-CCA: Computing distinctive matrices")
+  if(verbose) print(paste0(Sys.time(),": D-CCA: Computing distinctive matrices"))
   distinct_mat_1 <- dcca_res$distinct_score_1 %*% coef_mat_1
   distinct_mat_2 <- dcca_res$distinct_score_2 %*% coef_mat_2
   
-  if(verbose) print("D-CCA: Done")
+  if(verbose) print(paste0(Sys.time(),": D-CCA: Done"))
   structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],
        distinct_score_1 = dcca_res$distinct_score_1,
        distinct_score_2 = dcca_res$distinct_score_2,
@@ -137,6 +140,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
 #' If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
 #' \code{.common_decomposition} function.
+#' @param cell_max number of cells used to compute the distinct percentaage
 #' @param check_alignment boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
 #' after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution
 #' was not computed from exactly \code{svd_1} and \code{svd_2}
@@ -145,18 +149,19 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #'
 #' @return list 
 .dcca_common_score <- function(svd_1, svd_2, cca_res, 
-                               num_neigh, fix_distinct_perc,
+                               num_neigh, fix_distinct_perc, cell_max,
                                check_alignment, verbose = T, msg = ""){
+  stopifnot(cell_max > 10)
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
-  if(verbose) print(paste0("D-CCA", msg, ": Computing unnormalized scores"))
+  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing unnormalized scores"))
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   stopifnot(ncol(score_1) == length(svd_1$d), ncol(score_2) == length(svd_2$d),
             nrow(score_1) == nrow(score_2))
 
-  if(verbose) print(paste0("D-CCA", msg, ": Computing common factors"))
+  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing common factors"))
   if(check_alignment){
     # reparameterize the scores
     tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
@@ -169,19 +174,30 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   
   # compute the common scores
   if(fix_distinct_perc){
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T,
+                                 verbose = verbose)
   } else {
-    nn_1 <- RANN::nn2(.mult_mat_vec(svd_1$u, svd_1$d), k = num_neigh)$nn.idx
-    nn_2 <- RANN::nn2(.mult_mat_vec(svd_2$u, svd_2$d), k = num_neigh)$nn.idx
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing kNN"))
+    n <- nrow(score_1)
+    if(cell_max < n){
+      n_idx <- sample(1:n, size = cell_max)
+    } else {
+      n_idx <- 1:n
+    }
+    tmp1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+    nn_1 <- RANN::nn2(tmp1, query = tmp1[n_idx,,drop = F], k = num_neigh)$nn.idx
+    tmp2 <- .mult_mat_vec(svd_2$u, svd_2$d)
+    nn_2 <- RANN::nn2(tmp2, query = tmp2[n_idx,,drop = F], k = num_neigh)$nn.idx
     
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, fix_distinct_perc = F)
+    tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, 
+                                 fix_distinct_perc = F, verbose = verbose)
   }
   common_score <- tmp$common_score; distinct_perc_2 <- tmp$distinct_perc_2
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
  
-  if(verbose) print(paste0("D-CCA", msg, ": Done"))
+  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Done"))
   list(common_score = common_score, 
        distinct_score_1 = distinct_score_1,
        distinct_score_2 = distinct_score_2,

@@ -33,8 +33,7 @@ plot_clisi(
   ylab = "Common information",
   ylab_dist = 0.5,
   main = "cLISI Information",
-  cex_text_main = 1.5,
-  ...
+  cex_text_main = 1.5
 )
 }
 \arguments{
@@ -95,8 +94,6 @@ plot_clisi(
 \item{main}{\code{main} parameter}
 
 \item{cex_text_main}{\code{cex} for \code{main} parameter}
-
-\item{...}{additional graphical parameters}
 }
 \value{
 nothing

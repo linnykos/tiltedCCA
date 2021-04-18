@@ -10,6 +10,7 @@
   cca_res,
   num_neigh,
   fix_distinct_perc,
+  cell_max,
   check_alignment,
   verbose = T,
   msg = ""
@@ -28,6 +29,8 @@
 meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
 If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
 \code{.common_decomposition} function.}
+
+\item{cell_max}{number of cells used to compute the distinct percentaage}
 
 \item{check_alignment}{boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
 after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution

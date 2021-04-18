@@ -1,5 +1,6 @@
 .common_decomposition <- function(score_1, score_2, nn_1, nn_2, 
-                                  fix_distinct_perc, tol = 1e-6){
+                                  fix_distinct_perc, 
+                                  tol = 1e-6, verbose = F){
   stopifnot((!any(is.na(nn_1)) & !any(is.na(nn_2)) & !fix_distinct_perc) | 
               (all(is.na(nn_1)) & all(is.na(nn_2)) & fix_distinct_perc))
   
@@ -12,19 +13,29 @@
     .representation_2d(score_1[,k], score_2[,k])
   })
   
+  
+  if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing distinct percentage"))
   if(fix_distinct_perc){
     distinct_perc_2 <- rep(0.5, rank_c)
   } else {
     distinct_perc_2 <- sapply(1:rank_c, function(k){
+      if(verbose){
+        if(rank_c < 10) { cat('*') } else if(k %% floor(rank_c/10) == 0) cat('*')
+      } 
       if(sum(abs(basis_list[[k]]$rep1 - basis_list[[k]]$rep2)) < tol){
         .5
       } else {
-        .latent_distinct_perc_2(score_1[,k], score_2[,k], nn_1, nn_2)
+        .latent_distinct_perc_2(score_1[,k], score_2[,k], nn_1, nn_2, verbose = verbose)
       }
     })
   }
    
+  if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
   common_score <- sapply(1:rank_c, function(k){
+    if(verbose){
+      if(rank_c < 10) { cat('*') } else if(k %% floor(rank_c/10) == 0) cat('*')
+    } 
+    
     vec1 <- basis_list[[k]]$rep1; vec2 <- basis_list[[k]]$rep2
     
     if(sum(abs(vec1 - vec2)) < tol){
@@ -54,11 +65,16 @@
 #####################
 
 # thresholded to be between 0.01 and 0.99
-.latent_distinct_perc_2 <- function(score_vec_1, score_vec_2, nn_1, nn_2, tol = 1e-6){
-  stopifnot(length(score_vec_1) == length(score_vec_2))
+.latent_distinct_perc_2 <- function(score_vec_1, score_vec_2, nn_1, nn_2,
+                                    tol = 1e-6, verbose = F){
+  stopifnot(length(score_vec_1) == length(score_vec_2), nrow(nn_1) == nrow(nn_2))
   
-  n <- length(score_vec_1)
+  n <- nrow(nn_1)
   distinct_perc_2 <- sapply(1:n, function(i){
+    if(verbose){
+      if(n < 10) { cat('*') } else if(i %% floor(n/10) == 0) cat('*')
+    } 
+    
     val_1in1 <- stats::sd(score_vec_1[nn_1[i,]])
     val_1in2 <- stats::sd(score_vec_1[nn_2[i,]])
     val_2in1 <- stats::sd(score_vec_2[nn_1[i,]])

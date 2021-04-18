@@ -344,7 +344,7 @@ test_that(".latent_distinct_perc_2 roughly has the correct magnitude", {
     score_vec_3 <- c(rnorm(50, mean = -5), rnorm(50, mean = 0), rnorm(50, mean = 5))
     score_vec_3 <- score_vec_3-mean(score_vec_3); score_vec_3 <- score_vec_3/.l2norm(score_vec_3)
     nn_3 <- do.call(rbind, lapply(1:3, function(x){
-      matrix(sample(1:50, size = 50*k, replace = T)+(x-1)*50, n, k)
+      matrix(sample(1:50, size = 50*k, replace = T)+(x-1)*50, 50, k)
     }))
     res2 <- .latent_distinct_perc_2(score_vec_1, score_vec_3, nn_1, nn_3)
     res3 <- .latent_distinct_perc_2(score_vec_3, score_vec_1, nn_3, nn_1)

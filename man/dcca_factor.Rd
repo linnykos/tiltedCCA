@@ -11,6 +11,7 @@ dcca_factor(
   rank_2,
   meta_clustering = NA,
   num_neigh = max(round(nrow(mat_1)/20), 40),
+  cell_max = nrow(mat_1),
   apply_shrinkage = T,
   fix_distinct_perc = F,
   verbose = T
@@ -28,6 +29,8 @@ dcca_factor(
 \item{meta_clustering}{optional clustering}
 
 \item{num_neigh}{number of neighbors to consider to computed the common percentage}
+
+\item{cell_max}{number of cells used to compute the distinct percentaage}
 
 \item{apply_shrinkage}{boolean}
 

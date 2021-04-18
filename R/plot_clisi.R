@@ -31,7 +31,6 @@
 #' @param ylab_dist distance of \code{ylab} from y-axis
 #' @param main \code{main} parameter
 #' @param cex_text_main \code{cex} for \code{main} parameter
-#' @param ... additional graphical parameters
 #'
 #' @return nothing
 #' @export
@@ -50,8 +49,9 @@ plot_clisi <- function(clisi_1, clisi_2,
                        xlab1 = "Distinct information 1",
                        xlab2 = "Distinct information 2",
                        ylab = "Common information", ylab_dist = 0.5,
-                       main = "cLISI Information", cex_text_main = 1.5, ...){
+                       main = "cLISI Information", cex_text_main = 1.5){
   stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi")
+  stopifnot(col_vec == nrow(clisi_obj$common_clisi$membership_info))
   
   bg_col_vec <- scales::alpha(scales::col2hcl(col_vec, l = l_bg, c = c_bg), alpha = alpha_bg)
   graphics::par(mfrow = c(1,2), mar = par_mar, oma = par_oma)
@@ -89,6 +89,25 @@ plot_clisi <- function(clisi_1, clisi_2,
   
   invisible()
 }
+
+plot_clisi_legend <- function(clisi_obj, col_vec = scales::hue_pal()(nrow(clisi_obj$common_clisi$membership_info)),
+                              percent_coverage = 1, pch = 16, cex_point = 1,
+                              cex_text = 1, text_nudge = 0, xlim = c(0,1), ...){
+  stopifnot(col_vec == nrow(clisi_obj$common_clisi$membership_info))
+  graphics::plot(NA, xlim = xlim, ylim = c(0,1), yaxt = "n", xaxt = "n", bty = "n", ...)
+  
+  # plot the colors
+  n <- length(col_vec)
+  graphics::points(x = rep(0,n), y = seq(1,0,length.out=n), pch = pch, cex = cex_point,
+                   col = col_vec)
+  graphics::text(x = rep(0+text_nudge,n), y = seq(1,0,length.out=n), 
+                 labels = sort(clisi_obj$common_clisi$membership_info$celltype, decreasing = F),
+                 pos = 4)
+  
+  invisible()
+}
+
+##################################
 
 .draw_grid <- function(x_vec, y_vec, xlim, ylim, 
                        col_grid, lty_grid, lwd_grid,

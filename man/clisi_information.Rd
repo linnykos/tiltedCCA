@@ -12,7 +12,7 @@ clisi_information(
   rank_d,
   nn,
   frnn_approx = 0,
-  radius_quantile = 0.5,
+  radius_quantile = 0.9,
   min_subsample_cell = 50,
   verbose = T
 )
