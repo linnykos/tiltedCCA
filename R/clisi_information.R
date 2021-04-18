@@ -17,7 +17,7 @@
 #' @export
 clisi_information <- function(common_mat, distinct_mat,
                               membership_vec, rank_c, rank_d, nn, 
-                              frnn_approx = 0, radius_quantile = 0.5,
+                              frnn_approx = 0, radius_quantile = 0.9,
                               min_subsample_cell = 50,
                               verbose = T){
   
@@ -53,13 +53,13 @@ clisi_information <- function(common_mat, distinct_mat,
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
   c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn,
-                         frnn_approx = frnn_approx)
+                         frnn_approx = frnn_approx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
   d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn,
-                         frnn_approx = frnn_approx)
+                         frnn_approx = frnn_approx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
   e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn,
-                         frnn_approx = frnn_approx)
+                         frnn_approx = frnn_approx, verbose = verbose)
   
   cell_subidx <- .construct_celltype_subsample(membership_vec, min_subsample_cell)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
@@ -137,14 +137,16 @@ clisi_information <- function(common_mat, distinct_mat,
   })
   
   clisi_info <- as.data.frame(t(clisi_info))
-  clisi_info <- cbind(idx = cell_subidx, celltype =  membership_vec[cell_subidx], 
+  clisi_info <- cbind(idx = cell_subidx, celltype = membership_vec[cell_subidx], 
                       clisi_info)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
   res <- sapply(levels(membership_vec), function(x){
     idx <- which(clisi_info$celltype == x)
-    mean_vec <- colMeans(clisi_info[idx,c("len", "in_ratio", "clisi_score")])
-    sd_vec <- apply(clisi_info[idx,c("len", "in_ratio", "clisi_score")], 2, stats::sd)
+    mean_vec <- apply(clisi_info[idx,c("len", "in_ratio", "clisi_score")], 2, stats::median)
+    sd_vec <- apply(clisi_info[idx,c("len", "in_ratio", "clisi_score")], 2, function(x){
+      diff(stats::quantile(x, probs = c(0.25, 0.75)))
+    })
     
     c(mean_len = as.numeric(mean_vec["len"]), 
       mean_ratio = as.numeric(mean_vec["in_ratio"]),
