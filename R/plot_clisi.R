@@ -36,6 +36,7 @@
 #' @export
 plot_clisi <- function(clisi_1, clisi_2,
                        col_vec = scales::hue_pal()(nrow(clisi_1$common_clisi$membership_info)),
+                       cell_max = 5000,
                        par_mar = c(4,2.5,0.5,0.5), par_oma = c(0,0,2,0),
                        asp = T,
                        pch_main = 16, cex_main = 1.5,
@@ -49,10 +50,7 @@ plot_clisi <- function(clisi_1, clisi_2,
                        xlab2 = "Distinct information 2",
                        ylab = "Common information", ylab_dist = 0.5,
                        main = "cLISI Information", cex_text_main = 1.5, ...){
-  stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi",
-            all(dim(clisi_1$common_clisi$cell_info) == dim(clisi_2$common_clisi$cell_info)),
-            all(dim(clisi_1$common_clisi$membership_info) == dim(clisi_2$common_clisi$membership_info)),
-            all(clisi_1$common_clisi$cell_info$celltype == clisi_2$common_clisi$cell_info$celltype))
+  stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi")
   
   bg_col_vec <- scales::alpha(scales::col2hcl(col_vec, l = l_bg, c = c_bg), alpha = alpha_bg)
   graphics::par(mfrow = c(1,2), mar = par_mar, oma = par_oma)
@@ -67,7 +65,7 @@ plot_clisi <- function(clisi_1, clisi_2,
   .draw_grid(x_vec, y_vec, xlim, ylim, col_grid, lty_grid, lwd_grid,
              flip = T)
   
-  .plot_clisi_cell(clisi_1, bg_col_vec, pch_bg, cex_bg, flip = T)
+  .plot_clisi_cell(clisi_1, bg_col_vec, pch_bg, cex_bg, cell_max, flip = T)
   graphics::lines(c(0,-1),c(0,1), col = col_diag, lty = lty_diag, lwd = lwd_diag)
   .plot_clisi_type(clisi_1, col_vec, pch_main, cex_main, flip = T)
   
@@ -80,7 +78,7 @@ plot_clisi <- function(clisi_1, clisi_2,
   .draw_grid(x_vec, y_vec, xlim, ylim, col_grid, lty_grid, lwd_grid,
              flip = F)
   
-  .plot_clisi_cell(clisi_2, bg_col_vec, pch_bg, cex_bg, flip = F)
+  .plot_clisi_cell(clisi_2, bg_col_vec, pch_bg, cex_bg, cell_max, flip = F)
   graphics::lines(c(0,1),c(0,1), col = col_diag, lty = lty_diag, lwd = lwd_diag)
   .plot_clisi_type(clisi_2, col_vec, pch_main, cex_main, flip = F)
   
@@ -106,13 +104,13 @@ plot_clisi <- function(clisi_1, clisi_2,
   invisible()
 }
 
-.plot_clisi_cell <- function(clisi_obj, bg_col_vec, pch_bg, cex_bg, flip){
+.plot_clisi_cell <- function(clisi_obj, bg_col_vec, pch_bg, cex_bg, cell_max, flip){
   stopifnot(class(clisi_obj) == "clisi")
   stopifnot(length(bg_col_vec) == nrow(clisi_obj$common_clisi$membership_info))
   
   s <- ifelse(flip, -1, 1)
   n <- nrow(clisi_obj$common_clisi$cell_info)
-  n_idx <- sample(1:n)
+  n_idx <- sample(1:n, size = min(n, cell_max))
   graphics::points(s*clisi_obj$distinct_clisi$cell_info$clisi_score[n_idx],
                    clisi_obj$common_clisi$cell_info$clisi_score[n_idx],
                    col = bg_col_vec[as.numeric(clisi_obj$common_clisi$cell_info$celltype)][n_idx],
