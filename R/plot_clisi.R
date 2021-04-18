@@ -1,0 +1,110 @@
+# see https://www.r-bloggers.com/2012/06/two-tips-adding-title-for-graph-with-multiple-plots-add-significance-asterix-onto-a-boxplot/
+plot_clisi <- function(clisi_1, clisi_2,
+                       col_vec = scales::hue_pal()(nrow(clisi_1$common_clisi$membership_info)),
+                       par_mar = c(4,2.5,0.5,0.5), par_oma = c(0,0,2,0),
+                       asp = T,
+                       pch_main = 16, cex_main = 1.5,
+                       pch_bg = 16, cex_bg = 1, alpha_bg = 0.5,
+                       l_bg = 95, c_bg = 50,
+                       xlim = c(0,1), ylim = c(0,1), 
+                       gridsize = 5, col_grid = grDevices::rgb(0.8,0.8,0.8),
+                       lty_grid = 3, lwd_grid = 1,
+                       col_diag = "firebrick", lty_diag = 2, lwd_diag = 2,
+                       xlab1 = "Distinct information 1",
+                       xlab2 = "Distinct information 2",
+                       ylab = "Common information", ylab_dist = 0.5,
+                       main = "cLISI Information", cex_text_main = 1.5, ...){
+  stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi",
+            all(dim(clisi_1$common_clisi$cell_info) == dim(clisi_2$common_clisi$cell_info)),
+            all(dim(clisi_1$common_clisi$membership_info) == dim(clisi_2$common_clisi$membership_info)),
+            all(clisi_1$common_clisi$cell_info$celltype == clisi_2$common_clisi$cell_info$celltype))
+  
+  bg_col_vec <- scales::alpha(scales::col2hcl(col_vec, l = l_bg, c = c_bg), alpha = alpha_bg)
+  graphics::par(mfrow = c(1,2), mar = par_mar, oma = par_oma)
+  x_vec <- seq(xlim[1], xlim[2], length.out = gridsize)
+  y_vec <- seq(ylim[1], ylim[2], length.out = gridsize)
+  
+  graphics::plot(NA, xlim = sort(-1*xlim), ylim = ylim, asp = asp, xlab = xlab1,
+                 ylab = "", yaxt = 'n', xaxt = 'n')
+  graphics::title(ylab = ylab, line = ylab_dist)
+  graphics::axis(1, at = -1*x_vec, labels = as.character(round(x_vec, 2)))
+  graphics::axis(4, at = y_vec, labels = NA)
+  .draw_grid(x_vec, y_vec, xlim, ylim, col_grid, lty_grid, lwd_grid,
+             flip = T)
+  
+  .plot_clisi_cell(clisi_1, bg_col_vec, pch_bg, cex_bg, flip = T)
+  graphics::lines(c(0,-1),c(0,1), col = col_diag, lty = lty_diag, lwd = lwd_diag)
+  .plot_clisi_type(clisi_1, col_vec, pch_main, cex_main, flip = T)
+  
+  ####
+  
+  graphics::plot(NA, xlim = xlim, ylim = ylim, asp = asp, xlab = xlab2,
+                 ylab = "", yaxt = 'n', xaxt = 'n')
+  graphics::axis(1, at = x_vec, labels = as.character(round(x_vec, 2)))
+  graphics::axis(2, at = y_vec, labels = as.character(round(y_vec, 2)))
+  .draw_grid(x_vec, y_vec, xlim, ylim, col_grid, lty_grid, lwd_grid,
+             flip = F)
+  
+  .plot_clisi_cell(clisi_2, bg_col_vec, pch_bg, cex_bg, flip = F)
+  graphics::lines(c(0,1),c(0,1), col = col_diag, lty = lty_diag, lwd = lwd_diag)
+  .plot_clisi_type(clisi_2, col_vec, pch_main, cex_main, flip = F)
+  
+  ####
+  
+  graphics::mtext(main, outer = TRUE, cex = cex_text_main)
+  
+  invisible()
+}
+
+.draw_grid <- function(x_vec, y_vec, xlim, ylim, 
+                       col_grid, lty_grid, lwd_grid,
+                       flip){
+  s <- ifelse(flip, -1, 1)
+  for(i in 1:length(x_vec)){
+    graphics::lines(s*rep(x_vec[i],2), ylim, lty = lty_grid, lwd = lwd_grid, col = col_grid)
+  }
+  
+  for(i in 1:length(y_vec)){
+    graphics::lines(s*xlim, rep(y_vec[i],2), lty = lty_grid, lwd = lwd_grid, col = col_grid)
+  }
+  
+  invisible()
+}
+
+.plot_clisi_cell <- function(clisi_obj, bg_col_vec, pch_bg, cex_bg, flip){
+  stopifnot(class(clisi_obj) == "clisi")
+  stopifnot(length(bg_col_vec) == nrow(clisi_obj$common_clisi$membership_info))
+  
+  s <- ifelse(flip, -1, 1)
+  n <- nrow(clisi_obj$common_clisi$cell_info)
+  n_idx <- sample(1:n)
+  graphics::points(s*clisi_obj$distinct_clisi$cell_info$clisi_score[n_idx],
+                   clisi_obj$common_clisi$cell_info$clisi_score[n_idx],
+                   col = bg_col_vec[as.numeric(clisi_obj$common_clisi$cell_info$celltype)][n_idx],
+                   pch = pch_bg, cex = cex_bg)
+  
+  invisible()
+}
+
+.plot_clisi_type <- function(clisi_obj, col_vec, pch_main, cex_main, flip){
+  stopifnot(class(clisi_obj) == "clisi")
+  stopifnot(length(col_vec) == nrow(clisi_obj$common_clisi$membership_info))
+  
+  s <- ifelse(flip, -1, 1)
+  n <- nrow(clisi_obj$common_clisi$membership_info)
+  n_idx <- sample(1:n)
+  graphics::points(s*clisi_obj$distinct_clisi$membership_info$mean_clisi[n_idx],
+                   clisi_obj$common_clisi$membership_info$mean_clisi[n_idx],
+                   col = "black",
+                   pch = pch_main, cex = 1.25*cex_main)
+  graphics::points(s*clisi_obj$distinct_clisi$membership_info$mean_clisi[n_idx],
+                   clisi_obj$common_clisi$membership_info$mean_clisi[n_idx],
+                   col = "white",
+                   pch = pch_main, cex = 1.2*cex_main)
+  graphics::points(s*clisi_obj$distinct_clisi$membership_info$mean_clisi[n_idx],
+                   clisi_obj$common_clisi$membership_info$mean_clisi[n_idx],
+                   col = col_vec[order(clisi_obj$common_clisi$membership_info$celltype, decreasing = F)][n_idx],
+                   pch = pch_main, cex = cex_main)
+  
+  invisible()
+}

@@ -65,7 +65,6 @@ test_that(".clisi works", {
   res1 <- .clisi(g, membership_vec1, cell_subidx1)
   res2 <- .clisi(g, membership_vec2, cell_subidx2)
   
-  expect_true(class(res1) == "clisi")
   expect_true(length(res1) == 2)
   expect_true(all(sort(names(res1)) == sort(c("cell_info", "membership_info"))))
   expect_true(all(sort(names(res1$cell_info)) == sort(c("idx", "celltype", "len", "in_ratio", "clisi_score"))))
@@ -83,22 +82,37 @@ test_that(".clisi works", {
 ## clisi_information is correct
 
 test_that("clisi_information works", {
-  set.seed(1)
-  n <- 100; K <- 3
-  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
-  p1 <- 10; p2 <- 10
-  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
-  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
-  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
-  dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  set.seed(10)
+  n_clust <- 100
+  B_mat1 <- matrix(c(0.9, 0, 0, 
+                     0, 0.9, 0,
+                     0, 0, 0.9), 3, 3, byrow = T)
+  B_mat2 <- matrix(c(0.9, 0.85, 0, 
+                     0.85, 0.9, 0,
+                     0, 0, 1), 3, 3, byrow = T)
+  K <- ncol(B_mat1)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec); true_membership_vec <- membership_vec
+  svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)
+  svd_u_2 <- multiomicCCA::generate_sbm_orthogonal(B_mat2, membership_vec, centered = T)
+  
+  p_1 <- 20; p_2 <- 40
+  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+  svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, K-1)
+  svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, K-1)
+  
+  dat <- multiomicCCA::generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2, 
+                                     noise_val = 0.1)
+  K <- 2
+  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K, verbose = F)
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
-                           membership_vec = as.factor(sample(c(1,2), size = n, replace = T)),
-                           rank_c = p1, rank_d = p1, nn = 10, frnn_approx = 0, 
-                           verbose = F)
+                                  membership_vec = as.factor(membership_vec),
+                                  rank_c = K, rank_d = K, nn = 50, frnn_approx = 0, 
+                                  verbose = F)
   
+  expect_true(class(res) == "clisi")
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_clisi", "distinct_clisi", "everything_clisi"))))
 })

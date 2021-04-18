@@ -69,8 +69,8 @@ clisi_information <- function(common_mat, distinct_mat,
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- everything"))
   e_score <- .clisi(e_g, membership_vec, cell_subidx, verbose = verbose)
   
-  list(common_clisi = c_score, distinct_clisi = d_score,
-       everything_clisi = e_score)
+  structure(list(common_clisi = c_score, distinct_clisi = d_score,
+       everything_clisi = e_score), class = "clisi")
 }
 
 #############
@@ -143,6 +143,5 @@ clisi_information <- function(common_mat, distinct_mat,
   res <- as.data.frame(t(res))
   res <- cbind(celltype = levels(membership_vec), res)
   
-  structure(list(cell_info = clisi_info, membership_info = res),
-            class = "clisi")
+  list(cell_info = clisi_info, membership_info = res)
 }

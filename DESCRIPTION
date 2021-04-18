@@ -16,7 +16,8 @@ Imports:
     irlba,
     RANN,
     igraph,
-    dbscan
+    dbscan,
+    scales
 Suggests:
     testthat
 RoxygenNote: 7.1.1
