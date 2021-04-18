@@ -50,7 +50,8 @@ plot_clisi <- function(clisi_1, clisi_2,
                        xlab2 = "Distinct information 2",
                        ylab = "Common information", ylab_dist = 0.5,
                        main = "cLISI Information", cex_text_main = 1.5){
-  stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi")
+  stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi",
+            all(dim(clisi_1$common_clisi$membership_info) == dim(clisi_2$common_clisi$membership_info)))
   stopifnot(length(col_vec) == nrow(clisi_1$common_clisi$membership_info))
   
   bg_col_vec <- scales::alpha(scales::col2hcl(col_vec, l = l_bg, c = c_bg), alpha = alpha_bg)
@@ -90,11 +91,28 @@ plot_clisi <- function(clisi_1, clisi_2,
   invisible()
 }
 
+#' Plot the cLISI legend
+#'
+#' @param clisi_obj output of \code{clisi_information} 
+#' @param col_vec vector of colors
+#' @param percent_coverage numeric
+#' @param pch \code{pch} parameter
+#' @param cex_point \code{cex} parameter for points
+#' @param cex_text \code{cex} parameter for the text
+#' @param text_nudge x-axis offset for the text
+#' @param xlim \code{xlim} parameter for the plot
+#' @param ... additional graphical parameters
+#'
+#' @return nothing
+#' @export
 plot_clisi_legend <- function(clisi_obj, col_vec = scales::hue_pal()(nrow(clisi_obj$common_clisi$membership_info)),
                               percent_coverage = 1, pch = 16, cex_point = 1,
                               cex_text = 1, text_nudge = 0, xlim = c(0,1), ...){
   stopifnot(length(col_vec) == nrow(clisi_obj$common_clisi$membership_info))
-  graphics::plot(NA, xlim = xlim, ylim = c(0,1), yaxt = "n", xaxt = "n", bty = "n", ...)
+  
+  graphics::par(mar = c(0.5, 0.5, 0.5, 0.5))
+  graphics::plot(NA, xlim = xlim, ylim = c(0,1), yaxt = "n", xaxt = "n", bty = "n", 
+                 xlab = "", ylab = "", ...)
   
   # plot the colors
   n <- length(col_vec)

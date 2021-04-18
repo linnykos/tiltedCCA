@@ -85,7 +85,7 @@ clisi_information <- function(common_mat, distinct_mat,
   res <- dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)$id
   
   idx <- which(sapply(res, length) < nn)
-  if(verbose) print(paste0(Sys.time(),": cLISI: ", idx, " cells with too few neighbors"))
+  if(verbose) print(paste0(Sys.time(),": cLISI: ", length(idx), " cells with too few neighbors"))
   if(length(idx) > 0){
     res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1)
     

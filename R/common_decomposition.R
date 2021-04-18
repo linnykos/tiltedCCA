@@ -25,7 +25,7 @@
       if(sum(abs(basis_list[[k]]$rep1 - basis_list[[k]]$rep2)) < tol){
         .5
       } else {
-        .latent_distinct_perc_2(score_1[,k], score_2[,k], nn_1, nn_2, verbose = verbose)
+        .latent_distinct_perc_2(score_1[,k], score_2[,k], nn_1, nn_2, verbose = F)
       }
     })
   }
