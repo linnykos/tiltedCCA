@@ -1,4 +1,39 @@
-# see https://www.r-bloggers.com/2012/06/two-tips-adding-title-for-graph-with-multiple-plots-add-significance-asterix-onto-a-boxplot/
+#' Making the plot for cLISI
+#' 
+#' See https://www.r-bloggers.com/2012/06/two-tips-adding-title-for-graph-with-multiple-plots-add-significance-asterix-onto-a-boxplot/
+#'
+#' @param clisi_1 output of \code{clisi_information} on one Modality
+#' @param clisi_2 output of \code{clisi_information} on the other Modality
+#' @param col_vec vector of colors
+#' @param par_mar \code{mar} parameter for \code{par}
+#' @param par_oma \code{oma} parameter for \code{par}
+#' @param asp graphical \code{asp} parameter
+#' @param pch_main \code{pch} parameter for cell-types
+#' @param cex_main \code{cex} parameter for cell-types
+#' @param pch_bg \code{pch} parameter for individual cells
+#' @param cex_bg \code{cex} parameter for individual cells
+#' @param alpha_bg \code{alpha} parameter (color) for individual cells
+#' @param l_bg \code{l} parameter (luminosity) for individual cells
+#' @param c_bg \code{c} parameter (chroma, i.e., brightness) for individual cells
+#' @param xlim \code{xlim} graphical parameter
+#' @param ylim \code{ylim} graphical parameter
+#' @param gridsize number of grid ticks
+#' @param col_grid \code{col} for grid
+#' @param lty_grid \code{lty} for grid
+#' @param lwd_grid \code{lwd} for grid
+#' @param col_diag \code{col} for diagonal line
+#' @param lty_diag \code{lty} for diagonal line
+#' @param lwd_diag \code{lwd} for diagonal line
+#' @param xlab1 \code{xlab} for Modality 1
+#' @param xlab2 \code{xlab} for Modality 2
+#' @param ylab \code{ylab} for the shared modality
+#' @param ylab_dist distance of \code{ylab} from y-axis
+#' @param main \code{main} parameter
+#' @param cex_text_main \code{cex} for \code{main} parameter
+#' @param ... additional graphical parameters
+#'
+#' @return nothing
+#' @export
 plot_clisi <- function(clisi_1, clisi_2,
                        col_vec = scales::hue_pal()(nrow(clisi_1$common_clisi$membership_info)),
                        par_mar = c(4,2.5,0.5,0.5), par_oma = c(0,0,2,0),
