@@ -51,7 +51,7 @@ plot_clisi <- function(clisi_1, clisi_2,
                        ylab = "Common information", ylab_dist = 0.5,
                        main = "cLISI Information", cex_text_main = 1.5){
   stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi")
-  stopifnot(col_vec == nrow(clisi_obj$common_clisi$membership_info))
+  stopifnot(length(col_vec) == nrow(clisi_1$common_clisi$membership_info))
   
   bg_col_vec <- scales::alpha(scales::col2hcl(col_vec, l = l_bg, c = c_bg), alpha = alpha_bg)
   graphics::par(mfrow = c(1,2), mar = par_mar, oma = par_oma)
@@ -93,7 +93,7 @@ plot_clisi <- function(clisi_1, clisi_2,
 plot_clisi_legend <- function(clisi_obj, col_vec = scales::hue_pal()(nrow(clisi_obj$common_clisi$membership_info)),
                               percent_coverage = 1, pch = 16, cex_point = 1,
                               cex_text = 1, text_nudge = 0, xlim = c(0,1), ...){
-  stopifnot(col_vec == nrow(clisi_obj$common_clisi$membership_info))
+  stopifnot(length(col_vec) == nrow(clisi_obj$common_clisi$membership_info))
   graphics::plot(NA, xlim = xlim, ylim = c(0,1), yaxt = "n", xaxt = "n", bty = "n", ...)
   
   # plot the colors
