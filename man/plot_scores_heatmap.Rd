@@ -4,7 +4,13 @@
 \alias{plot_scores_heatmap}
 \title{Side-by-side plot of the canonical scores as heatmaps}
 \usage{
-plot_scores_heatmap(obj, membership_vec = NA, num_col = 10, luminosity = F)
+plot_scores_heatmap(
+  obj,
+  membership_vec = NA,
+  num_col = 10,
+  log_scale = F,
+  luminosity = F
+)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
@@ -12,6 +18,8 @@ plot_scores_heatmap(obj, membership_vec = NA, num_col = 10, luminosity = F)
 \item{membership_vec}{factor vector}
 
 \item{num_col}{positive integers for number of distinct colors}
+
+\item{log_scale}{boolean}
 
 \item{luminosity}{boolean}
 }

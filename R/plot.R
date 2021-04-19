@@ -91,11 +91,13 @@ plot_summary <- function(obj, xlab = "Latent dimension",
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
 #' @param membership_vec factor vector
 #' @param col_vec vector of colors
+#' @param xlim custom \code{xlim} graphical argument
 #' @param decomposition boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(levels(membership_vec))), decomposition = F){
+plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(levels(membership_vec))), 
+                        xlim = NA, decomposition = F){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score))
   
   if(decomposition){
@@ -122,7 +124,8 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
   }
  
   n <- nrow(score_list[[1]])
-  max_col <- max(sapply(score_list, ncol)); xlim <- range(do.call(cbind, score_list))
+  max_col <- max(sapply(score_list, ncol))
+  if(all(is.na(xlim))) xlim <- range(do.call(cbind, score_list))
   
   if(decomposition){
     main_vec <- c("Common", "Distinct 1", "Distinct 2")
@@ -150,14 +153,23 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
 #' @param membership_vec factor vector
 #' @param num_col positive integers for number of distinct colors
+#' @param log_scale boolean
 #' @param luminosity boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosity = F){
+plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, 
+                                log_scale = F, luminosity = F){
   
   n <- nrow(obj$common_score)
-  zlim <- range(c(obj$common_score, obj$distinct_score_1, obj$distinct_score_2))
+  common_score <- obj$common_score
+  distinct_score_1 <- obj$distinct_score_1; distinct_score_2 <- obj$distinct_score_2
+  if(log_scale){
+    common_score <- abs(log(common_score+1))*sign(common_score)
+    distinct_score_1 <- abs(log(distinct_score_1+1))*sign(distinct_score_1)
+    distinct_score_2 <- abs(log(distinct_score_2+1))*sign(distinct_score_2)
+  } 
+  zlim <- range(c(common_score, distinct_score_1, distinct_score_2))
   
   # construct colors. green is negative
   max_val <- max(abs(zlim))
@@ -177,7 +189,7 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
   col_vec <- c(col_vec_neg, "white", col_vec_pos)
   
   if(!all(is.na(membership_vec))){
-    stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score))
+    stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_score))
     
     membership_vec <- as.numeric(membership_vec) ## convert to integers
     idx <- order(membership_vec, decreasing = F)
@@ -196,15 +208,15 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
   }
   
   graphics::par(mfrow = c(1,3))
-  graphics::image(.rotate(obj$common_score[idx,,drop = F]), main = "Common score",
+  graphics::image(.rotate(common_score[idx,,drop = F]), main = "Common score",
                   col = col_vec, breaks = break_vec)
   line_func()
   
-  graphics::image(.rotate(obj$distinct_score_1[idx,,drop = F]), main = "Distinct score 1",
+  graphics::image(.rotate(distinct_score_1[idx,,drop = F]), main = "Distinct score 1",
                   col = col_vec, breaks = break_vec)
   line_func()
   
-  graphics::image(.rotate(obj$distinct_score_2[idx,,drop = F]), main = "Distinct score 2",
+  graphics::image(.rotate(distinct_score_2[idx,,drop = F]), main = "Distinct score 2",
                   col = col_vec, breaks = break_vec)
   line_func()
   

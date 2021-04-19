@@ -8,6 +8,7 @@ plot_scores(
   obj,
   membership_vec,
   col_vec = (scales::hue_pal())(length(levels(membership_vec))),
+  xlim = NA,
   decomposition = F
 )
 }
@@ -17,6 +18,8 @@ plot_scores(
 \item{membership_vec}{factor vector}
 
 \item{col_vec}{vector of colors}
+
+\item{xlim}{custom \code{xlim} graphical argument}
 
 \item{decomposition}{boolean}
 }
