@@ -27,47 +27,48 @@ clisi_information <- function(common_mat, distinct_mat,
   stopifnot(frnn_approx >= 0, frnn_approx <= 1)
   
   everything_mat <- common_mat + distinct_mat
+  cell_subidx <- .construct_celltype_subsample(membership_vec, min_subsample_cell)
   
   # compute the 3 matrices
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- common"))
-  tmp <- .svd_truncated(common_mat, K = rank_c, 
+  tmp <- .svd_truncated(common_mat[cell_subidx,,drop = F], K = rank_c, 
                         symmetric = F, rescale = F, K_full_rank = T)
   c_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- distinct"))
-  tmp <- .svd_truncated(distinct_mat, K = rank_d, 
+  tmp <- .svd_truncated(distinct_mat[cell_subidx,,drop = F], K = rank_d, 
                         symmetric = F, rescale = F, K_full_rank = T)
   d_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- everything"))
-  tmp <- .svd_truncated(everything_mat, K = rank_d, 
+  tmp <- .svd_truncated(everything_mat[cell_subidx,,drop = F], K = rank_d, 
                         symmetric = F, rescale = F, K_full_rank = T)
   e_embedding <- .mult_mat_vec(tmp$u, tmp$d)
-  
+
   # compute the radius
+  n <- length(cell_subidx)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
-  c_rad <- .compute_radius(c_embedding, nn, radius_quantile)
+  c_rad <- .compute_radius(c_embedding, nn, radius_quantile, 1:n)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
-  d_rad <- .compute_radius(d_embedding, nn, radius_quantile)
+  d_rad <- .compute_radius(d_embedding, nn, radius_quantile, 1:n)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- everything"))
-  e_rad <- .compute_radius(e_embedding, nn, radius_quantile)
+  e_rad <- .compute_radius(e_embedding, nn, radius_quantile, 1:n)
   sub_rad <- max(c_rad, d_rad)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
-  c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn,
+  c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
-  d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn,
+  d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
-  e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn,
+  e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   
-  cell_subidx <- .construct_celltype_subsample(membership_vec, min_subsample_cell)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
-  c_score <- .clisi(c_g, membership_vec, cell_subidx, verbose = verbose)
+  c_score <- .clisi(c_g, membership_vec, 1:n, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct"))
-  d_score <- .clisi(d_g, membership_vec, cell_subidx, verbose = verbose)
+  d_score <- .clisi(d_g, membership_vec, 1:n, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- everything"))
-  e_score <- .clisi(e_g, membership_vec, cell_subidx, verbose = verbose)
+  e_score <- .clisi(e_g, membership_vec, 1:n, verbose = verbose)
   
   structure(list(common_clisi = c_score, distinct_clisi = d_score,
        everything_clisi = e_score), class = "clisi")
@@ -75,8 +76,8 @@ clisi_information <- function(common_mat, distinct_mat,
 
 #############
 
-.compute_radius <- function(mat, nn, radius_quantile){
-  res <- RANN::nn2(mat, k = nn)
+.compute_radius <- function(mat, nn, radius_quantile, cell_subidx){
+  res <- RANN::nn2(mat[cell_subidx,,drop = F], k = nn)
   as.numeric(stats::quantile(res$nn.dists[,nn], probs = radius_quantile))[1]
 }
 
@@ -87,7 +88,7 @@ clisi_information <- function(common_mat, distinct_mat,
   idx <- which(sapply(res, length) < nn)
   if(verbose) print(paste0(Sys.time(),": cLISI: ", length(idx), " cells with too few neighbors"))
   if(length(idx) > 0){
-    res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1)
+    res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1, eps = frnn_approx)
     
     if(verbose) print(paste0(Sys.time(),": cLISI: Plugging in kNN neighbors"))
     for(i in 1:length(idx)){

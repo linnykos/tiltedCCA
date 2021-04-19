@@ -180,12 +180,13 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
 #' If \code{FALSE}, plot the UMAP embedding.
 #' @param only_embedding boolean
 #' @param main_addition additional string to append to main of each plot
+#' @param verbose boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
 plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, 
                             add_noise = T, pca = F, only_embedding = F,
-                            main_addition = ""){
+                            main_addition = "", verbose = F){
   stopifnot(data_1 | data_2)
   if(pca){
     label1 <- "PCA 1"; label2 <- "PCA 2"
@@ -234,11 +235,13 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
                      xlab = label1, ylab = label2, xlim = xlim, ylim = ylim)
     }
   } else {
+    if(verbose) print(Sys.time(),": Plotting: Preparing objects")
     prep_obj <- .prepare_umap_embedding(obj)
     embedding <- vector("list", 3)
     
     graphics::par(mfrow = c(1,3))
     set.seed(10)
+    if(verbose) print(Sys.time(),": Plotting: UMAP for common matrix")
     embedding[[1]] <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F,
                                    add_noise = add_noise, only_embedding = T)
     if(!only_embedding) graphics::plot(embedding[[1]][n_idx,1], embedding[[1]][n_idx,2], asp = T, pch = 16, 
@@ -246,6 +249,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
                    xlab = label1, ylab = label2)
     
     set.seed(10)
+    if(verbose) print(Sys.time(),": Plotting: UMAP for distinct matrix")
     embedding[[2]] <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2,
                                    add_noise = add_noise, only_embedding = T)
     if(!only_embedding) graphics::plot(embedding[[2]][n_idx,1], embedding[[2]][n_idx,2], asp = T, pch = 16, 
@@ -253,6 +257,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
                    xlab = label1, ylab = label2)
     
     set.seed(10)
+    if(verbose) print(Sys.time(),": Plotting: UMAP for entire matrix")
     embedding[[3]] <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2,
                                    add_noise = add_noise, only_embedding = T)
     if(!only_embedding) graphics::plot(embedding[[3]][n_idx,1], embedding[[3]][n_idx,2], asp = T, pch = 16, 

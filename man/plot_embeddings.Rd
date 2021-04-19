@@ -12,7 +12,8 @@ plot_embeddings(
   add_noise = T,
   pca = F,
   only_embedding = F,
-  main_addition = ""
+  main_addition = "",
+  verbose = F
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ If \code{FALSE}, plot the UMAP embedding.}
 \item{only_embedding}{boolean}
 
 \item{main_addition}{additional string to append to main of each plot}
+
+\item{verbose}{boolean}
 }
 \value{
 shows a plot but returns nothing

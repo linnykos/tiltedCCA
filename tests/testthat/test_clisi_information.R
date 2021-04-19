@@ -5,7 +5,13 @@ context("Test clisi information")
 test_that(".compute_radius works", {
   set.seed(10)
   mat <- matrix(rnorm(100), 20, 5)
-  res <- .compute_radius(mat, 2, radius_quantile = 0.95)
+  res <- .compute_radius(mat, 2, radius_quantile = 0.95, cell_subidx = 1:20)
+  
+  expect_true(length(res) == 1)
+  expect_true(is.numeric(res))
+  expect_true(res >= 0)
+  
+  res <- .compute_radius(mat, 2, radius_quantile = 0.95, cell_subidx = sample(1:20,10))
   
   expect_true(length(res) == 1)
   expect_true(is.numeric(res))
@@ -18,7 +24,7 @@ test_that(".compute_radius increases as neighbor increases", {
   mat <- matrix(rnorm(n*p), n, p)
   k_vec <- 5:50
   rad_vec <- sapply(k_vec, function(k){
-    .compute_radius(mat, k, radius_quantile = 0.95)
+    .compute_radius(mat, k, radius_quantile = 0.95, cell_subidx = 1:n)
   })
   
   expect_true(all(diff(rad_vec) >= 0))
@@ -32,7 +38,7 @@ test_that(".construct_frnn works", {
   set.seed(10)
   n <- 100; p <- 2
   mat <- matrix(rnorm(n*p), n, p)
-  rad <- .compute_radius(mat, 5, radius_quantile = 0.5)
+  rad <- .compute_radius(mat, 5, radius_quantile = 0.5, cell_subidx = 1:n)
   res <- .construct_frnn(mat, radius = rad, nn = 5, frnn_approx = 0)
   
   expect_true(is.list(res))
