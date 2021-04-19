@@ -9,7 +9,9 @@
 #' for the frNN graph
 #' @param frnn_approx small non-negative number
 #' @param radius_quantile value between 0 and 1
-#' @param min_subsample_cell positive integer, used for determining number of cells to 
+#' @param max_subsample_frnn positive integer, used for determining number of cells to 
+#' compute cLISI for
+#' @param max_subsample_clisi positive integer, used for determining number of cells to 
 #' compute cLISI for
 #' @param verbose boolean
 #'
@@ -18,33 +20,41 @@
 clisi_information <- function(common_mat, distinct_mat,
                               membership_vec, rank_c, rank_d, nn, 
                               frnn_approx = 0, radius_quantile = 0.9,
-                              min_subsample_cell = 50,
+                              max_subsample_frnn = nrow(common_mat),
+                              max_subsample_clisi = 50,
                               verbose = T){
   
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_mat))
   stopifnot(all(dim(common_mat) == dim(distinct_mat)),
             rank_c <= ncol(common_mat), rank_d <= ncol(distinct_mat))
-  stopifnot(frnn_approx >= 0, frnn_approx <= 1)
+  stopifnot(frnn_approx >= 0, frnn_approx <= 1, max_subsample_clisi <= max_subsample_frnn)
   
   everything_mat <- common_mat + distinct_mat
-  cell_subidx <- .construct_celltype_subsample(membership_vec, min_subsample_cell)
   
   # compute the 3 matrices
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- common"))
-  tmp <- .svd_truncated(common_mat[cell_subidx,,drop = F], K = rank_c, 
+  tmp <- .svd_truncated(common_mat, K = rank_c, 
                         symmetric = F, rescale = F, K_full_rank = T)
   c_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- distinct"))
-  tmp <- .svd_truncated(distinct_mat[cell_subidx,,drop = F], K = rank_d, 
+  tmp <- .svd_truncated(distinct_mat, K = rank_d, 
                         symmetric = F, rescale = F, K_full_rank = T)
   d_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- everything"))
-  tmp <- .svd_truncated(everything_mat[cell_subidx,,drop = F], K = rank_d, 
+  tmp <- .svd_truncated(everything_mat, K = rank_d, 
                         symmetric = F, rescale = F, K_full_rank = T)
   e_embedding <- .mult_mat_vec(tmp$u, tmp$d)
 
   # compute the radius
-  n <- length(cell_subidx)
+  # [[note to self: the code below is quite messy -- fix it when i finalized the method]]
+  cell_subidx1 <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
+  n <- length(cell_subidx1)
+  if(n < nrow(c_embedding)){
+    c_embedding <- c_embedding[cell_subidx1,,drop = F]
+    d_embedding <- d_embedding[cell_subidx1,,drop = F]
+    e_embedding <- e_embedding[cell_subidx1,,drop = F]
+    membership_vec <- membership_vec[cell_subidx1]
+  }
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
   c_rad <- .compute_radius(c_embedding, nn, radius_quantile, 1:n)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
@@ -63,12 +73,13 @@ clisi_information <- function(common_mat, distinct_mat,
   e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   
+  cell_subidx2 <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
-  c_score <- .clisi(c_g, membership_vec, 1:n, verbose = verbose)
+  c_score <- .clisi(c_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct"))
-  d_score <- .clisi(d_g, membership_vec, 1:n, verbose = verbose)
+  d_score <- .clisi(d_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- everything"))
-  e_score <- .clisi(e_g, membership_vec, 1:n, verbose = verbose)
+  e_score <- .clisi(e_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
   
   structure(list(common_clisi = c_score, distinct_clisi = d_score,
        everything_clisi = e_score), class = "clisi")
@@ -112,8 +123,12 @@ clisi_information <- function(common_mat, distinct_mat,
   sort(unlist(res))
 }
 
-.clisi <- function(g, membership_vec, cell_subidx, verbose = F){
-  stopifnot(is.list(g), is.factor(membership_vec))
+.clisi <- function(g, membership_vec, cell_subidx, full_idx, verbose = F){
+  stopifnot(is.list(g), is.factor(membership_vec), length(g) == length(full_idx))
+  stopifnot(all(full_idx %% 1 == 0), all(full_idx > 0), length(full_idx) == length(unique(full_idx)))
+  stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), length(cell_subidx) == length(unique(cell_subidx)),
+            max(cell_subidx) <= length(full_idx))
+  
   
   n <- length(g)
   bg_prop <- as.numeric(table(membership_vec))/n
@@ -138,7 +153,7 @@ clisi_information <- function(common_mat, distinct_mat,
   })
   
   clisi_info <- as.data.frame(t(clisi_info))
-  clisi_info <- cbind(idx = cell_subidx, celltype = membership_vec[cell_subidx], 
+  clisi_info <- cbind(idx = full_idx[cell_subidx], celltype = membership_vec[cell_subidx], 
                       clisi_info)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))

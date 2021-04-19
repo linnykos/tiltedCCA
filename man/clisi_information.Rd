@@ -13,7 +13,8 @@ clisi_information(
   nn,
   frnn_approx = 0,
   radius_quantile = 0.9,
-  min_subsample_cell = 50,
+  max_subsample_frnn = nrow(common_mat),
+  max_subsample_clisi = 50,
   verbose = T
 )
 }
@@ -35,7 +36,10 @@ for the frNN graph}
 
 \item{radius_quantile}{value between 0 and 1}
 
-\item{min_subsample_cell}{positive integer, used for determining number of cells to 
+\item{max_subsample_frnn}{positive integer, used for determining number of cells to 
+compute cLISI for}
+
+\item{max_subsample_clisi}{positive integer, used for determining number of cells to 
 compute cLISI for}
 
 \item{verbose}{boolean}
