@@ -122,7 +122,7 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
   }
  
   n <- nrow(score_list[[1]])
-  max_col <- max(sapply(score_list, ncol)); xlim <- range(do.call(rbind, score_list))
+  max_col <- max(sapply(score_list, ncol)); xlim <- range(do.call(cbind, score_list))
   
   if(decomposition){
     main_vec <- c("Common", "Distinct 1", "Distinct 2")
