@@ -51,12 +51,15 @@ plot_heatmat <- function(dat, luminosity = F, asp = nrow(dat)/ncol(dat),
 #' Side-by-side plot of the canonical scores, colored by membership
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
-#' @param membership_vec integer vector
+#' @param membership_vec factor vector
+#' @param col_vec vector of colors
 #' @param decomposition boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores <- function(obj, membership_vec, decomposition = F){
+plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(levels(membership_vec))), decomposition = F){
+  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score))
+  
   if(decomposition){
     score_list <- vector("list", 3)
     
@@ -95,7 +98,8 @@ plot_scores <- function(obj, membership_vec, decomposition = F){
     graphics::lines(rep(0, 2), max_col*c(-10,10), col = "red", lty = 2)
     
     for(i in 1:ncol(score_list[[k]])){
-      graphics::points(x = score_list[[k]][,i], y = stats::runif(n, min = i-.2, max = i+.2), col = membership_vec, pch = 16)
+      graphics::points(x = score_list[[k]][,i], y = stats::runif(n, min = i-.2, max = i+.2), 
+                       col = col_vec[as.numeric(membership_vec)], pch = 16)
     }
   }
   
@@ -106,13 +110,14 @@ plot_scores <- function(obj, membership_vec, decomposition = F){
 #' Side-by-side plot of the canonical scores as heatmaps
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
-#' @param membership_vec integer vector
+#' @param membership_vec factor vector
 #' @param num_col positive integers for number of distinct colors
 #' @param luminosity boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
 plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosity = F){
+  
   n <- nrow(obj$common_score)
   zlim <- range(c(obj$common_score, obj$distinct_score_1, obj$distinct_score_2))
   
@@ -134,9 +139,9 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
   col_vec <- c(col_vec_neg, "white", col_vec_pos)
   
   if(!all(is.na(membership_vec))){
-    stopifnot(all(membership_vec %% 1 == 0), all(membership_vec > 0),
-              max(membership_vec) == length(unique(membership_vec)))
+    stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score))
     
+    membership_vec <- as.numeric(membership_vec) ## convert to integers
     idx <- order(membership_vec, decreasing = F)
     breakpoints <- 1-which(abs(diff(sort(membership_vec, decreasing = F))) >= 1e-6)/n
   } else {
@@ -171,11 +176,12 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
 #' Side-by-side UMAPs of the common, distinct and everything matrix
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
-#' @param membership_vec integer vector
+#' @param membership_vec factor vector
 #' @param data_1 boolean
 #' @param data_2 boolean
 #' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
 #' distinct "on the same scale" by adding appropriately-scaled Gaussian noise
+#' @param col_vec vector of colors
 #' @param pca boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 #' If \code{FALSE}, plot the UMAP embedding.
 #' @param only_embedding boolean
@@ -185,8 +191,12 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, luminosi
 #' @return shows a plot but returns nothing
 #' @export
 plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T, 
-                            add_noise = T, pca = F, only_embedding = F,
+                            add_noise = T, 
+                            col_vec = scales::hue_pal()(length(levels(membership_vec))),
+                            pca = F, only_embedding = F,
                             main_addition = "", verbose = F){
+  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score))
+  
   stopifnot(data_1 | data_2)
   if(pca){
     label1 <- "PCA 1"; label2 <- "PCA 2"
@@ -231,37 +241,38 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
     
     graphics::par(mfrow = c(1,3))
     for(i in 1:3){
-      graphics::plot(embedding[[i]][n_idx,1], embedding[[i]][n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = paste0(main_vec[i], main_addition),
+      graphics::plot(embedding[[i]][n_idx,1], embedding[[i]][n_idx,2], asp = T, pch = 16, 
+                     col = col_vec[as.numeric(membership_vec)][n_idx], main = paste0(main_vec[i], main_addition),
                      xlab = label1, ylab = label2, xlim = xlim, ylim = ylim)
     }
   } else {
-    if(verbose) print(Sys.time(),": Plotting: Preparing objects")
+    if(verbose) print(paste0(Sys.time(),": Plotting: Preparing objects"))
     prep_obj <- .prepare_umap_embedding(obj)
     embedding <- vector("list", 3)
     
     graphics::par(mfrow = c(1,3))
     set.seed(10)
-    if(verbose) print(Sys.time(),": Plotting: UMAP for common matrix")
+    if(verbose) print(paste0(Sys.time(),": Plotting: UMAP for common matrix"))
     embedding[[1]] <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = F, distinct_2 = F,
                                    add_noise = add_noise, only_embedding = T)
     if(!only_embedding) graphics::plot(embedding[[1]][n_idx,1], embedding[[1]][n_idx,2], asp = T, pch = 16, 
-                   col = membership_vec[n_idx], main = paste0("Common view", main_addition),
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = paste0("Common view", main_addition),
                    xlab = label1, ylab = label2)
     
     set.seed(10)
-    if(verbose) print(Sys.time(),": Plotting: UMAP for distinct matrix")
+    if(verbose) print(paste0(Sys.time(),": Plotting: UMAP for distinct matrix"))
     embedding[[2]] <- .extract_umap_embedding(prep_obj, common_1 = F, common_2 = F, distinct_1 = data_1, distinct_2 = data_2,
                                    add_noise = add_noise, only_embedding = T)
     if(!only_embedding) graphics::plot(embedding[[2]][n_idx,1], embedding[[2]][n_idx,2], asp = T, pch = 16, 
-                   col = membership_vec[n_idx], main = paste0("Distinct view", main_addition),
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = paste0("Distinct view", main_addition),
                    xlab = label1, ylab = label2)
     
     set.seed(10)
-    if(verbose) print(Sys.time(),": Plotting: UMAP for entire matrix")
+    if(verbose) print(paste0(Sys.time(),": Plotting: UMAP for entire matrix"))
     embedding[[3]] <- .extract_umap_embedding(prep_obj, common_1 = data_1, common_2 = data_2, distinct_1 = data_1, distinct_2 = data_2,
                                    add_noise = add_noise, only_embedding = T)
     if(!only_embedding) graphics::plot(embedding[[3]][n_idx,1], embedding[[3]][n_idx,2], asp = T, pch = 16, 
-                   col = membership_vec[n_idx], main = paste0("Entire view", main_addition),
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = paste0("Entire view", main_addition),
                    xlab = label1, ylab = label2)
     
     if(only_embedding) return(embedding)
@@ -273,7 +284,8 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
 #' Side-by-side UMAPs of the data
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
-#' @param membership_vec integer vector
+#' @param membership_vec factor vector
+#' @param col_vec vector of colors
 #' @param observed boolean. This should \code{TRUE} if \code{obj} is the output of
 #' \code{generate_data}, and you want to plot the "observed" data.
 #' Otherwise, this is \code{FALSE} by default, meaning that if \code{obj} is the output of
@@ -285,7 +297,10 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_data <- function(obj, membership_vec, observed = F, pca = F){
+plot_data <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(levels(membership_vec))), 
+                      observed = F, pca = F){
+  stopifnot(is.factor(membership_vec))
+  
   if(pca){
     label1 <- "PCA 1"; label2 <- "PCA 2"
   } else {
@@ -312,9 +327,11 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
     })
     
     graphics::par(mfrow = c(1,2))
-    graphics::plot(embedding[[1]][n_idx,1], embedding[[1]][n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = "Obs. dataset 1",
+    graphics::plot(embedding[[1]][n_idx,1], embedding[[1]][n_idx,2], asp = T, pch = 16, 
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = "Obs. dataset 1",
          xlab = label1, ylab = label2)
-    graphics::plot(embedding[[2]][n_idx,1], embedding[[2]][n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = "Obs. dataset 2",
+    graphics::plot(embedding[[2]][n_idx,1], embedding[[2]][n_idx,2], asp = T, pch = 16, 
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = "Obs. dataset 2",
          xlab = label1, ylab = label2)
     
   } else {
@@ -329,7 +346,8 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
       tmp <- .extract_umap_embedding(prep_list, common_1 = T, common_2 = F, distinct_1 = T, distinct_2 = F, 
                                      add_noise = F, only_embedding = T)
     }
-    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = "Dataset 1",
+    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, 
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = "Dataset 1",
          xlab = label1, ylab = label2)
     
     if(pca){
@@ -339,7 +357,8 @@ plot_data <- function(obj, membership_vec, observed = F, pca = F){
       tmp <- .extract_umap_embedding(prep_list, common_1 = F, common_2 = T, distinct_1 = F, distinct_2 = T, 
                                      add_noise = F, only_embedding = T)
     }
-    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, col = membership_vec[n_idx], main = "Dataset 2",
+    graphics::plot(tmp[n_idx,1], tmp[n_idx,2], asp = T, pch = 16, 
+                   col = col_vec[as.numeric(membership_vec)][n_idx], main = "Dataset 2",
          xlab = label1, ylab = label2)
   }
   

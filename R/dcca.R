@@ -26,7 +26,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
   n <- nrow(mat_1)
-  if(verbose) print(Sys.time(),": D-CCA: Rescaling matrices")
+  if(verbose) print(paste0(Sys.time(),": D-CCA: Rescaling matrices"))
   mat_1 <- scale(mat_1, center = T, scale = F)
   mat_2 <- scale(mat_2, center = T, scale = F)
   

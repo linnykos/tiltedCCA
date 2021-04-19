@@ -9,7 +9,7 @@ plot_scores_heatmap(obj, membership_vec = NA, num_col = 10, luminosity = F)
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
 
-\item{membership_vec}{integer vector}
+\item{membership_vec}{factor vector}
 
 \item{num_col}{positive integers for number of distinct colors}
 

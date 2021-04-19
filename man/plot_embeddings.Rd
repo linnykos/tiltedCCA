@@ -10,6 +10,7 @@ plot_embeddings(
   data_1 = T,
   data_2 = T,
   add_noise = T,
+  col_vec = (scales::hue_pal())(length(levels(membership_vec))),
   pca = F,
   only_embedding = F,
   main_addition = "",
@@ -19,7 +20,7 @@ plot_embeddings(
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
 
-\item{membership_vec}{integer vector}
+\item{membership_vec}{factor vector}
 
 \item{data_1}{boolean}
 
@@ -27,6 +28,8 @@ plot_embeddings(
 
 \item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
 distinct "on the same scale" by adding appropriately-scaled Gaussian noise}
+
+\item{col_vec}{vector of colors}
 
 \item{pca}{boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 If \code{FALSE}, plot the UMAP embedding.}

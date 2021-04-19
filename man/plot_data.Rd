@@ -4,12 +4,20 @@
 \alias{plot_data}
 \title{Side-by-side UMAPs of the data}
 \usage{
-plot_data(obj, membership_vec, observed = F, pca = F)
+plot_data(
+  obj,
+  membership_vec,
+  col_vec = (scales::hue_pal())(length(levels(membership_vec))),
+  observed = F,
+  pca = F
+)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
 
-\item{membership_vec}{integer vector}
+\item{membership_vec}{factor vector}
+
+\item{col_vec}{vector of colors}
 
 \item{observed}{boolean. This should \code{TRUE} if \code{obj} is the output of
 \code{generate_data}, and you want to plot the "observed" data.

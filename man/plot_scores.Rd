@@ -4,12 +4,19 @@
 \alias{plot_scores}
 \title{Side-by-side plot of the canonical scores, colored by membership}
 \usage{
-plot_scores(obj, membership_vec, decomposition = F)
+plot_scores(
+  obj,
+  membership_vec,
+  col_vec = (scales::hue_pal())(length(levels(membership_vec))),
+  decomposition = F
+)
 }
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
 
-\item{membership_vec}{integer vector}
+\item{membership_vec}{factor vector}
+
+\item{col_vec}{vector of colors}
 
 \item{decomposition}{boolean}
 }
