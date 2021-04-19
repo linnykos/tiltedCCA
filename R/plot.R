@@ -165,9 +165,9 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10,
   common_score <- obj$common_score
   distinct_score_1 <- obj$distinct_score_1; distinct_score_2 <- obj$distinct_score_2
   if(log_scale){
-    common_score <- abs(log(common_score+1))*sign(common_score)
-    distinct_score_1 <- abs(log(distinct_score_1+1))*sign(distinct_score_1)
-    distinct_score_2 <- abs(log(distinct_score_2+1))*sign(distinct_score_2)
+    common_score <- log(abs(common_score)+1)*sign(common_score)
+    distinct_score_1 <- log(abs(distinct_score_1)+1)*sign(distinct_score_1)
+    distinct_score_2 <- log(abs(distinct_score_2)+1)*sign(distinct_score_2)
   } 
   zlim <- range(c(common_score, distinct_score_1, distinct_score_2))
   
