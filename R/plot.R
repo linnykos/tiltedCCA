@@ -48,6 +48,44 @@ plot_heatmat <- function(dat, luminosity = F, asp = nrow(dat)/ncol(dat),
   invisible()
 }
 
+#' Plot summary of D-CCA
+#'
+#' @param obj output of \code{dcca_decomposition}
+#' @param xlab \code{xlab} graphical parameter
+#' @param ylab1 \code{ylab} graphical parameter of left axis
+#' @param ylab2 \code{ylab} graphical parameter of right axis
+#' @param main \code{main} graphical parameter
+#' @param pch \code{pch} graphical parameter
+#' @param cex \code{cex} graphical parameter
+#' @param lwd \code{lwd} graphical parameter
+#' @param ... additional graphical parameter
+#'
+#' @return shows a plot but returns nothing
+#' @export
+plot_summary <- function(obj, xlab = "Latent dimension", 
+                         ylab1 = "CCA objective", ylab2 = "Distinct % for Modality 2", 
+                         main = "",
+                         pch = 16, cex = 1, lwd = 1, ...){
+  stopifnot(class(obj) == "dcca_decomp", length(obj$cca_obj) == length(obj$distinct_perc_2))
+  
+  k <- length(obj$cca_obj)
+  graphics::plot(x = 1:k, y = obj$cca_obj, xlim = c(1,k), ylim = c(0,1), 
+                 xlab = xlab, ylab = ylab1, pch = 16, cex = cex, col = "black",
+                 main = main,
+                 ...)
+  graphics::lines(x = 1:k, y = obj$cca_obj, lwd = lwd)
+  
+  graphics::par(new = T)
+  graphics::plot(x = 1:k, y = obj$distinct_perc_2, xlim = c(1,k), ylim = c(0,1), 
+                 xlab = "", ylab = "", pch = 16, cex = cex, col = "red",
+                 axes = F, ...)
+  graphics::lines(x = 1:k, y = obj$distinct_perc_2, col = "red", lty = 2, lwd = lwd)
+  graphics::axis(side = 4, col = "red", col.axis = "red")
+  graphics::mtext(ylab2, side = 4, line = 3, col = "red")
+  
+  invisible()
+}
+
 #' Side-by-side plot of the canonical scores, colored by membership
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
