@@ -136,14 +136,15 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
     main_vec <- c("Dataset 1", "Dataset 2")
   }
   
+  n_idx <- sample(1:n)
   graphics::par(mfrow = c(1, length(score_list)))
   for(k in 1:length(score_list)){
     graphics::plot(NA, xlim = xlim, ylim = c(0.5, max_col+.5), main = main_vec[k], xlab = "Value", ylab = "Dimension")
     graphics::lines(rep(0, 2), max_col*c(-10,10), col = "red", lty = 2)
     
     for(i in 1:ncol(score_list[[k]])){
-      graphics::points(x = score_list[[k]][,i], y = stats::runif(n, min = i-.2, max = i+.2), 
-                       col = col_vec[as.numeric(membership_vec)], pch = 16)
+      graphics::points(x = score_list[[k]][n_idx,i], y = stats::runif(n, min = i-.2, max = i+.2), 
+                       col = col_vec[as.numeric(membership_vec)][n_idx], pch = 16)
     }
   }
   
