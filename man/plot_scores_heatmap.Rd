@@ -9,6 +9,7 @@ plot_scores_heatmap(
   membership_vec = NA,
   num_col = 10,
   log_scale = F,
+  scaling_power = 1,
   luminosity = F
 )
 }
@@ -20,6 +21,8 @@ plot_scores_heatmap(
 \item{num_col}{positive integers for number of distinct colors}
 
 \item{log_scale}{boolean}
+
+\item{scaling_power}{positive numeric}
 
 \item{luminosity}{boolean}
 }

@@ -83,6 +83,9 @@ plot_summary <- function(obj, xlab = "Latent dimension",
   graphics::axis(side = 4, col = "red", col.axis = "red")
   graphics::mtext(ylab2, side = 4, line = 3, col = "red")
   
+  graphics::lines(x = c(-10*k,10*k), y = rep(0.5,2), col = "red", 
+                  lty = 3, lwd = 1)
+
   invisible()
 }
 
@@ -154,12 +157,13 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
 #' @param membership_vec factor vector
 #' @param num_col positive integers for number of distinct colors
 #' @param log_scale boolean
+#' @param scaling_power positive numeric
 #' @param luminosity boolean
 #'
 #' @return shows a plot but returns nothing
 #' @export
 plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, 
-                                log_scale = F, luminosity = F){
+                                log_scale = F, scaling_power = 1, luminosity = F){
   
   n <- nrow(obj$common_score)
   common_score <- obj$common_score
@@ -172,16 +176,16 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10,
   zlim <- range(c(common_score, distinct_score_1, distinct_score_2))
   
   # construct colors. green is negative
-  max_val <- max(abs(zlim))
+  max_val <- max(abs(zlim)); min_val <- max(min(abs(zlim)), 1e-3)
   col_vec_neg <- .colorRamp_custom(c(0.584, 0.858, 0.564), c(1,1,1), num_col,
                                    luminosity = luminosity)
-  break_vec_neg <- seq(-max_val, 0, length.out = num_col+2)
+  break_vec_neg <- -max_val*seq(1, 0, length.out = num_col+2)^scaling_power
   break_vec_neg <- break_vec_neg[-length(break_vec_neg)]
   
   # red is positive
   col_vec_pos <- .colorRamp_custom(c(1,1,1), c(0.803, 0.156, 0.211), num_col,
                                    luminosity = luminosity)
-  break_vec_pos <- seq(0, max_val, length.out = num_col+2)
+  break_vec_pos <- max_val*seq(0, 1, length.out = num_col+2)^scaling_power
   break_vec_pos <- break_vec_pos[-1]
   
   # combine the two
