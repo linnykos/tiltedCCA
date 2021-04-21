@@ -21,7 +21,7 @@ clisi_information <- function(common_mat, distinct_mat,
                               membership_vec, rank_c, rank_d, nn, 
                               frnn_approx = 0, radius_quantile = 0.9,
                               max_subsample_frnn = nrow(common_mat),
-                              max_subsample_clisi = 50,
+                              max_subsample_clisi = min(500, nrow(common_mat)),
                               verbose = T){
   
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_mat))

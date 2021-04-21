@@ -54,7 +54,7 @@ plot_clisi <- function(clisi_1, clisi_2,
             all(dim(clisi_1$common_clisi$membership_info) == dim(clisi_2$common_clisi$membership_info)))
   stopifnot(length(col_vec) == nrow(clisi_1$common_clisi$membership_info))
   
-  bg_col_vec <- scales::alpha(scales::col2hcl(col_vec, l = l_bg, c = c_bg), alpha = alpha_bg)
+  bg_col_vec <- .adjust_colors(col_vec, l_bg, c_bg, alpha_bg)
   graphics::par(mfrow = c(1,2), mar = par_mar, oma = par_oma)
   x_vec <- seq(xlim[1], xlim[2], length.out = gridsize)
   y_vec <- seq(ylim[1], ylim[2], length.out = gridsize)
@@ -179,3 +179,43 @@ plot_clisi_legend <- function(clisi_obj, col_vec = scales::hue_pal()(nrow(clisi_
   
   invisible()
 }
+
+#############
+
+.adjust_colors <- function(col_vec, l_bg, c_bg, alpha_bg){
+  # find if conversion to hex is necessary
+  idx <- which(sapply(col_vec, function(x){substring(x,1,1) != "#"}))
+  if(length(idx) > 0){
+    # convert if needed
+    col_vec[idx] <- sapply(col_vec[idx], .name_to_colhex)
+  }
+  
+  # detect non-gray colors
+  idx <- which(!sapply(col_vec, .detect_gray))
+  # apply alpha
+  res <- scales::alpha(col_vec, alpha = alpha_bg*(100-c_bg)/100)
+  
+  # apply luminosity and chroma
+  if(length(idx) > 0){
+    col_vec[idx] <- scales::col2hcl(col_vec[idx], l = l_bg, c = c_bg)
+    res[idx] <- scales::alpha(col_vec[idx], alpha = alpha_bg)
+  }
+ 
+  res
+}
+
+.name_to_colhex <- function(val){
+  tmp <- as.numeric(grDevices::col2rgb(val))
+  grDevices::rgb(tmp[1], tmp[2], tmp[3], maxColorValue=255)
+}
+
+.detect_gray <- function(str){
+  stopifnot(is.character(str), substring(str,1,1) == "#")
+  val1 <- substring(str,2,3)
+  val2 <- substring(str,4,5)
+  val3 <- substring(str,6,7)
+  
+  val1 == val2 & val2 == val3
+}
+
+

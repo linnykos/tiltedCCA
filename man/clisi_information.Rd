@@ -14,7 +14,7 @@ clisi_information(
   frnn_approx = 0,
   radius_quantile = 0.9,
   max_subsample_frnn = nrow(common_mat),
-  max_subsample_clisi = 50,
+  max_subsample_clisi = 500,
   verbose = T
 )
 }
