@@ -53,7 +53,20 @@ generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
   noise_2 <- scale(noise_2, center = T, scale = F)
   mat_1 <- mat_1 + noise_1
   mat_2 <- mat_2 + noise_2
-
+  
+  n <- nrow(mat_1)
+  rownames(mat_1) <- paste0("n", 1:n); rownames(mat_2) <- paste0("n", 1:n)
+  rownames(common_mat_1) <- paste0("n", 1:n); rownames(common_mat_2) <- paste0("n", 1:n)
+  rownames(distinct_mat_1) <- paste0("n", 1:n); rownames(distinct_mat_2) <- paste0("n", 1:n)
+  rownames(common_score) <- paste0("n", 1:n)
+  rownames(distinct_score_1) <- paste0("n", 1:n); rownames(distinct_score_2) <- paste0("n", 1:n)
+  
+  p_1 <- ncol(mat_1); p_2 <- ncol(mat_2)
+  colnames(mat_1) <- paste0("g", 1:p_1)
+  colnames(common_mat_1) <- paste0("g", 1:p_1); colnames(distinct_mat_1) <- paste0("g", 1:p_1)
+  colnames(mat_2) <- paste0("p", 1:p_2)
+  colnames(common_mat_2) <- paste0("p", 1:p_2); colnames(distinct_mat_2) <- paste0("p", 1:p_2)
+  
   structure(list(mat_1 = mat_1, mat_2 = mat_2, 
        common_mat_1 = common_mat_1, common_mat_2 = common_mat_2,
        distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
@@ -67,9 +80,7 @@ form_seurat_obj <- function(mat_1, mat_2){
   stopifnot(nrow(mat_1) == nrow(mat_2))
   
   n <- nrow(mat_1); p_1 <- ncol(mat_1); p_2 <- ncol(mat_2)
-  rownames(mat_1) <- paste0("n", 1:n); rownames(mat_2) <- paste0("n", 1:n)
-  colnames(mat_1) <- paste0("g", 1:p_1); colnames(mat_2) <- paste0("p", 1:p_2)
-  
+
   obj <- Seurat::CreateSeuratObject(counts = t(mat_1), assay = "mode1")
   obj[["mode2"]] <- Seurat::CreateAssayObject(counts = t(mat_2))
   
