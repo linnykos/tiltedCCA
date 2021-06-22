@@ -4,8 +4,10 @@
 #'
 #' @param mat_1 data matrix 1
 #' @param mat_2 data matrix 2
-#' @param rank_1 desired rank of data matrix 1
-#' @param rank_2 desired rank of data matrix 2
+#' @param dims_1 desired latent dimensions of data matrix 1
+#' @param dims_2 desired latent dimensions of data matrix 2
+#' @param center_1 boolean, on whether or not the center \code{mat_1} prior to SVD
+#' @param center_2 boolean, on whether or not the center \code{mat_2} prior to SVD
 #' @param meta_clustering optional clustering
 #' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param cell_max number of cells used to compute the distinct percentaage
@@ -18,26 +20,28 @@
 #'
 #' @return list of class \code{dcca}
 #' @export
-dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
+dcca_factor <- function(mat_1, mat_2, dims_1, dims_2, 
+                        center_1 = T, center_2 = T,
+                        meta_clustering = NA,
                         num_neigh = max(round(nrow(mat_1)/20), 40),
                         cell_max = nrow(mat_1),
                         apply_shrinkage = T, fix_distinct_perc = F, verbose = T){
+  rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
   n <- nrow(mat_1)
-  if(verbose) print(paste0(Sys.time(),": D-CCA: Rescaling matrices"))
-  mat_1 <- scale(mat_1, center = T, scale = F)
-  mat_2 <- scale(mat_2, center = T, scale = F)
-  
+
   if(verbose) print(paste0(Sys.time(),": D-CCA: Starting matrix shrinkage"))
-  if(apply_shrinkage) svd_1 <- .spoet(mat_1, rank_1) else svd_1 <- .svd_truncated(mat_1, rank_1, 
-                                                                                  symmetric = F, rescale = F, K_full_rank = F)
-  if(apply_shrinkage) svd_2 <- .spoet(mat_2, rank_2) else svd_2 <- .svd_truncated(mat_2, rank_2, 
-                                                                                  symmetric = F, rescale = F, K_full_rank = F)
+  svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
+                          mean_vec = center_1, sd_vec = NULL, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
+                          mean_vec = center_2, sd_vec = NULL, K_full_rank = F)
   
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .check_svd(svd_1, dims = dims_1)
+  svd_2 <- .check_svd(svd_2, dims = dims_2)
   
+  # [[note to self: can probably refactor this all out]]
   if(all(!is.na(meta_clustering))){
     # apply D-CCA to meta-cells
     msg <- " (meta-cells)"
@@ -54,6 +58,7 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
       apply(mat_1[idx,,drop = F], 2, mean)
     }))
     
+    # [[note to self: See if we still need this...]]
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 2"))
     mat_2_meta <- t(sapply(1:num_meta, function(x){
       if(verbose & x %% floor(num_meta/10) == 0) cat('*')
@@ -63,14 +68,14 @@ dcca_factor <- function(mat_1, mat_2, rank_1, rank_2, meta_clustering = NA,
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
     # note, since we're already doing averaging, we don't further shrink the spectrum
-    cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = rank_1, rank_2 = rank_2,
+    cca_res <- .cca(mat_1_meta, mat_2_meta, dims_1 = dims_1, dims_2 = dims_2,
                     return_scores = F)
   } else {
     
     # alternatively, apply D-CCA to all cells
     msg <- " (all cells)"
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
-    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   }
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
@@ -164,7 +169,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing common factors"))
   if(check_alignment){
     # reparameterize the scores
-    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    tmp <- .cca(score_1, score_2, dims_1 = 1:ncol(score_1), dims_2 = 1:ncol(score_2), 
+                return_scores = T)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     stopifnot(is.matrix(score_1), is.matrix(score_2))
     obj_vec <- diag(crossprod(score_1, score_2))/n
@@ -232,7 +238,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 
 ############
 
-
+# [[note to self: See if there's a role for this still...? Should we recenter?]]
 #' SPOET for denoising matrices
 #'
 #' @param mat matrix
@@ -242,8 +248,8 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 .spoet <- function(mat, K){
   n <- nrow(mat); p <- ncol(mat); m <- min(n, p)
   target_full_dim <- min(c(nrow(mat), ncol(mat), K*10))
-  svd_res <- .svd_truncated(mat, target_full_dim, 
-                            symmetric = F, rescale = F, K_full_rank = F)
+  svd_res <- .svd_truncated(mat, target_full_dim, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
   tau <- sum((svd_res$d[(K+1):length(svd_res$d)])^2)/(n*p - n*K - p*K)
   sing_vec <- sapply(svd_res$d[1:K], function(x){
     sqrt(max(c(x^2-tau*p, 0)))
@@ -268,8 +274,10 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #'
 #' @param input_1 first input
 #' @param input_2 second input
-#' @param rank_1 scalar. Only used if \code{input_1} is a list representing the SVD
-#' @param rank_2 scalar. Only used if \code{input_2} is a list representing the SVD
+#' @param dims_1 desired latent dimensions of data matrix 1. 
+#' Only used if \code{input_1} is a matrix, not if it's  a list representing the SVD
+#' @param dims_2 desired latent dimensions of data matrix 2.
+#'  Only used if \code{input_2} is a matrix, not if it's  a list representing the SVD
 #' @param return_scores boolean. If \code{TRUE}, return the scores (i.e., matrices where the rows are the cells).
 #' If \code{FALSE}, return the loadings (i.e., matrices where the rows are the variables).
 #' Either way, one of the output matrices will have \code{rank_1} columns and another
@@ -277,29 +285,31 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 #' @param tol small numeric
 #'
 #' @return list
-.cca <- function(input_1, input_2, rank_1, rank_2, 
+.cca <- function(input_1, input_2, dims_1, dims_2, 
                  return_scores, tol = 1e-6){
   if(is.matrix(input_1) & is.matrix(input_2)){
+    rank_1 <- max(dims_1); rank_2 <- max(dims_2)
     stopifnot(nrow(input_1) == nrow(input_2), 
               rank_1 <= ncol(input_1), rank_2 <= ncol(input_2))
-    svd_1 <- .svd_truncated(input_1, rank_1, 
-                            symmetric = F, rescale = F, K_full_rank = F)
-    svd_2 <- .svd_truncated(input_2, rank_2, 
-                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_1 <- .svd_truncated(input_1, rank_1, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_2 <- .svd_truncated(input_2, rank_2, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
     
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .check_svd(svd_1, dims_1); svd_2 <- .check_svd(svd_2, dims_2)
   } else {
     stopifnot(is.list(input_1), is.list(input_2), 
               all(c("u","d","v") %in% names(input_1)),
               all(c("u","d","v") %in% names(input_2)),
               all(input_1$d >= 0), all(input_2$d >= 0), 
               all(diff(input_1$d) <= 1e-6), all(diff(input_2$d) <= 1e-6),
-              nrow(input_1$u) == nrow(input_2$u), is.na(rank_1), is.na(rank_2))
+              nrow(input_1$u) == nrow(input_2$u), all(is.na(dims_1)), all(is.na(dims_2)))
     
     rank_1 <- length(which(input_1$d >= 1e-6)); rank_2 <- length(which(input_2$d >= 1e-6))
     svd_1 <- input_1; svd_2 <- input_2
   }
   
+  rank_1 <- ncol(svd_1$u); rank_2 <- ncol(svd_2$u)
   n <- nrow(svd_1$u)
   
   # perform CCA

@@ -9,9 +9,10 @@ test_that("(Basic) .cca works", {
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
   svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+  svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
   
-  res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("loading_1", "loading_2", "obj_vec"))))
@@ -28,20 +29,21 @@ test_that("(Coding) .cca preserves colnames", {
   colnames(mat_1) <- paste0("a", 1:p1)
   colnames(mat_2) <- paste0("b", 1:p2)
   
-  res <- .cca(mat_1, mat_2, rank_1 = 2, rank_2 = 2, return_scores = F)
+  res <- .cca(mat_1, mat_2, dims_1 = 2, dims_2 = 2, return_scores = F)
   
   expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
   expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
   
   ##
   
-  svd_1 <- .svd_truncated(mat_1, K = min(dim(mat_1)),
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = min(dim(mat_2)),
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .svd_truncated(mat_1, K = min(dim(mat_1)), symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = min(dim(mat_2)), symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+  svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
   
-  res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
   expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
@@ -54,7 +56,7 @@ test_that("(Coding) .cca works when the two matrices have different ranks larger
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
   rank_1 <- 2; rank_2 <- 4
-  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = rank_2, return_scores = F)
+  res <- .cca(mat_1, mat_2, dims_1 = 1:rank_1, dims_2 = 1:rank_2, return_scores = F)
   
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
@@ -62,13 +64,14 @@ test_that("(Coding) .cca works when the two matrices have different ranks larger
   
   ####
   
-  svd_1 <- .svd_truncated(mat_1, K = rank_1,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = rank_2,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:rank_1)
+  svd_2 <- .check_svd(svd_2, dims = 1:rank_2)
   
-  res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
@@ -82,17 +85,17 @@ test_that("(Coding) .cca works when either matrix have rank 1 for matrix inputs"
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   rank_1 <- 2; rank_2 <- 4
   
-  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = rank_2, return_scores = F)
+  res <- .cca(mat_1, mat_2, dims_1 = 1, dims_2= 1:rank_2, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(mat_1, mat_2, rank_1 = rank_1, rank_2 = 1, return_scores = F)
+  res <- .cca(mat_1, mat_2, dims_1 = 1:rank_1, dims_2 = 1, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(mat_1, mat_2, rank_1 = 1, rank_2 = 1, return_scores = F)
+  res <- .cca(mat_1, mat_2, dims_1 = 1, dims_2 = 1, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
@@ -105,29 +108,31 @@ test_that("(Coding) .cca works when either matrix have rank 1 for svd inputs", {
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   rank_1 <- 2; rank_2 <- 4
   
-  svd_1 <- .svd_truncated(mat_1, K = rank_1,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = rank_2,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:rank_1)
+  svd_2 <- .check_svd(svd_2, dims = 1:rank_2)
   
-  svd_1b <- .svd_truncated(mat_1, K = 1,
-                           symmetric = F, rescale = F, K_full_rank = F)
-  svd_2b <- .svd_truncated(mat_2, K = 1,
-                           symmetric = F, rescale = F, K_full_rank = F)
-  svd_1b <- .check_svd(svd_1b); svd_2b <- .check_svd(svd_2b)
+  svd_1b <- .svd_truncated(mat_1, K = 1, symmetric = F, rescale = F, 
+                           mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_2b <- .svd_truncated(mat_2, K = 1, symmetric = F, rescale = F, 
+                           mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_1b <- .check_svd(svd_1b, dims = 1)
+  svd_2b <- .check_svd(svd_2b, dims = 1)
   
-  res <- .cca(svd_1b, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  res <- .cca(svd_1b, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, rank_2)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(svd_1, svd_2b, rank_1 = NA, rank_2 = NA, return_scores = F)
+  res <- .cca(svd_1, svd_2b, dims_1 = NA, dims_2 = NA, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, rank_1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
   
-  res <- .cca(svd_1b, svd_2b, rank_1 = NA, rank_2 = NA, return_scores = F)
+  res <- .cca(svd_1b, svd_2b, dims_1 = NA, dims_2 = NA, return_scores = F)
   expect_true(all(dim(res$loading_1) == c(p1, 1)))
   expect_true(all(dim(res$loading_2) == c(p2, 1)))
   expect_true(length(res$obj_vec) == 1)
@@ -149,9 +154,10 @@ test_that("(Math) .cca yields empirically uncorrelated canoncical scores", {
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+    svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
     
-    res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+    res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     
     bool1 <- sum(abs(t(res$loading_1) %*% (stats::cov(mat_1)*(n-1)/n) %*% res$loading_1 - diag(p1))) <= 1e-4
     bool2 <- sum(abs(t(res$loading_2) %*% (stats::cov(mat_2)*(n-1)/n) %*% res$loading_2 - diag(p2))) <= 1e-4
@@ -177,12 +183,12 @@ test_that("(Math) .cca obtains the correlation that is the same value as the obj
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
     
-    svd_1 <- .svd_truncated(mat_1, K,
-                            symmetric = F, rescale = F, K_full_rank = F)
-    svd_2 <- .svd_truncated(mat_2, K,
-                            symmetric = F, rescale = F, K_full_rank = F)
+    svd_1 <- .svd_truncated(mat_1, K, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_2 <- .svd_truncated(mat_2, K, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
     
-    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     
     cov_12 <- crossprod(mat_1, mat_2)/n
     res1 <- t(cca_res$loading_1) %*% cov_12 %*% cca_res$loading_2 
@@ -215,12 +221,12 @@ test_that("(Math) .cca obtains the maximum correlation", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  svd_1 <- .svd_truncated(mat_1, K,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K,
-                          symmetric = F, rescale = F, K_full_rank = F)
+  svd_1 <- .svd_truncated(mat_1, K, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
   
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   score_1 <- mat_1 %*% cca_res$loading_1
   score_2 <- mat_2 %*% cca_res$loading_2

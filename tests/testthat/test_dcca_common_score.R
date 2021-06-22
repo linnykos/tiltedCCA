@@ -18,8 +18,9 @@ test_that("(Basic) .dcca_common_score works", {
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:K)
+  svd_2 <- .check_svd(svd_2, dims = 1:K)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -62,8 +63,9 @@ test_that("(Basic) .dcca_common_score works with subsampling", {
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:K)
+  svd_2 <- .check_svd(svd_2, dims = 1:K)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -110,8 +112,9 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   colnames(mat_2) <- paste0("c", 1:p2)
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:K)
+  svd_2 <- .check_svd(svd_2, dims = 1:K)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -138,8 +141,9 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   mat_2 <- scale(mat_2, center = T, scale = F)
   
   svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = K)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  svd_1 <- .check_svd(svd_1, dims = 1)
+  svd_2 <- .check_svd(svd_2, dims = 1:K)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
                             fix_distinct_perc = F, cell_max = nrow(svd_1$u),
@@ -149,8 +153,9 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   expect_true(all(dim(res$distinct_score_2) == c(n,K)))
   
   svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = 1)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:K)
+  svd_2 <- .check_svd(svd_2, dims = 1)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
                             fix_distinct_perc = F, cell_max = nrow(svd_1$u),
@@ -160,8 +165,8 @@ test_that("(Coding) .dcca_common_score works with K=1 for either", {
   expect_true(all(dim(res$distinct_score_2) == c(n,1)))
   
   svd_1 <- .spoet(mat_1, K = 1); svd_2 <- .spoet(mat_2, K = 1)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-  cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+  svd_1 <- .check_svd(svd_1, dims = 1); svd_2 <- .check_svd(svd_2, dims = 1)
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                             num_neigh = max(round(nrow(svd_1$u)/20), 40), 
                             fix_distinct_perc = F, cell_max = nrow(svd_1$u),
@@ -190,8 +195,8 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
     mat_2 <- scale(mat_2, center = T, scale = F)
     
     svd_1 <- .spoet(mat_1, K = K); svd_2 <- .spoet(mat_2, K = K)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
-    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+    svd_1 <- .check_svd(svd_1, dims = 1:K); svd_2 <- .check_svd(svd_2, dims = 1:K)
+    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     
     res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               num_neigh = max(round(nrow(svd_1$u)/20), 40), 
@@ -226,11 +231,12 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
     mat_1 <- scale(mat_1, center = T, scale = F)
     mat_2 <- scale(mat_2, center = T, scale = F)
     
-    svd_1 <- .svd_truncated(mat_1, K,
-                            symmetric = F, rescale = F, K_full_rank = F)
-    svd_2 <- .svd_truncated(mat_2, K,
-                            symmetric = F, rescale = F, K_full_rank = F)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .svd_truncated(mat_1, K, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_2 <- .svd_truncated(mat_2, K, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_1 <- .check_svd(svd_1, dims = 1:K)
+    svd_2 <- .check_svd(svd_2, dims = 1:K)
     
     num_meta <- max(meta_clustering)
     
@@ -244,7 +250,7 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
       apply(mat_2[idx,,drop = F], 2, mean)
     }))
     
-    cca_res <- .cca(mat_1_meta, mat_2_meta, rank_1 = K, rank_2 = K, return_scores = F)
+    cca_res <- .cca(mat_1_meta, mat_2_meta, dims_1 = 1:K, dims_2 = 1:K, return_scores = F)
     
     res <- .dcca_common_score(svd_1, svd_2, cca_res, 
                               num_neigh = max(round(nrow(svd_1$u)/20), 40), 

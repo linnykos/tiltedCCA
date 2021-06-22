@@ -33,16 +33,16 @@ clisi_information <- function(common_mat, distinct_mat,
   
   # compute the 3 matrices
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- common"))
-  tmp <- .svd_truncated(common_mat, K = rank_c, 
-                        symmetric = F, rescale = F, K_full_rank = T)
+  tmp <- .svd_truncated(common_mat, K = rank_c, symmetric = F, rescale = F, 
+                        mean_vec = NULL, sd_vec = NULL, K_full_rank = T)
   c_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- distinct"))
-  tmp <- .svd_truncated(distinct_mat, K = rank_d, 
-                        symmetric = F, rescale = F, K_full_rank = T)
+  tmp <- .svd_truncated(distinct_mat, K = rank_d, symmetric = F, rescale = F, 
+                        mean_vec = NULL, sd_vec = NULL, K_full_rank = T)
   d_embedding <- .mult_mat_vec(tmp$u, tmp$d)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- everything"))
-  tmp <- .svd_truncated(everything_mat, K = rank_d, 
-                        symmetric = F, rescale = F, K_full_rank = T)
+  tmp <- .svd_truncated(everything_mat, K = rank_d, symmetric = F, rescale = F, 
+                        mean_vec = NULL, sd_vec = NULL, K_full_rank = T)
   e_embedding <- .mult_mat_vec(tmp$u, tmp$d)
 
   # compute the radius

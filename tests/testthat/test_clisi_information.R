@@ -109,7 +109,7 @@ test_that("clisi_information works", {
   dat <- multiomicCCA::generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2, 
                                      noise_val = 0.1)
   K <- 2
-  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
@@ -150,7 +150,7 @@ test_that("clisi_information works with max_subsample_frnn and max_subsample_cli
   dat <- multiomicCCA::generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2, 
                                      noise_val = 0.1)
   K <- 2
-  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,

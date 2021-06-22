@@ -3,23 +3,41 @@
 ##############
 
 .svd_truncated <- function(mat, K, symmetric, rescale,
+                           mean_vec, sd_vec,
                            K_full_rank){
   if(is.na(K)) K <- min(dim(mat))
   stopifnot(min(dim(mat)) >= K)
   if(K == min(dim(mat))) K_full_rank <- T
   
+  ## [[note to self: probably factor this out and add sd_vec]]
+  if(length(mean_vec) == 1 && !is.null(mean_vec)){
+    if(mean_vec){
+      if(inherits(x = mat, what = c('dgCMatrix', 'dgTMatrix'))){
+        mean_vec <- sparseMatrixStats::colMeans2(mat)
+      } else {
+        mean_vec <- matrixStats::colMeans2(mat)
+      }
+    } else{
+      mean_vec <- NULL
+    }
+  }
+  
   if(min(dim(mat)) > 2*(K+2)){
     res <- tryCatch({
       # ask for more singular values than needed to ensure stability
       if(symmetric){
-        tmp <- irlba::partial_eigen(mat, n = ifelse(K_full_rank, K, K+2))
+        tmp <- irlba::partial_eigen(mat, n = ifelse(K_full_rank, K, K+2),
+                                    center = mean_vec, scale = sd_vec)
         list(u = tmp$vectors, d = tmp$values, v = tmp$vectors)
       } else {
-        irlba::irlba(mat, nv = ifelse(K_full_rank, K, K+2))
+        irlba::irlba(mat, nv = ifelse(K_full_rank, K, K+2),
+                     center = mean_vec, scale = sd_vec)
       }
     }, warning = function(e){
+      if(!all(is.null(mean_vec)) | !all(is.null(sd_vec))) print("mean_vec or sd_vec not used")
       RSpectra::svds(mat, k = ifelse(K_full_rank, K, K+2))
     }, error = function(e){
+      if(!all(is.null(mean_vec)) | !all(is.null(sd_vec))) print("mean_vec or sd_vec not used")
       RSpectra::svds(mat, k = ifelse(K_full_rank, K, K+2))
     })
   } else {
@@ -45,8 +63,8 @@
   res
 }
 
-.check_svd <- function(svd_res, tol = 1e-6){
-  idx <- which(svd_res$d > tol)
+.check_svd <- function(svd_res, dims, tol = 1e-6){
+  idx <- intersect(which(svd_res$d > tol), dims)
   if(length(idx) == length(svd_res$d)) return(svd_res)
   
   svd_res$u <- svd_res$u[, idx, drop = F]

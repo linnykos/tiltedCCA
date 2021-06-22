@@ -18,9 +18,10 @@ test_that("(Math) .compute_unnormalized_scores computes the correct scores", {
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+    svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
     
-    cca_res <- .cca(svd_1, svd_2, rank_1 = NA, rank_2 = NA, return_scores = F)
+    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     res <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     rank_val <- Matrix::rankMatrix(.compute_cca_aggregate_matrix(svd_1, svd_2, augment = T))
     

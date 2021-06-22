@@ -9,7 +9,8 @@ test_that("(Basic) .compute_cca_aggregate_matrix works", {
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
   svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+  svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
   
   res <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
   
@@ -23,11 +24,12 @@ test_that("(Coding) .compute_cca_aggregate_matrix works when ranks are not the s
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  svd_1 <- .svd_truncated(mat_1, K = 2,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = 3,
-                          symmetric = F, rescale = F, K_full_rank = F)
-  svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+  svd_1 <- .svd_truncated(mat_1, K = 2, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_2 <- .svd_truncated(mat_2, K = 3, symmetric = F, rescale = F, 
+                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_1 <- .check_svd(svd_1, dims = 1:2)
+  svd_2 <- .check_svd(svd_2, dims = 1:3)
   
   res <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = F)
   
@@ -45,11 +47,12 @@ test_that("(Math) .compute_cca_aggregate_matrix preserves SVD values when augmen
     mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     rank_1 <- sample(1:10,1); rank_2 <- sample(1:10,1); rank_full <- min(c(rank_1, rank_2))
-    svd_1 <- .svd_truncated(mat_1, K = rank_1,
-                            symmetric = F, rescale = F, K_full_rank = F)
-    svd_2 <- .svd_truncated(mat_2, K = rank_2,
-                            symmetric = F, rescale = F, K_full_rank = F)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_1 <- .check_svd(svd_1, dims = 1:rank_1)
+    svd_2 <- .check_svd(svd_2, dims = 1:rank_2)
     
     res1 <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
     svd_res_1 <- svd(res1)
@@ -83,7 +86,8 @@ test_that("(Math) .compute_cca_aggregate_matrix is correct", {
     mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = Sigma_mat), center = T, scale = F)
     
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+    svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_1)))
     
     res <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
     
@@ -114,7 +118,8 @@ test_that("(Math) .compute_cca_aggregate_matrix is gives the correct svd", {
     mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-    svd_1 <- .check_svd(svd_1); svd_2 <- .check_svd(svd_2)
+    svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
+    svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
     
     res1 <- .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
     svd_res1 <- svd(res1)

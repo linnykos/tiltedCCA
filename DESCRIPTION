@@ -17,7 +17,9 @@ Imports:
     RANN,
     igraph,
     dbscan,
-    scales
+    scales,
+    sparseMatrixStats,
+    matrixStats
 Suggests:
     testthat
 RoxygenNote: 7.1.1

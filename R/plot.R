@@ -263,6 +263,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
   if(pca){
     stopifnot(!data_1 | !data_2) # [[note to self: restriction for now]]
     embedding <- vector("list", 3)
+    names(embedding) <- c("common", "distinct", "everything")
     if(data_1){
       embedding[[1]] <- .extract_matrix_helper(obj$common_score, obj$distinct_score_1,
                                                obj$svd_1, common_bool = T, distinct_bool = F,
@@ -286,8 +287,8 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
     }
     
     for(i in 1:3){
-      tmp <- .svd_truncated(embedding[[i]], K = 2, 
-                            symmetric = F, rescale = F, K_full_rank = F)
+      tmp <- .svd_truncated(embedding[[i]], K = 2, symmetric = F, rescale = F, 
+                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
       embedding[[i]] <- .mult_mat_vec(tmp$u, tmp$d)
     }
     xlim <- range(sapply(embedding, function(x){x[,1]}))
@@ -304,6 +305,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = T,
     if(verbose) print(paste0(Sys.time(),": Plotting: Preparing objects"))
     prep_obj <- .prepare_umap_embedding(obj)
     embedding <- vector("list", 3)
+    names(embedding) <- c("common", "distinct", "everything")
     
     graphics::par(mfrow = c(1,3))
     set.seed(10)
@@ -366,9 +368,11 @@ plot_data <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(le
   # plot the noise-affected/"observed" data
   if(observed){
     svd_list <- list(.svd_truncated(obj$mat_1, K = ncol(obj$distinct_score_1), 
-                                    symmetric = F, rescale = F, K_full_rank = F), 
+                                    symmetric = F, rescale = F, mean_vec = NULL, 
+                                    sd_vec = NULL, K_full_rank = F), 
                      .svd_truncated(obj$mat_2, K = ncol(obj$distinct_score_2), 
-                                    symmetric = F, rescale = F, K_full_rank = F))
+                                    symmetric = F, rescale = F, mean_vec = NULL, 
+                                    sd_vec = NULL, K_full_rank = F))
     
     embedding <- lapply(svd_list, function(svd_res){
       tmp <- .mult_mat_vec(svd_res$u, svd_res$d)

@@ -7,8 +7,10 @@
 dcca_factor(
   mat_1,
   mat_2,
-  rank_1,
-  rank_2,
+  dims_1,
+  dims_2,
+  center_1 = T,
+  center_2 = T,
   meta_clustering = NA,
   num_neigh = max(round(nrow(mat_1)/20), 40),
   cell_max = nrow(mat_1),
@@ -22,9 +24,13 @@ dcca_factor(
 
 \item{mat_2}{data matrix 2}
 
-\item{rank_1}{desired rank of data matrix 1}
+\item{dims_1}{desired latent dimensions of data matrix 1}
 
-\item{rank_2}{desired rank of data matrix 2}
+\item{dims_2}{desired latent dimensions of data matrix 2}
+
+\item{center_1}{boolean, on whether or not the center \code{mat_1} prior to SVD}
+
+\item{center_2}{boolean, on whether or not the center \code{mat_2} prior to SVD}
 
 \item{meta_clustering}{optional clustering}
 

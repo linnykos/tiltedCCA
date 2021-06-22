@@ -14,7 +14,7 @@ test_that("(Basic) dcca_decomposition works", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   expect_true(is.list(res))
@@ -42,7 +42,7 @@ test_that("(Coding) dcca_decomposition preserves rownames and colnames", {
   colnames(mat_1) <- paste0("b", 1:p1)
   colnames(mat_2) <- paste0("c", 1:p2)
   
-  dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, verbose = F)
+  dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   expect_true(length(rownames(res$common_score)) > 1)
@@ -85,7 +85,7 @@ test_that("(Math) dcca_decomposition yields uncorrelated distinct matrices", {
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, verbose = F)
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     tmp <- crossprod(res$distinct_mat_1, res$distinct_mat_2)
@@ -113,7 +113,7 @@ test_that("(Math) dcca_decomposition yields uncorrelated distinct matrices with 
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), meta_clustering = meta_clustering,
                             verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
@@ -140,7 +140,7 @@ test_that("(Math) dcca_decomposition yields a low-rank matrix", {
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, verbose = F)
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     bool1 <- Matrix::rankMatrix(res$common_mat_1) == K
@@ -173,7 +173,7 @@ test_that("(Math) dcca_decomposition yields a low-rank matrix with meta-cells", 
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), meta_clustering = meta_clustering,
                             verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
@@ -205,7 +205,7 @@ test_that("(Math) dcca_decomposition yields common matrices with the same column
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, verbose = F)
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     svd_1 <- svd(res$common_mat_1)$u[,1:K]
@@ -234,7 +234,7 @@ test_that("(Math) dcca_decomposition yields common matrices with the same column
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K+1, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), meta_clustering = meta_clustering,
                             verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
@@ -261,7 +261,7 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise", {
     
     mat_1 <- common_space %*% transform_mat_1; mat_2 <- common_space %*% transform_mat_2 
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, 
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, 
                             apply_shrinkage = F, verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
@@ -301,7 +301,7 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise with meta
     nc <- 20
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
-    dcca_res <- dcca_factor(mat_1, mat_2, rank_1 = K, rank_2 = K, meta_clustering = meta_clustering,
+    dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
                             apply_shrinkage = F, verbose = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
@@ -347,13 +347,13 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   set.seed(10)
   dat <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
   
-  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, rank_1 = K, rank_2 = K,
+  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K,
                           apply_shrinkage = F, verbose = F)
   res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   dcca_res2 <- dcca_factor(res$common_mat_1 + res$distinct_mat_1,
                            res$common_mat_2 + res$distinct_mat_2,
-                           rank_1 = K, rank_2 = K, apply_shrinkage = F, verbose = F)
+                           dims_1 = 1:K, dims_2 = 1:K, apply_shrinkage = F, verbose = F)
   res2 <- dcca_decomposition(dcca_res2, rank_c = K, verbose = F)
   
   expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)

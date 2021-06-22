@@ -15,7 +15,7 @@ test_that("(Basic) .compute_distinct_score works", {
   score_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
   score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
   
-  tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+  tmp <- .cca(score_1, score_2, dims_1 = 1:ncol(score_1), dims_2 = 1:ncol(score_2), return_scores = T)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   
   nn_1 <- RANN::nn2(score_1, k = 50)$nn.idx
@@ -50,7 +50,7 @@ test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices
     membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
     score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
     
-    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    tmp <- .cca(score_1, score_2, dims_1 = 1:ncol(score_1), dims_2 = 1:ncol(score_2), return_scores = T)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     
     nn_1 <- RANN::nn2(score_1, k = 50)$nn.idx
@@ -86,7 +86,7 @@ test_that("(Math) .compute_distinct_score generates equal-lengthed matrices when
     membership_vec <- c(rep(3, 2*n_clust), rep(1, n_clust), rep(2, n_clust))
     score_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec)
     
-    tmp <- .cca(score_1, score_2, rank_1 = ncol(score_1), rank_2 = ncol(score_2), return_scores = T)
+    tmp <- .cca(score_1, score_2, dims_1 = 1:ncol(score_1), dims_2 = 1:ncol(score_2), return_scores = T)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
     
     tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T)
