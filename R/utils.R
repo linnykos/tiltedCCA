@@ -64,7 +64,7 @@
 }
 
 .check_svd <- function(svd_res, dims, tol = 1e-6){
-  idx <- intersect(which(svd_res$d > tol), dims)
+  idx <- sort(intersect(which(svd_res$d > tol), dims), decreasing = F)
   if(length(idx) == length(svd_res$d)) return(svd_res)
   
   svd_res$u <- svd_res$u[, idx, drop = F]

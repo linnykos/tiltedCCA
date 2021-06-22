@@ -24,6 +24,58 @@ test_that("(Basic) dcca_factor works", {
   expect_true(all(dim(res$common_score) == c(n, K)))
 })
 
+
+test_that("(Basic) dcca_factor works with variable dimensions", {
+  set.seed(5)
+  n <- 100; K <- 5
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 10; p2 <- 15
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  
+  res <- dcca_factor(mat_1, mat_2, dims_1 = 3:K, dims_2 = 3:(K+1), verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(class(res) == "dcca")
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2",
+                                             "score_1", "score_2", 
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2", "distinct_perc_2"))))
+  expect_true(all(dim(res$common_score) == c(n,3)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,3)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,4)))
+})
+
+test_that("(Basic) dcca_factor works with a sparse matrix", {
+  set.seed(5)
+  n <- 100; K <- 5
+  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  
+  p1 <- 10; p2 <- 15
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  mat_2[sample(1:prod(dim(mat_2)),1300)] <- 0
+  mat_2 <- Matrix::Matrix(mat_2, sparse = T)
+  res <- dcca_factor(mat_1, mat_2, dims_1 = 3:K, dims_2 = 3:(K+1), verbose = F)
+  
+  expect_true(is.list(res))
+  expect_true(class(res) == "dcca")
+  expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2",
+                                             "score_1", "score_2", 
+                                             "cca_obj", "distinct_score_1", 
+                                             "distinct_score_2", "distinct_perc_2"))))
+  expect_true(all(dim(res$common_score) == c(n,3)))
+  expect_true(all(dim(res$distinct_score_1) == c(n,3)))
+  expect_true(all(dim(res$distinct_score_2) == c(n,4)))
+})
+
 test_that("(Coding) dcca_factor preserves rownames and colnames", {
   set.seed(5)
   n <- 100; K <- 2
