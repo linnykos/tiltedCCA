@@ -78,9 +78,8 @@
     }
   }
   
-  list(common_score = obj$common_score,
-       distinct_score_1 = obj$distinct_score_1, distinct_score_2 = obj$distinct_score_2,
-       svd_list = svd_list)
+  list(common_score = obj$common_score, distinct_score_1 = obj$distinct_score_1, 
+       distinct_score_2 = obj$distinct_score_2, svd_list = svd_list)
 }
 
 #' Extract SVD embedding
