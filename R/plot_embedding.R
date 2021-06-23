@@ -195,12 +195,20 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = F,
     if(common_bool){ 
       if(add_noise){
         common_score <- .add_columnwise_noise(common_score, distinct_score)
+      } else{
+        if(ncol(common_score) < ncol(distinct_score)) {
+          common_score <- cbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score)-ncol(common_score)))
+        }
       }
       tmp <- tcrossprod(common_score, canonical_score) %*% full_mat
       
     } else { 
       if(add_noise){
         distinct_score <- .add_columnwise_noise(distinct_score, common_score)
+      } else{
+        if(ncol(distinct_score) < ncol(common_score)) {
+          distinct_score <- cbind(distinct_score, matrix(0, nrow = n, ncol = ncol(common_score)-ncol(distinct_score)))
+        }
       }
       tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat
     }
