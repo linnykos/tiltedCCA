@@ -2,6 +2,7 @@
 #'
 #' @param common_score output from \code{dcca_decomposition}
 #' @param distinct_score output from \code{dcca_decomposition}
+#' @param svd_e list containing the SVD of the full matrix 
 #' @param membership_vec factor
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
@@ -15,7 +16,7 @@
 #'
 #' @return two lists
 #' @export
-clisi_information <- function(common_score, distinct_score,
+clisi_information <- function(common_score, distinct_score, svd_e,
                               membership_vec, nn, 
                               frnn_approx = 0, radius_quantile = 0.9,
                               max_subsample_frnn = nrow(common_score),
@@ -28,9 +29,9 @@ clisi_information <- function(common_score, distinct_score,
   # [[note to self: the code below is quite messy -- fix it when i finalized the method]]
   cell_subidx1 <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
   if(length(cell_subidx1) < nrow(common_score)) membership_vec <- membership_vec[cell_subidx1]
-  list_g <- construct_frnn(common_score[cell_subidx1,,drop = F], 
-                           distinct_score[cell_subidx1,,drop = F],
-                           nn, frnn_approx = frnn_approx, radius_quantile = radius_quantile,
+  list_g <- construct_frnn(common_score, distinct_score, svd_e, 
+                           cell_subidx = cell_subidx1, nn = nn, 
+                           frnn_approx = frnn_approx, radius_quantile = radius_quantile,
                            bool_matrix = F, verbose = verbose)
   
   cell_subidx2 <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
@@ -49,9 +50,11 @@ clisi_information <- function(common_score, distinct_score,
 #'
 #' @param common_score output from \code{dcca_decomposition}
 #' @param distinct_score output from \code{dcca_decomposition}
+#' @param svd_e list containing the SVD of the full matrix 
+#' @param cell_subidx vector of integers between 1 and \code{nrow(common_score)}
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
-#'  @param frnn_approx small non-negative number
+#' @param frnn_approx small non-negative number
 #' @param radius_quantile value between 0 and 1
 #' @param bool_matrix boolean. If \code{TRUE}, output the graphs as a sparse matrix.
 #' If \code{FALSE}, output the graphs as a list where each element of the list
@@ -60,32 +63,44 @@ clisi_information <- function(common_score, distinct_score,
 #'
 #' @return list, depends on \code{bool_matrix}
 #' @export
-construct_frnn <- function(common_score, distinct_score,
-                           nn, frnn_approx = 0, radius_quantile = 0.9,
+construct_frnn <- function(common_score, distinct_score, svd_e,
+                           cell_subidx, nn, frnn_approx = 0, radius_quantile = 0.9,
                            bool_matrix = F, verbose = T){
   
   stopifnot(nrow(common_score) == nrow(distinct_score))
   stopifnot(frnn_approx >= 0, frnn_approx <= 1)
   
-  n <- nrow(common_score)
-  everything_score <- .add_two_matrices(common_score, distinct_score)
+  c_embedding <- .extract_matrix_helper(common_score, distinct_score, svd_e,
+                                             common_bool = T, distinct_bool = F, add_noise = F,
+                                             center = F, renormalize = F)
+  d_embedding <- .extract_matrix_helper(common_score, distinct_score, svd_e,
+                                             common_bool = F, distinct_bool = T, add_noise = F,
+                                             center = F, renormalize = F)
+  e_embedding <- .extract_matrix_helper(common_score, distinct_score, svd_e,
+                                        common_bool = T, distinct_bool = T, add_noise = F,
+                                        center = F, renormalize = F)
+  
+  c_embedding <- c_embedding[cell_subidx,,drop = F]
+  d_embedding <- d_embedding[cell_subidx,,drop = F]
+  e_embedding <- e_embedding[cell_subidx,,drop = F]
+  n <- nrow(c_embedding)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
-  c_rad <- .compute_radius(common_score, nn, radius_quantile, 1:n)
+  c_rad <- .compute_radius(c_embedding, nn, radius_quantile, 1:n)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
-  d_rad <- .compute_radius(distinct_score, nn, radius_quantile, 1:n)
+  d_rad <- .compute_radius(d_embedding, nn, radius_quantile, 1:n)
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- everything"))
-  e_rad <- .compute_radius(everything_score, nn, radius_quantile, 1:n)
+  e_rad <- .compute_radius(e_embedding, nn, radius_quantile, 1:n)
   sub_rad <- max(c_rad, d_rad)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
-  c_g <- .construct_frnn(common_score, radius = sub_rad, nn = nn, 
+  c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
-  d_g <- .construct_frnn(distinct_score, radius = sub_rad, nn = nn, 
+  d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
-  e_g <- .construct_frnn(everything_score, radius = e_rad, nn = nn, 
+  e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn, 
                          frnn_approx = frnn_approx, verbose = verbose)
   
   if(bool_matrix){
@@ -131,14 +146,14 @@ construct_frnn <- function(common_score, distinct_score,
   mat
 }
 
-.construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
+.construct_celltype_subsample <- function(membership_vec, max_subsample_cell){
   res <- lapply(levels(membership_vec), function(x){
     idx <- which(membership_vec == x)
     stopifnot(length(idx) > 2)
     
-    if(length(idx) <= min_subsample_cell) return(idx)
+    if(length(idx) <= max_subsample_cell) return(idx)
     
-    sample(idx, min_subsample_cell, replace = F)
+    sample(idx, max_subsample_cell, replace = F)
   })
   
   sort(unlist(res))

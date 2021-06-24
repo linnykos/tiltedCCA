@@ -113,7 +113,7 @@ test_that("clisi_information works", {
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   res <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                           membership_vec = as.factor(membership_vec),
+                           dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
                            nn = 50, frnn_approx = 0, verbose = F)
   
   expect_true(class(res) == "clisi")
@@ -153,14 +153,14 @@ test_that("clisi_information works with max_subsample_frnn and max_subsample_cli
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   res <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                           membership_vec = as.factor(membership_vec),
+                           dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
                            nn = 50, frnn_approx = 0, max_subsample_clisi = 50,
                            verbose = F)
   expect_true(class(res) == "clisi")
   
   set.seed(10)
   res1 <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                           membership_vec = as.factor(membership_vec),
+                            dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
                            nn = 50, frnn_approx = 0, 
                            max_subsample_frnn = 50, max_subsample_clisi = 20,
                            verbose = F)
@@ -168,7 +168,7 @@ test_that("clisi_information works with max_subsample_frnn and max_subsample_cli
   
   set.seed(10)
   res2 <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                           membership_vec = as.factor(membership_vec),
+                            dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
                            nn = 50, frnn_approx = 0, 
                            max_subsample_frnn = 50, max_subsample_clisi = 50,
                            verbose = F)

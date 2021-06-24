@@ -3,6 +3,7 @@
 export(.compute_prob_mat)
 export(.generate_adjaceny_mat)
 export(clisi_information)
+export(construct_frnn)
 export(dcca_decomposition)
 export(dcca_factor)
 export(generate_data)
