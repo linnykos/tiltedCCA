@@ -59,13 +59,15 @@ clisi_information <- function(common_score, distinct_score, svd_e,
 #' @param bool_matrix boolean. If \code{TRUE}, output the graphs as a sparse matrix.
 #' If \code{FALSE}, output the graphs as a list where each element of the list
 #' corresponds with the element's neighbors
+#' @param include_diag boolean on whether or not the diagonal is included in the 
+#' graph (currently only impactful if \code{bool_matrix=TRUE}).
 #' @param verbose boolean
 #'
 #' @return list, depends on \code{bool_matrix}
 #' @export
 construct_frnn <- function(common_score, distinct_score, svd_e,
                            cell_subidx, nn, frnn_approx = 0, radius_quantile = 0.9,
-                           bool_matrix = F, verbose = T){
+                           bool_matrix = F, include_diag = T, verbose = T){
   
   stopifnot(nrow(common_score) == nrow(distinct_score))
   stopifnot(frnn_approx >= 0, frnn_approx <= 1)
@@ -104,9 +106,9 @@ construct_frnn <- function(common_score, distinct_score, svd_e,
                          frnn_approx = frnn_approx, verbose = verbose)
   
   if(bool_matrix){
-    c_g <- .nnlist_to_matrix(c_g)
-    d_g <- .nnlist_to_matrix(d_g)
-    e_g <- .nnlist_to_matrix(e_g)
+    c_g <- .nnlist_to_matrix(c_g, include_diag)
+    d_g <- .nnlist_to_matrix(d_g, include_diag)
+    e_g <- .nnlist_to_matrix(e_g, include_diag)
   }
   
   return(list(c_g = c_g, d_g = d_g, e_g = e_g))
@@ -137,7 +139,13 @@ construct_frnn <- function(common_score, distinct_score, svd_e,
   res
 }
 
-.nnlist_to_matrix <- function(nn_list){
+.nnlist_to_matrix <- function(nn_list, include_diag){
+  if(!include_diag){
+    for(i in 1:length(nn_list)){
+      nn_list[[i]] <- nn_list[[i]][nn_list[[i]] != i]
+    }
+  }
+  
   j_vec <- unlist(nn_list)
   i_vec <- unlist(lapply(1:length(nn_list), function(i){rep(i, length(nn_list[[i]]))}))
   mat <- Matrix::sparseMatrix(i = i_vec, j = j_vec, x = 1)
