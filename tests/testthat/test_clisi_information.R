@@ -112,10 +112,9 @@ test_that("clisi_information works", {
   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
-  res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
-                                  membership_vec = as.factor(membership_vec),
-                                  rank_c = K, rank_d = K, nn = 50, frnn_approx = 0, 
-                                  verbose = F)
+  res <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
+                           membership_vec = as.factor(membership_vec),
+                           nn = 50, frnn_approx = 0, verbose = F)
   
   expect_true(class(res) == "clisi")
   expect_true(is.list(res))
@@ -153,25 +152,24 @@ test_that("clisi_information works with max_subsample_frnn and max_subsample_cli
   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
-  res <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
+  res <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
                            membership_vec = as.factor(membership_vec),
-                           rank_c = K, rank_d = K, nn = 50, frnn_approx = 0, 
-                           max_subsample_clisi = 50,
+                           nn = 50, frnn_approx = 0, max_subsample_clisi = 50,
                            verbose = F)
   expect_true(class(res) == "clisi")
   
   set.seed(10)
-  res1 <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
+  res1 <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
                            membership_vec = as.factor(membership_vec),
-                           rank_c = K, rank_d = K, nn = 50, frnn_approx = 0, 
+                           nn = 50, frnn_approx = 0, 
                            max_subsample_frnn = 50, max_subsample_clisi = 20,
                            verbose = F)
   expect_true(class(res1) == "clisi")
   
   set.seed(10)
-  res2 <- clisi_information(dcca_decomp$common_mat_1, dcca_decomp$distinct_mat_1,
+  res2 <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
                            membership_vec = as.factor(membership_vec),
-                           rank_c = K, rank_d = K, nn = 50, frnn_approx = 0, 
+                           nn = 50, frnn_approx = 0, 
                            max_subsample_frnn = 50, max_subsample_clisi = 50,
                            verbose = F)
   expect_true(class(res2) == "clisi")

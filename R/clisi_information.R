@@ -1,10 +1,8 @@
 #' Compute cLISI information
 #'
-#' @param common_mat output from \code{dcca_decomposition}
-#' @param distinct_mat output from \code{dcca_decomposition}
+#' @param common_score output from \code{dcca_decomposition}
+#' @param distinct_score output from \code{dcca_decomposition}
 #' @param membership_vec factor
-#' @param rank_c rank of \code{common_mat}
-#' @param rank_d rank of \code{distinct_mat}
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
 #' @param frnn_approx small non-negative number
@@ -17,72 +15,86 @@
 #'
 #' @return two lists
 #' @export
-clisi_information <- function(common_mat, distinct_mat,
-                              membership_vec, rank_c, rank_d, nn, 
+clisi_information <- function(common_score, distinct_score,
+                              membership_vec, nn, 
                               frnn_approx = 0, radius_quantile = 0.9,
-                              max_subsample_frnn = nrow(common_mat),
-                              max_subsample_clisi = min(500, nrow(common_mat)),
+                              max_subsample_frnn = nrow(common_score),
+                              max_subsample_clisi = min(500, nrow(common_score)),
                               verbose = T){
+  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_score),
+            max_subsample_clisi <= max_subsample_frnn)
   
-  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_mat))
-  stopifnot(all(dim(common_mat) == dim(distinct_mat)),
-            rank_c <= ncol(common_mat), rank_d <= ncol(distinct_mat))
-  stopifnot(frnn_approx >= 0, frnn_approx <= 1, max_subsample_clisi <= max_subsample_frnn)
-  
-  everything_mat <- common_mat + distinct_mat
-  
-  # compute the 3 matrices
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- common"))
-  tmp <- .svd_truncated(common_mat, K = rank_c, symmetric = F, rescale = F, 
-                        mean_vec = NULL, sd_vec = NULL, K_full_rank = T)
-  c_embedding <- .mult_mat_vec(tmp$u, tmp$d)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- distinct"))
-  tmp <- .svd_truncated(distinct_mat, K = rank_d, symmetric = F, rescale = F, 
-                        mean_vec = NULL, sd_vec = NULL, K_full_rank = T)
-  d_embedding <- .mult_mat_vec(tmp$u, tmp$d)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing SVD -- everything"))
-  tmp <- .svd_truncated(everything_mat, K = rank_d, symmetric = F, rescale = F, 
-                        mean_vec = NULL, sd_vec = NULL, K_full_rank = T)
-  e_embedding <- .mult_mat_vec(tmp$u, tmp$d)
-
   # compute the radius
   # [[note to self: the code below is quite messy -- fix it when i finalized the method]]
   cell_subidx1 <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
-  n <- length(cell_subidx1)
-  if(n < nrow(c_embedding)){
-    c_embedding <- c_embedding[cell_subidx1,,drop = F]
-    d_embedding <- d_embedding[cell_subidx1,,drop = F]
-    e_embedding <- e_embedding[cell_subidx1,,drop = F]
-    membership_vec <- membership_vec[cell_subidx1]
-  }
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
-  c_rad <- .compute_radius(c_embedding, nn, radius_quantile, 1:n)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
-  d_rad <- .compute_radius(d_embedding, nn, radius_quantile, 1:n)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- everything"))
-  e_rad <- .compute_radius(e_embedding, nn, radius_quantile, 1:n)
-  sub_rad <- max(c_rad, d_rad)
-  
-  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
-  c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn, 
-                         frnn_approx = frnn_approx, verbose = verbose)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
-  d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn, 
-                         frnn_approx = frnn_approx, verbose = verbose)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
-  e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn, 
-                         frnn_approx = frnn_approx, verbose = verbose)
+  if(length(cell_subidx1) < nrow(common_score)) membership_vec <- membership_vec[cell_subidx1]
+  list_g <- construct_frnn(common_score[cell_subidx1,,drop = F], 
+                           distinct_score[cell_subidx1,,drop = F],
+                           nn, frnn_approx = frnn_approx, radius_quantile = radius_quantile,
+                           bool_matrix = F, verbose = verbose)
   
   cell_subidx2 <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
-  c_score <- .clisi(c_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
+  c_score <- .clisi(list_g$c_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct"))
-  d_score <- .clisi(d_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
+  d_score <- .clisi(list_g$d_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- everything"))
-  e_score <- .clisi(e_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
+  e_score <- .clisi(list_g$e_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
   
   structure(list(common_clisi = c_score, distinct_clisi = d_score,
        everything_clisi = e_score), class = "clisi")
+}
+
+#' Construct fixed-radius NN graph
+#'
+#' @param common_score output from \code{dcca_decomposition}
+#' @param distinct_score output from \code{dcca_decomposition}
+#' @param nn integer of number of nearest neighbors to determine the appropriate radius
+#' for the frNN graph
+#'  @param frnn_approx small non-negative number
+#' @param radius_quantile value between 0 and 1
+#' @param bool_matrix boolean. If \code{TRUE}, output the graphs as a sparse matrix.
+#' If \code{FALSE}, output the graphs as a list where each element of the list
+#' corresponds with the element's neighbors
+#' @param verbose boolean
+#'
+#' @return list, depends on \code{bool_matrix}
+#' @export
+construct_frnn <- function(common_score, distinct_score,
+                           nn, frnn_approx = 0, radius_quantile = 0.9,
+                           bool_matrix = F, verbose = T){
+  
+  stopifnot(nrow(common_score) == nrow(distinct_score))
+  stopifnot(frnn_approx >= 0, frnn_approx <= 1)
+  
+  n <- nrow(common_score)
+  everything_score <- .add_two_matrices(common_score, distinct_score)
+  
+  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
+  c_rad <- .compute_radius(common_score, nn, radius_quantile, 1:n)
+  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
+  d_rad <- .compute_radius(distinct_score, nn, radius_quantile, 1:n)
+  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- everything"))
+  e_rad <- .compute_radius(everything_score, nn, radius_quantile, 1:n)
+  sub_rad <- max(c_rad, d_rad)
+  
+  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
+  c_g <- .construct_frnn(common_score, radius = sub_rad, nn = nn, 
+                         frnn_approx = frnn_approx, verbose = verbose)
+  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
+  d_g <- .construct_frnn(distinct_score, radius = sub_rad, nn = nn, 
+                         frnn_approx = frnn_approx, verbose = verbose)
+  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
+  e_g <- .construct_frnn(everything_score, radius = e_rad, nn = nn, 
+                         frnn_approx = frnn_approx, verbose = verbose)
+  
+  if(bool_matrix){
+    c_g <- .nnlist_to_matrix(c_g)
+    d_g <- .nnlist_to_matrix(d_g)
+    e_g <- .nnlist_to_matrix(e_g)
+  }
+  
+  return(list(c_g = c_g, d_g = d_g, e_g = e_g))
 }
 
 #############
@@ -108,6 +120,15 @@ clisi_information <- function(common_mat, distinct_mat,
   }
   
   res
+}
+
+.nnlist_to_matrix <- function(nn_list){
+  j_vec <- unlist(nn_list)
+  i_vec <- unlist(lapply(1:length(nn_list), function(i){rep(i, length(nn_list[[i]]))}))
+  mat <- Matrix::sparseMatrix(i = i_vec, j = j_vec, x = 1)
+  mat <- mat + Matrix::t(mat)
+  mat@x <- rep(1, length(mat@i))
+  mat
 }
 
 .construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
