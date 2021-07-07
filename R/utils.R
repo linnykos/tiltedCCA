@@ -100,3 +100,36 @@
   
   ord_1[rank_2]
 }
+
+## see https://www.r-bloggers.com/2020/03/what-is-a-dgcmatrix-object-made-of-sparse-matrix-format-in-r/
+# if you want to find the nonzero entries for a row, I suggest
+# first transposing via Matrix::t()
+.nonzero_col <- function(mat, col_idx){
+  stopifnot(inherits(mat, "dgCMatrix"), col_idx %% 1 == 0,
+            col_idx > 0, col_idx <= nrow(mat))
+  
+  val1 <- mat@p[col_idx]
+  val2 <- mat@p[col_idx+1]
+  
+  if(val1 == val2) return(numeric(0))
+  mat@i[(val1+1):val2]+1
+}
+
+## from https://stackoverflow.com/questions/11832170/element-wise-max-operation-on-sparse-matrices-in-r
+## seems to be an error from https://stackoverflow.com/questions/10527072/using-data-table-package-inside-my-own-package
+## this means we need to include "data.table" into the "Depends"
+.pmax_sparse <- function(..., na.rm = FALSE) {
+  
+  # check that all matrices have conforming sizes
+  num_rows <- unique(sapply(list(...), nrow))
+  num_cols <- unique(sapply(list(...), ncol))
+  stopifnot(length(num_rows) == 1, length(num_cols) == 1)
+  
+  cat_summary <- data.table::rbindlist(lapply(list(...), Matrix::summary)) 
+  out_summary <- cat_summary[, list(x = max(x)), by = c("i", "j")]
+  
+  Matrix::sparseMatrix(i = out_summary[,i],
+                       j = out_summary[,j],
+                       x = out_summary[,x],
+                       dims = c(num_rows, num_cols))
+}
