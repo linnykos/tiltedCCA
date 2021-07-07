@@ -22,7 +22,8 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
                            frnn_approx = 0, radius_quantile = 0.9,
                            bool_matrix = F, include_diag = T, verbose = T){
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
-            length(membership_vec) == nrow(obj$common_score))
+            length(membership_vec) == nrow(obj$common_score),
+            is.factor(membership_vec))
   
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
                                    add_noise = F)
@@ -58,6 +59,11 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
   if(bool_matrix){
     for(i in 1:3){
       list_g[[i]] <- .nnlist_to_matrix(list_g[[i]], include_diag)
+      
+      if(length(rownames(obj$common_score)) != 0){
+        rownames(list_g[[i]]) <- rownames(obj$common_score)
+        colnames(list_g[[i]]) <- rownames(obj$common_score)
+      }
     }
   }
   
