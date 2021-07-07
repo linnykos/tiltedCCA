@@ -17,63 +17,49 @@
 #'
 #' @return list, depends on \code{bool_matrix}
 #' @export
-construct_frnn <- function(common_score, distinct_score, svd_e,
-                           membership_vec,
-                           max_subsample_frnn = nrow(common_score),
+construct_frnn <- function(obj, membership_vec, data_1 = T, data_2 = F,
+                           max_subsample_frnn = nrow(obj$common_score),
                            nn, frnn_approx = 0, radius_quantile = 0.9,
                            bool_matrix = F, include_diag = T, verbose = T){
-  
-  stopifnot(nrow(common_score) == nrow(distinct_score))
   stopifnot(frnn_approx >= 0, frnn_approx <= 1)
   
-  # compute the radius
-  # [[note to self: the code below is quite messy -- fix it when i finalized the method]]
+  embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
+                                   add_noise = add_noise)
+  n <- nrow(embedding[1])
+  
+  # construct subsamples
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
   if(length(cell_subidx) < nrow(common_score)) {
     membership_vec <- membership_vec[cell_subidx]
   }
+  for(i in 1:3){
+    embedding[[i]] <- embedding[[i]][cell_subidx,,drop = F]
+  }
+  n <- nrow(embedding[[1]])
   
-  # extract embeddings
-  c_embedding <- .extract_matrix_helper(common_score, distinct_score, svd_e,
-                                        common_bool = T, distinct_bool = F, add_noise = F,
-                                        center = F, renormalize = F)
-  d_embedding <- .extract_matrix_helper(common_score, distinct_score, svd_e,
-                                        common_bool = F, distinct_bool = T, add_noise = F,
-                                        center = F, renormalize = F)
-  e_embedding <- .extract_matrix_helper(common_score, distinct_score, svd_e,
-                                        common_bool = T, distinct_bool = T, add_noise = F,
-                                        center = F, renormalize = F)
+  # compute the radius
+  vec_print <- c("common", "distinct", "everything")
+  vec_rad <- sapply(1:3, function(i){
+    if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- ", vec_print[i]))
+    .compute_radius(embedding[[i]], nn, radius_quantile, 1:n)
+  })
+  vec_rad[1:2] <- max(vec_rad[1:2])
   
-  c_embedding <- c_embedding[cell_subidx,,drop = F]
-  d_embedding <- d_embedding[cell_subidx,,drop = F]
-  e_embedding <- e_embedding[cell_subidx,,drop = F]
-  n <- nrow(c_embedding)
-  
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- common"))
-  c_rad <- .compute_radius(c_embedding, nn, radius_quantile, 1:n)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- distinct"))
-  d_rad <- .compute_radius(d_embedding, nn, radius_quantile, 1:n)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- everything"))
-  e_rad <- .compute_radius(e_embedding, nn, radius_quantile, 1:n)
-  sub_rad <- max(c_rad, d_rad)
-  
-  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- common"))
-  c_g <- .construct_frnn(c_embedding, radius = sub_rad, nn = nn, 
-                         frnn_approx = frnn_approx, verbose = verbose)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- distinct"))
-  d_g <- .construct_frnn(d_embedding, radius = sub_rad, nn = nn, 
-                         frnn_approx = frnn_approx, verbose = verbose)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- everything"))
-  e_g <- .construct_frnn(e_embedding, radius = e_rad, nn = nn, 
-                         frnn_approx = frnn_approx, verbose = verbose)
-  
+  # construct frnn
+  list_g <- list(1:3, function(i){
+    if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- ", vec_print[i]))
+    .construct_frnn(embedding[[i]], radius = vec_rad[i], nn = nn, 
+                    frnn_approx = frnn_approx, verbose = verbose)
+  }) 
+ 
+  # convert to matrix if needed
   if(bool_matrix){
-    c_g <- .nnlist_to_matrix(c_g, include_diag)
-    d_g <- .nnlist_to_matrix(d_g, include_diag)
-    e_g <- .nnlist_to_matrix(e_g, include_diag)
+    for(i in 1:3){
+      list_g[[i]] <- .nnlist_to_matrix(list_g[[i]], include_diag)
+    }
   }
   
-  return(list(c_g = c_g, d_g = d_g, e_g = e_g, 
+  return(list(c_g = list_g[[1]], d_g = list_g[[2]], e_g = list_g[[3]], 
               membership_vec = membership_vec))
 }
 
@@ -92,8 +78,8 @@ construct_frnn <- function(common_score, distinct_score, svd_e,
   sort(unlist(res))
 }
 
-.compute_radius <- function(mat, nn, radius_quantile, cell_subidx){
-  res <- RANN::nn2(mat[cell_subidx,,drop = F], k = nn)
+.compute_radius <- function(mat, nn, radius_quantile){
+  res <- RANN::nn2(mat, k = nn)
   as.numeric(stats::quantile(res$nn.dists[,nn], probs = radius_quantile))[1]
 }
 
