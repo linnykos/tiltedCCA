@@ -1,8 +1,11 @@
 #' Compute cLISI information
 #'
-#' @param common_score output from \code{dcca_decomposition}
-#' @param distinct_score output from \code{dcca_decomposition}
-#' @param svd_e list containing the SVD of the full matrix 
+#' @param c_g sparse matrix of class \code{dgCMatrix} representing the common embedding,
+#' where the non-zero entries represent distances
+#' @param d_g sparse matrix of class \code{dgCMatrix} representing the distinct embedding,
+#' where the non-zero entries represent distances
+#' @param e_g sparse matrix of class \code{dgCMatrix} representing the everything embedding,
+#' where the non-zero entries represent distances
 #' @param membership_vec factor
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
@@ -16,9 +19,8 @@
 #'
 #' @return two lists
 #' @export
-clisi_information <- function(c_g, d_g, e_g,
-                              membership_vec, 
-                              max_subsample_clisi = min(500, nrow(common_score)),
+clisi_information <- function(c_g, d_g, e_g, membership_vec, 
+                              max_subsample_clisi = min(500, nrow(c_g)),
                               verbose = T){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(c_g),
             all(dim(c_g) == dim(d_g)), all(dim(c_g) == dim(e_g)))
@@ -32,11 +34,11 @@ clisi_information <- function(c_g, d_g, e_g,
   # compute clisi scores
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
-  c_score <- .clisi(c_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
+  c_score <- .clisi(c_g, membership_vec, cell_subidx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct"))
-  d_score <- .clisi(d_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
+  d_score <- .clisi(d_g, membership_vec, cell_subidx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- everything"))
-  e_score <- .clisi(e_g, membership_vec, cell_subidx2, full_idx = cell_subidx1, verbose = verbose)
+  e_score <- .clisi(e_g, membership_vec, cell_subidx, verbose = verbose)
   
   structure(list(common_clisi = c_score, distinct_clisi = d_score,
        everything_clisi = e_score), class = "clisi")
@@ -81,7 +83,7 @@ clisi_information <- function(c_g, d_g, e_g,
   })
   
   clisi_info <- as.data.frame(t(clisi_info))
-  clisi_info <- cbind(idx = full_idx[cell_subidx], celltype = membership_vec[cell_subidx], 
+  clisi_info <- cbind(idx = cell_subidx, celltype = membership_vec[cell_subidx], 
                       clisi_info)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))

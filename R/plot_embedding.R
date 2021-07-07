@@ -182,7 +182,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = F,
   n <- nrow(common_score)
   canonical_score <- .add_two_matrices(common_score, distinct_score)
   full_mat <- .mult_mat_vec(svd_e$u, svd_e$d/max(svd_e$d))
-  full_mat <- canonical_score %*% crossprod(canonical_score, full_mat) # reorient for consistency for the rest of the pipeline
+  full_mat <- canonical_score %*% crossprod(canonical_score, full_mat)/n # reorient for consistency for the rest of the pipeline
   center_vec <- apply(full_mat, 2, mean)
   tmp <- full_mat
   if(center) tmp <- sapply(1:ncol(full_mat), function(k){full_mat[,k] - center_vec[k]})
@@ -200,7 +200,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = F,
           common_score <- cbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score)-ncol(common_score)))
         }
       }
-      tmp <- tcrossprod(common_score, canonical_score) %*% full_mat
+      tmp <- tcrossprod(common_score, canonical_score) %*% full_mat/n
       
     } else { 
       if(add_noise){
@@ -210,7 +210,7 @@ plot_embeddings <- function(obj, membership_vec, data_1 = T, data_2 = F,
           distinct_score <- cbind(distinct_score, matrix(0, nrow = n, ncol = ncol(common_score)-ncol(distinct_score)))
         }
       }
-      tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat
+      tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat/n
     }
     
     # center variables

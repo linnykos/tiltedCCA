@@ -17,19 +17,20 @@
 #'
 #' @return list, depends on \code{bool_matrix}
 #' @export
-construct_frnn <- function(obj, membership_vec, data_1 = T, data_2 = F,
+construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
                            max_subsample_frnn = nrow(obj$common_score),
-                           nn, frnn_approx = 0, radius_quantile = 0.9,
+                           frnn_approx = 0, radius_quantile = 0.9,
                            bool_matrix = F, include_diag = T, verbose = T){
-  stopifnot(frnn_approx >= 0, frnn_approx <= 1)
+  stopifnot(frnn_approx >= 0, frnn_approx <= 1,
+            length(membership_vec) == nrow(obj$common_score))
   
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
-                                   add_noise = add_noise)
-  n <- nrow(embedding[1])
+                                   add_noise = F)
+  n <- nrow(embedding[[1]])
   
   # construct subsamples
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
-  if(length(cell_subidx) < nrow(common_score)) {
+  if(length(cell_subidx) < n) {
     membership_vec <- membership_vec[cell_subidx]
   }
   for(i in 1:3){
@@ -41,12 +42,13 @@ construct_frnn <- function(obj, membership_vec, data_1 = T, data_2 = F,
   vec_print <- c("common", "distinct", "everything")
   vec_rad <- sapply(1:3, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- ", vec_print[i]))
-    .compute_radius(embedding[[i]], nn, radius_quantile, 1:n)
+    .compute_radius(embedding[[i]], nn, radius_quantile)
   })
+  vec_rad_org <- vec_rad
   vec_rad[1:2] <- max(vec_rad[1:2])
   
   # construct frnn
-  list_g <- list(1:3, function(i){
+  list_g <- lapply(1:3, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- ", vec_print[i]))
     .construct_frnn(embedding[[i]], radius = vec_rad[i], nn = nn, 
                     frnn_approx = frnn_approx, verbose = verbose)
@@ -60,7 +62,8 @@ construct_frnn <- function(obj, membership_vec, data_1 = T, data_2 = F,
   }
   
   return(list(c_g = list_g[[1]], d_g = list_g[[2]], e_g = list_g[[3]], 
-              membership_vec = membership_vec))
+              membership_vec = membership_vec,
+              original_radius = vec_rad_org))
 }
 
 ########################
@@ -99,7 +102,7 @@ construct_frnn <- function(obj, membership_vec, data_1 = T, data_2 = F,
       duplicates <- !duplicated(tmp_id)
       
       res$id[[idx[i]]] <- tmp_id[duplicates]
-      res$dist[[idx[i]]] <- tmp_dist[duplictes]
+      res$dist[[idx[i]]] <- tmp_dist[duplicates]
     }
   }
   

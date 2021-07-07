@@ -1,74 +1,34 @@
 context("Test clisi information")
 
-## .compute_radius is correct
-
-test_that(".compute_radius works", {
-  set.seed(10)
-  mat <- matrix(rnorm(100), 20, 5)
-  res <- .compute_radius(mat, 2, radius_quantile = 0.95, cell_subidx = 1:20)
-  
-  expect_true(length(res) == 1)
-  expect_true(is.numeric(res))
-  expect_true(res >= 0)
-  
-  res <- .compute_radius(mat, 2, radius_quantile = 0.95, cell_subidx = sample(1:20,10))
-  
-  expect_true(length(res) == 1)
-  expect_true(is.numeric(res))
-  expect_true(res >= 0)
-})
-
-test_that(".compute_radius increases as neighbor increases", {
-  set.seed(10)
-  n <- 100; p <- 5
-  mat <- matrix(rnorm(n*p), n, p)
-  k_vec <- 5:50
-  rad_vec <- sapply(k_vec, function(k){
-    .compute_radius(mat, k, radius_quantile = 0.95, cell_subidx = 1:n)
-  })
-  
-  expect_true(all(diff(rad_vec) >= 0))
-})
-
-############################
-
-## .construct_frnn is correct
-
-test_that(".construct_frnn works", {
-  set.seed(10)
-  n <- 100; p <- 2
-  mat <- matrix(rnorm(n*p), n, p)
-  rad <- .compute_radius(mat, 5, radius_quantile = 0.5, cell_subidx = 1:n)
-  res <- .construct_frnn(mat, radius = rad, nn = 5, frnn_approx = 0)
-  
-  expect_true(is.list(res))
-  expect_true(length(res) == n)
-  for(i in 1:n){
-    expect_true(length(res[[i]]) > 0)
-    expect_true(all(res[[i]] %% 1 == 0))
-    expect_true(!i %in% res[[i]])
-  }
-})
-
-######################
-
 ## .clisi is correct
 
 test_that(".clisi works", {
-  set.seed(10)
-  n <- 100; p <- 2
-  mat1 <- matrix(rnorm(n*p), n, p)
-  mat2 <- matrix(rnorm(n*p), n, p)+50
-  mat <- rbind(mat1, mat2)
-  rad <- .compute_radius(mat, 10, radius_quantile = 0.95)
-  g <- .construct_frnn(mat, rad, nn = 10, frnn_approx = 0)
-  membership_vec1 <- as.factor(rep(c("a","b"), each = n))
-  membership_vec2 <- as.factor(rep(c("a","b"), times = n))
-  cell_subidx1 <- .construct_celltype_subsample(membership_vec1, 50)
-  cell_subidx2 <- .construct_celltype_subsample(membership_vec2, 50)
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space1 <- MASS::mvrnorm(n = n/2, mu = rep(0,K), Sigma = diag(K))
+  common_space2 <- MASS::mvrnorm(n = n/2, mu = rep(0,K), Sigma = diag(K))+20
+  common_space <- rbind(common_space1, common_space2)
   
-  res1 <- .clisi(g, membership_vec1, cell_subidx1, full_idx = 1:length(g))
-  res2 <- .clisi(g, membership_vec2, cell_subidx2, full_idx = 1:length(g))
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
+  
+  dcca_obj <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
+  
+  membership_vec1 <- as.factor(rep(c("a","b"), each = n/2))
+  list_g <- construct_frnn(dcca_obj, nn = 25, membership_vec = membership_vec1,
+                           verbose = F, bool_matrix = T)
+  c_g <- .symmetrize_sparse(list_g[[1]], set_ones = T)
+  res1 <- .clisi(c_g, membership_vec1, 1:n, verbose = F)
+  
+  membership_vec2 <- as.factor(rep(c("a","b"), times = n/2))
+  list_g <- construct_frnn(dcca_obj, nn = 25, membership_vec = membership_vec2,
+                           verbose = F, bool_matrix = T)
+  c_g <- .symmetrize_sparse(list_g[[1]], set_ones = T)
+  res2 <- .clisi(c_g, membership_vec2, 1:n, verbose = F)
   
   expect_true(length(res1) == 2)
   expect_true(all(sort(names(res1)) == sort(c("cell_info", "membership_info"))))
@@ -77,7 +37,7 @@ test_that(".clisi works", {
   expect_true(all(sapply(1:ncol(res1$membership_info), function(j){class(res1$membership_info[,j])}) == c("character", rep("numeric", 6))))
   expect_true(all(sort(names(res1$membership_info)) == sort(c("celltype", "mean_len", "mean_ratio", "mean_clisi", 
                                                               "sd_len", "sd_ratio", "sd_clisi"))))
-  expect_true(all(dim(res1$cell_info) == c(length(cell_subidx1), 5)))
+  expect_true(all(dim(res1$cell_info) == c(n, 5)))
   expect_true(all(res1$membership_info$mean_ratio >= res2$membership_info$mean_ratio))
   expect_true(all(res1$membership_info$mean_clisi >= res2$membership_info$mean_clisi))
 })
@@ -87,91 +47,46 @@ test_that(".clisi works", {
 ## clisi_information is correct
 
 test_that("clisi_information works", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat1 <- matrix(c(0.9, 0, 0, 
-                     0, 0.9, 0,
-                     0, 0, 0.9), 3, 3, byrow = T)
-  B_mat2 <- matrix(c(0.9, 0.85, 0, 
-                     0.85, 0.9, 0,
-                     0, 0, 1), 3, 3, byrow = T)
-  K <- ncol(B_mat1)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec); true_membership_vec <- membership_vec
-  svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)
-  svd_u_2 <- multiomicCCA::generate_sbm_orthogonal(B_mat2, membership_vec, centered = T)
+  set.seed(5)
+  n <- 100; K <- 2
+  common_space1 <- MASS::mvrnorm(n = n/2, mu = rep(0,K), Sigma = diag(K))
+  common_space2 <- MASS::mvrnorm(n = n/2, mu = rep(0,K), Sigma = diag(K))+20
+  common_space <- rbind(common_space1, common_space2)
   
-  p_1 <- 20; p_2 <- 40
-  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-  svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, K-1)
-  svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, K-1)
+  p1 <- 5; p2 <- 10
+  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
+  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
   
-  dat <- multiomicCCA::generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2, 
-                                     noise_val = 0.1)
-  K <- 2
-  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
-  dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
+  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
+  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  res <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                           dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
-                           nn = 50, frnn_approx = 0, verbose = F)
+  dcca_obj <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   
-  expect_true(class(res) == "clisi")
-  expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_clisi", "distinct_clisi", "everything_clisi"))))
-  expect_true(all(dim(res$common_clisi$cell_info) == dim(res$distinct_clisi$cell_info)))
-  expect_true(all(dim(res$common_clisi$cell_info) == dim(res$everything_clisi$cell_info)))
+  membership_vec1 <- as.factor(rep(c("a","b"), each = n/2))
+  list_g <- construct_frnn(dcca_obj, nn = 25, membership_vec = membership_vec1,
+                           verbose = F, bool_matrix = T)
+  res1 <- clisi_information(list_g$c_g, list_g$d_g, list_g$e_g, membership_vec1,
+                            verbose = F)
   
-  expect_true(all(dim(res$common_clisi$membership_info) == dim(res$distinct_clisi$membership_info)))
-  expect_true(all(dim(res$common_clisi$membership_info) == dim(res$everything_clisi$membership_info)))
-})
-
-test_that("clisi_information works with max_subsample_frnn and max_subsample_clisi", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat1 <- matrix(c(0.9, 0, 0, 
-                     0, 0.9, 0,
-                     0, 0, 0.9), 3, 3, byrow = T)
-  B_mat2 <- matrix(c(0.9, 0.85, 0, 
-                     0.85, 0.9, 0,
-                     0, 0, 1), 3, 3, byrow = T)
-  K <- ncol(B_mat1)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec); true_membership_vec <- membership_vec
-  svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)
-  svd_u_2 <- multiomicCCA::generate_sbm_orthogonal(B_mat2, membership_vec, centered = T)
+  membership_vec2 <- as.factor(rep(c("a","b"), times = n/2))
+  list_g <- construct_frnn(dcca_obj, nn = 25, membership_vec = membership_vec2,
+                           verbose = F, bool_matrix = T)
+  res2 <- clisi_information(list_g$c_g, list_g$d_g, list_g$e_g, membership_vec2,
+                            verbose = F)
   
-  p_1 <- 20; p_2 <- 40
-  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-  svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, K-1)
-  svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, K-1)
-  
-  dat <- multiomicCCA::generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2, 
-                                     noise_val = 0.1)
-  K <- 2
-  dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
-  dcca_decomp <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-  
-  res <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                           dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
-                           nn = 50, frnn_approx = 0, max_subsample_clisi = 50,
-                           verbose = F)
-  expect_true(class(res) == "clisi")
-  
-  set.seed(10)
-  res1 <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                            dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
-                           nn = 50, frnn_approx = 0, 
-                           max_subsample_frnn = 50, max_subsample_clisi = 20,
-                           verbose = F)
   expect_true(class(res1) == "clisi")
+  expect_true(is.list(res1))
+  expect_true(all(sort(names(res1)) == sort(c("common_clisi", "distinct_clisi", "everything_clisi"))))
+  expect_true(all(dim(res1$common_clisi$cell_info) == dim(res1$distinct_clisi$cell_info)))
+  expect_true(all(dim(res1$common_clisi$cell_info) == dim(res1$everything_clisi$cell_info)))
   
-  set.seed(10)
-  res2 <- clisi_information(dcca_decomp$common_score, dcca_decomp$distinct_score_1,
-                            dcca_decomp$svd_1, membership_vec = as.factor(membership_vec),
-                           nn = 50, frnn_approx = 0, 
-                           max_subsample_frnn = 50, max_subsample_clisi = 50,
-                           verbose = F)
-  expect_true(class(res2) == "clisi")
-  expect_true(all(res1$common_clisi$cell_info$idx %in% res2$common_clisi$cell_info$idx))
+  expect_true(all(dim(res1$common_clisi$membership_info) == dim(res1$distinct_clisi$membership_info)))
+  expect_true(all(dim(res1$common_clisi$membership_info) == dim(res1$everything_clisi$membership_info)))
+  
+  expect_true(all(res1$common_clisi$membership_info$mean_clisi >= 
+                    res2$common_clisi$membership_info$mean_clisi))
+  expect_true(all(res1$distinct_clisi$membership_info$mean_clisi >= 
+                    res2$distinct_clisi$membership_info$mean_clisi))
+  expect_true(all(res1$everything_clisi$membership_info$mean_clisi >= 
+                    res2$everything_clisi$membership_info$mean_clisi))
 })
