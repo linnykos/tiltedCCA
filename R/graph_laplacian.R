@@ -5,6 +5,7 @@
 #' @param normalize boolean
 #' @param rowname_vec vector of rownames
 #' @param colname_vec vector of colnames
+#' @param verbose boolean
 #'
 #' @return matrix of dimension \code{nrow(g_mat)} by \code{k_max}
 #' @export

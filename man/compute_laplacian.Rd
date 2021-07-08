@@ -4,7 +4,14 @@
 \alias{compute_laplacian}
 \title{Compute the eigenbasis of a Laplacian based on a sparse matrix}
 \usage{
-compute_laplacian(g_mat, k_max = 100, normalize = T, rowname_vec, colname_vec)
+compute_laplacian(
+  g_mat,
+  k_max = 100,
+  normalize = T,
+  rowname_vec,
+  colname_vec,
+  verbose = T
+)
 }
 \arguments{
 \item{g_mat}{sparse matrix of class \code{dgCMatrix}}
@@ -16,6 +23,8 @@ compute_laplacian(g_mat, k_max = 100, normalize = T, rowname_vec, colname_vec)
 \item{rowname_vec}{vector of rownames}
 
 \item{colname_vec}{vector of colnames}
+
+\item{verbose}{boolean}
 }
 \value{
 matrix of dimension \code{nrow(g_mat)} by \code{k_max}

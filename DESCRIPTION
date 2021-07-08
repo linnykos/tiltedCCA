@@ -1,6 +1,6 @@
 Package: multiomicCCA
 Title: Kevin Lin
-Version: 0.0.0.0029
+Version: 0.0.0.0030
 Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
 Description: Multiomic CCA method. Currently under development.
 Depends:
@@ -20,7 +20,10 @@ Imports:
     dbscan,
     scales,
     sparseMatrixStats,
-    matrixStats
+    matrixStats,
+    RColorBrewer,
+    cowplot,
+    ggplot2
 Suggests:
     testthat
 RoxygenNote: 7.1.1
