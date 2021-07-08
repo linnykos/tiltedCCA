@@ -9,10 +9,12 @@
 #' @return matrix of dimension \code{nrow(g_mat)} by \code{k_max}
 #' @export
 compute_laplacian <- function(g_mat, k_max = 100, normalize = T,
-                        rowname_vec, colname_vec){
+                        rowname_vec, colname_vec, verbose = T){
   stopifnot(inherits(g_mat, "dgCMatrix"))
   
   n <- nrow(g_mat)
+  g_mat <- .symmetrize_sparse(g_mat, set_ones = T)
+  
   if(normalize){
     deg_vec <- sparseMatrixStats::rowSums2(g_mat)
     invdeg_mat <- Matrix::sparseMatrix(i = 1:n, j = 1:n, x = 1/deg_vec)
@@ -23,7 +25,8 @@ compute_laplacian <- function(g_mat, k_max = 100, normalize = T,
   invdeg_mat2 <- Matrix::sparseMatrix(i = 1:n, j = 1:n, x = 1/deg_vec2)
   lap_mat <- invdeg_mat2 %*% g_mat
   
-  eigenbasis <- .laplacian_eigenvectors(lap_mat, k_max = k_max)
+  eigenbasis <- .laplacian_eigenvectors(lap_mat, k_max = k_max, reorient = T,
+                                        print_approximation = verbose)
   rownames(eigenbasis) <- rowname_vec
   colnames(eigenbasis) <- colname_vec
   
@@ -46,8 +49,7 @@ compute_smooth_signal <- function(vec, eigenbasis){
 
 ####################3
 
-.laplacian_eigenvectors <- function(mat, k_max = 200, reorient = T,
-                                   print_approximation = T){
+.laplacian_eigenvectors <- function(mat, k_max, reorient, print_approximation){
   res <- RSpectra::eigs(mat, k = k_max) # it's important to use eigs since this matrix isn't symmetric
   res$values <- Re(res$values)
   res$vectors <- Re(res$vectors)
@@ -56,7 +58,7 @@ compute_smooth_signal <- function(vec, eigenbasis){
   if(print_approximation){
     inv_vectors <- MASS::ginv(res$vectors)
     approx_mat <- .mult_mat_vec(res$vectors, res$values) %*% inv_vectors
-    print("Approximation quality: ", round(sqrt(sum((mat - approx_mat)^2))/sqrt(sum(mat^2))),2)
+    print(paste0("Approximation quality: ", round(sqrt(sum((mat - approx_mat)^2))/sqrt(sum(mat^2)),2)))
   }
  
   if(reorient){
