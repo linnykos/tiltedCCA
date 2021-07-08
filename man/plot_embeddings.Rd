@@ -6,7 +6,7 @@
 \usage{
 plot_embeddings(
   obj,
-  membership_vec,
+  membership_vec = NA,
   data_1 = T,
   data_2 = F,
   add_noise = T,
@@ -41,7 +41,9 @@ If \code{FALSE}, plot the UMAP embedding.}
 \item{verbose}{boolean}
 }
 \value{
-shows a plot but returns nothing
+depends on \code{only_embedding}. 
+If \code{TRUE}, returns three matrices as a list.
+If \code{FALSE}, shows a plot but returns nothing
 }
 \description{
 Side-by-side UMAPs of the common, distinct and everything matrix

@@ -1,23 +1,17 @@
 #' Compute cLISI information
 #'
-#' @param c_g sparse matrix of class \code{dgCMatrix} representing the common embedding,
-#' where the non-zero entries represent distances
-#' @param d_g sparse matrix of class \code{dgCMatrix} representing the distinct embedding,
-#' where the non-zero entries represent distances
-#' @param e_g sparse matrix of class \code{dgCMatrix} representing the everything embedding,
-#' where the non-zero entries represent distances
-#' @param membership_vec factor
-#' @param nn integer of number of nearest neighbors to determine the appropriate radius
-#' for the frNN graph
-#' @param frnn_approx small non-negative number
-#' @param radius_quantile value between 0 and 1
-#' @param max_subsample_frnn positive integer, used for determining number of cells to 
-#' compute cLISI for
+#' @param c_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
+#' representing the common embedding, where the non-zero entries represent distances
+#' @param d_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
+#' representing the distinct embedding, where the non-zero entries represent distances
+#' @param e_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
+#' representing the everything embedding, where the non-zero entries represent distances
+#' @param membership_vec factor vector
 #' @param max_subsample_clisi positive integer, used for determining number of cells to 
 #' compute cLISI for
 #' @param verbose boolean
 #'
-#' @return two lists
+#' @return three lists
 #' @export
 clisi_information <- function(c_g, d_g, e_g, membership_vec, 
                               max_subsample_clisi = min(500, nrow(c_g)),

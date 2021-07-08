@@ -1,11 +1,13 @@
 #' Construct fixed-radius NN graph
 #'
-#' @param common_score output from \code{dcca_decomposition}
-#' @param distinct_score output from \code{dcca_decomposition}
-#' @param svd_e list containing the SVD of the full matrix 
-#' @param cell_subidx vector of integers between 1 and \code{nrow(common_score)}
+#' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
+#' @param membership_vec factor vector
+#' @param data_1 boolean
+#' @param data_2 boolean
+#' @param max_subsample_frnn positive integer, used for determining number of cells to 
+#' compute cLISI for
 #' @param frnn_approx small non-negative number
 #' @param radius_quantile value between 0 and 1
 #' @param bool_matrix boolean. If \code{TRUE}, output the graphs as a sparse matrix.

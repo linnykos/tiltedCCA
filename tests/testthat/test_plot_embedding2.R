@@ -28,6 +28,10 @@ test_that("plot_embeddings2 works", {
   
   set.seed(10)
   res <- plot_embeddings2(list_g[[1]], list_g[[2]], list_g[[3]],
-                          only_embedding = T)
+                          only_embedding = T, verbose = F)
   
+  expect_true(is.list(res))
+  for(i in 1:3){
+    expect_true(all(dim(res) == c(n, 2)))
+  }
 })

@@ -1,6 +1,28 @@
-plot_embeddings2 <- function(c_g, d_g, e_g, only_embedding = F,
+#' Plot embeddings via frNN
+#'
+#' @param c_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
+#' representing the common embedding, where the non-zero entries represent distances
+#' @param d_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
+#' representing the distinct embedding, where the non-zero entries represent distances
+#' @param e_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
+#' representing the everything embedding, where the non-zero entries represent distances
+#' @param membership_vec factor vector
+#' @param col_vec vector of colors
+#' @param only_embedding boolean
+#' @param main_addition additional string to append to main of each plot
+#' @param verbose boolean
+#' @param ... additional parameters for \code{Seurat:::RunUMAP.Graph}
+#'
+#' @return depends on \code{only_embedding}. 
+#' If \code{TRUE}, returns three matrices as a list.
+#' If \code{FALSE}, shows a plot but returns nothing
+#' @export
+plot_embeddings2 <- function(c_g, d_g, e_g, membership_vec = NA,
+                             col_vec = scales::hue_pal()(length(levels(membership_vec))),
+                             only_embedding = F, main_addition = "",
                              verbose = T, ...){
   list_g <- list(c_g = c_g, d_g = d_g, e_g = e_g)
+  n <- nrow(c_g)
   list_output <- vector("list", 3)
 
   for(i in 1:3){
@@ -14,38 +36,32 @@ plot_embeddings2 <- function(c_g, d_g, e_g, only_embedding = F,
     # use Seurat
     tmp <- Seurat::RunUMAP(list_g[[i]], verbose = verbose, ...)
     list_output[[i]] <- tmp@cell.embeddings
-    
-    # # pass into python
-    # # see https://rstudio.github.io/reticulate/articles/calling_python.html
-    # csc_matrix <- reticulate::r_to_py(list_g[[i]])
-    # if (!reticulate::py_module_available(module = 'umap')) {
-    #   stop("Cannot find UMAP, please install through pip (e.g. pip install umap-learn).")
-    # }
-    # umap_import <- reticulate::import(module = "umap", delay_load = TRUE)
-    # umap <- umap_import$UMAP(
-    #   graph = csc_matrix,
-    #   n_components = as.integer(x = 2),
-    #   initial_alpha = 1,
-    #   a = NULL,
-    #   b = NULL,
-    #   gamma = 1,
-    #   negative_sample_rate = 5,
-    #   n_epochs = NULL,
-    #   init = "spectral",
-    #   random_state = NULL,
-    #   metric = "cosine",
-    #   densmap = FALSE,
-    #   densmap_kwds = NULL,
-    #   output_dens = FALSE,
-    #   output_metric = "euclidean",
-    #   output_metric_kwds = NULL,
-    #   euclidean_output = TRUE,
-    #   parallel = FALSE,
-    #   verbose = TRUE)
-    # umap$simplicial_set_embedding(as.matrix(x = object))
   }
   
-  if(only_embedding) return(list_output)
+  if(!only_embedding) {
+    if(all(is.na(membership_vec))){
+      col_cells <- rep(col_vec[1], n)
+    } else{
+      col_cells <- col_vec[as.numeric(membership_vec)]
+    }
+    
+    main_vec <- c("Common view", "Distinct view", "Everything view")
+    label1 <- "UMAP 1"; label2 <- "UMAP 2"
+    xlim <- range(sapply(list_output, function(x){x[,1]}))
+    ylim <- range(sapply(list_output, function(x){x[,2]}))
+    n_idx <- sample(1:nrow(list_output))
+    
+    graphics::par(mfrow = c(1,3))
+    for(i in 1:3){
+      graphics::plot(list_output[[i]][n_idx,1], list_output[[i]][n_idx,2],
+                     asp = T, pch = 16, col = col_vec[as.numeric(membership_vec)][n_idx], 
+                     main = paste0(main_vec[i], main_addition),
+                     xlab = label1, ylab = label2, xlim = xlim, ylim = ylim)
+    }
+    invisible()
+  } else {
+    return(list_output)
+  }
 }
 
 ######################
