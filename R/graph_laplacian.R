@@ -10,7 +10,8 @@
 #' @return matrix of dimension \code{nrow(g_mat)} by \code{k_max}
 #' @export
 compute_laplacian <- function(g_mat, k_max = 100, normalize = T,
-                        rowname_vec, colname_vec, verbose = T){
+                        rowname_vec = paste0("cell", 1:nrow(g_mat)), 
+                        colname_vec = paste0("basis", 1:k_max), verbose = T){
   stopifnot(inherits(g_mat, "dgCMatrix"))
   
   n <- nrow(g_mat)
@@ -51,7 +52,7 @@ compute_smooth_signal <- function(vec, eigenbasis){
 ####################3
 
 .laplacian_eigenvectors <- function(mat, k_max, reorient, print_approximation){
-  res <- RSpectra::eigs(mat, k = k_max) # it's important to use eigs since this matrix isn't symmetric
+  res <- RSpectra::eigs(mat, k = k_max+1) # it's important to use eigs since this matrix isn't symmetric
   res$values <- Re(res$values)
   res$vectors <- Re(res$vectors)
   eigenbasis <- .mult_mat_vec(res$vectors[,-1], res$values[-1])
@@ -59,7 +60,7 @@ compute_smooth_signal <- function(vec, eigenbasis){
   if(print_approximation){
     inv_vectors <- MASS::ginv(res$vectors)
     approx_mat <- .mult_mat_vec(res$vectors, res$values) %*% inv_vectors
-    print(paste0("Approximation quality: ", round(sqrt(sum((mat - approx_mat)^2))/sqrt(sum(mat^2)),2)))
+    print(paste0("Approximation error: ", round(sqrt(sum((mat - approx_mat)^2))/sqrt(sum(mat^2)),2)))
   }
  
   if(reorient){

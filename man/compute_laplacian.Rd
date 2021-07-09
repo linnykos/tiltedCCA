@@ -8,8 +8,8 @@ compute_laplacian(
   g_mat,
   k_max = 100,
   normalize = T,
-  rowname_vec,
-  colname_vec,
+  rowname_vec = paste0("cell", 1:nrow(g_mat)),
+  colname_vec = paste0("basis", 1:k_max),
   verbose = T
 )
 }

@@ -13,7 +13,7 @@ construct_frnn(
   max_subsample_frnn = nrow(obj$common_score),
   frnn_approx = 0,
   radius_quantile = 0.9,
-  bool_matrix = F,
+  bool_matrix = T,
   include_diag = T,
   verbose = T
 )

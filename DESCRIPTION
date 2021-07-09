@@ -1,6 +1,6 @@
 Package: multiomicCCA
 Title: Kevin Lin
-Version: 0.0.0.0030
+Version: 0.0.0.0032
 Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
 Description: Multiomic CCA method. Currently under development.
 Depends:

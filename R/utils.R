@@ -104,7 +104,7 @@
 ## see https://www.r-bloggers.com/2020/03/what-is-a-dgcmatrix-object-made-of-sparse-matrix-format-in-r/
 # if you want to find the nonzero entries for a row, I suggest
 # first transposing via Matrix::t()
-.nonzero_col <- function(mat, col_idx){
+.nonzero_col <- function(mat, col_idx, bool_value){
   stopifnot(inherits(mat, "dgCMatrix"), col_idx %% 1 == 0,
             col_idx > 0, col_idx <= nrow(mat))
   
@@ -112,5 +112,11 @@
   val2 <- mat@p[col_idx+1]
   
   if(val1 == val2) return(numeric(0))
-  mat@i[(val1+1):val2]+1
+  if(bool_value){
+    # return the value
+    mat@x[(val1+1):val2]
+  } else {
+    # return the row index
+    mat@i[(val1+1):val2]+1
+  }
 }

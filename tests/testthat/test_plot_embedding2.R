@@ -27,7 +27,7 @@ test_that("plot_embeddings2 works", {
                         verbose = F, bool_matrix = T)
   
   set.seed(10)
-  res <- plot_embeddings2(list_g[[1]], list_g[[2]], list_g[[3]],
+  res <- plot_embeddings2(list_g[[1]], list_g[[2]], list_g[[3]], nn = 5,
                           only_embedding = T, verbose = F)
   
   expect_true(is.list(res))

@@ -61,7 +61,7 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   clisi_info <- sapply(1:length(cell_subidx), function(i){
     if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
-    neigh <- .nonzero_col(g, cell_subidx[i])
+    neigh <- .nonzero_col(g, cell_subidx[i], bool_value = F)
     len <- length(neigh)
     if(len == 0){
       return(c(len = 0, in_ratio = 0, clisi_score = 0))

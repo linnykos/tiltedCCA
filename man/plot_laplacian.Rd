@@ -14,11 +14,14 @@ plot_laplacian(
   e_res,
   c_res,
   d_res,
+  sig_digits = 2,
   filename
 )
 }
 \arguments{
-\item{seurat_obj}{\code{Seurat} object, which is used to apply the plotting functions to}
+\item{seurat_obj}{\code{Seurat} object, which is used to apply the plotting functions to.
+We require 3 reductions available, \code{"common"}, \code{"distinct"}
+and \code{"everything"}}
 
 \item{var_name}{string, used for plotting aesthetics}
 
@@ -38,6 +41,8 @@ from the \code{dcca_decomposition} function}
 \item{c_res}{result applying \code{c_vec} to \code{compute_smooth_signal}}
 
 \item{d_res}{result applying \code{d_vec} to \code{compute_smooth_signal}}
+
+\item{sig_digits}{integer}
 
 \item{filename}{string, filename to save the plot to}
 }

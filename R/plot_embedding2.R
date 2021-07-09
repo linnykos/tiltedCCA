@@ -6,6 +6,8 @@
 #' representing the distinct embedding, where the non-zero entries represent distances
 #' @param e_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 #' representing the everything embedding, where the non-zero entries represent distances
+#' @param nn integer of number of nearest neighbors to determine the appropriate radius
+#' for the frNN graph
 #' @param membership_vec factor vector
 #' @param col_vec vector of colors
 #' @param only_embedding boolean
@@ -17,7 +19,7 @@
 #' If \code{TRUE}, returns three matrices as a list.
 #' If \code{FALSE}, shows a plot but returns nothing
 #' @export
-plot_embeddings2 <- function(c_g, d_g, e_g, membership_vec = NA,
+plot_embeddings2 <- function(c_g, d_g, e_g, nn, membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
                              verbose = T, ...){
@@ -26,16 +28,30 @@ plot_embeddings2 <- function(c_g, d_g, e_g, membership_vec = NA,
   list_output <- vector("list", 3)
 
   for(i in 1:3){
+    nn_idx <- lapply(1:n, function(j){.nonzero_col(list_g[[i]], j, bool_value = F)})
+    nn_dist <- lapply(1:n, function(j){.nonzero_col(list_g[[i]], j, bool_value = T)})
+    
+    # remove edges randomly
+    for(j in 1:length(n)){
+      if(length(nn_idx[[j]]) <= nn) next()
+      idx <- sample(1:length(nn_idx[[j]]), size = nn)
+      nn_idx[[j]] <- nn_idx[[j]][idx]
+      nn_dist[[j]] <- nn_dist[[j]][idx]
+    }
+    
+    rann_obj <- list(id = nn_idx, dist = nn_dist)
+    mat <- .nnlist_to_matrix(rann_obj, include_diag = F)
+    
     # symmetrize
-    list_g[[i]] <- .symmetrize_sparse(list_g[[i]], set_ones = F)
-  
-    # convert into kernels
-    list_g[[i]] <- .distance_to_kernel(list_g[[i]])
-    list_g[[i]] <- SeuratObject::as.Graph(list_g[[i]])
+    mat <- .symmetrize_sparse(mat, set_ones = F)
+    if(length(rownames(list_g[[i]])) > 0){
+      rownames(mat) <- rownames(list_g[[i]])
+      colnames(mat) <- rownames(list_g[[i]])
+    }
+    graph_obj <- SeuratObject::as.Graph(mat)
     
     # use Seurat
-    tmp <- Seurat::RunUMAP(list_g[[i]], verbose = verbose, ...)
-    list_output[[i]] <- tmp@cell.embeddings
+    list_output[[i]]  <- Seurat::RunUMAP(graph_obj, verbose = verbose, assay = "RNA", ...)@cell.embeddings
   }
   
   if(!only_embedding) {
@@ -62,25 +78,4 @@ plot_embeddings2 <- function(c_g, d_g, e_g, membership_vec = NA,
   } else {
     return(list_output)
   }
-}
-
-######################
-
-.distance_to_kernel <- function(mat_g){
-  stopifnot(inherits(mat_g, "dgCMatrix"))
-  
-  n <- nrow(mat_g)
-  x_val <- unlist(lapply(1:n, function(col_idx){
-    val1 <- mat_g@p[col_idx]+1
-    val2 <- mat_g@p[col_idx+1]+1
-    
-    if(val1 == val2) return(numeric(0))
-    vec <- mat_g@x[(val1+1):val2]
-    min_val <- min(vec)
-    max_val <- max(vec)
-    exp(-(vec - min_val)/max_val)
-  }))
-  
-  mat_g@x <- x_val
-  mat_g
 }

@@ -8,6 +8,7 @@ plot_embeddings2(
   c_g,
   d_g,
   e_g,
+  nn,
   membership_vec = NA,
   col_vec = (scales::hue_pal())(length(levels(membership_vec))),
   only_embedding = F,
@@ -25,6 +26,9 @@ representing the distinct embedding, where the non-zero entries represent distan
 
 \item{e_g}{sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 representing the everything embedding, where the non-zero entries represent distances}
+
+\item{nn}{integer of number of nearest neighbors to determine the appropriate radius
+for the frNN graph}
 
 \item{membership_vec}{factor vector}
 
