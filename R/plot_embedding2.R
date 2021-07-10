@@ -4,8 +4,6 @@
 #' representing the common embedding, where the non-zero entries represent distances
 #' @param d_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 #' representing the distinct embedding, where the non-zero entries represent distances
-#' @param e_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
-#' representing the everything embedding, where the non-zero entries represent distances
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
 #' @param membership_vec factor vector
@@ -19,15 +17,32 @@
 #' If \code{TRUE}, returns three matrices as a list.
 #' If \code{FALSE}, shows a plot but returns nothing
 #' @export
-plot_embeddings2 <- function(c_g, d_g, e_g, nn, membership_vec = NA,
+plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g = NA, 
+                             membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
                              verbose = T, ...){
-  list_g <- list(c_g = c_g, d_g = d_g, e_g = e_g)
+  stopifnot(!data_1 | !data_2)
+  
+  if(all(is.na(c_g)) || all(is.na(d_g))){
+    rna_frnn <- multiomicCCA::construct_frnn(dcca_res, nn = nn, membership_vec = membership_vec,
+                                             data_1 = data_1, data_2 = data_2,
+                                             bool_matrix = T, include_diag = F, verbose = verbose)
+    c_g <- rna_frnn$c_g; d_g <- rna_frnn$d_g
+  }
+  
+  if(data_1){
+    everything_embedding <- .mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d)
+  } else if(data_2) {
+    everything_embedding <- .mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d)
+  }
+ 
+  list_g <- list(c_g = c_g, d_g = d_g)
   n <- nrow(c_g)
   list_output <- vector("list", 3)
 
-  for(i in 1:3){
+  # Use Seurat::RunUMAP.Graph for the common and distinct embeddings
+  for(i in 1:length(list_g)){
     nn_idx <- lapply(1:n, function(j){.nonzero_col(list_g[[i]], j, bool_value = F)})
     nn_dist <- lapply(1:n, function(j){.nonzero_col(list_g[[i]], j, bool_value = T)})
     
@@ -54,6 +69,10 @@ plot_embeddings2 <- function(c_g, d_g, e_g, nn, membership_vec = NA,
     list_output[[i]]  <- Seurat::RunUMAP(graph_obj, verbose = verbose, assay = "RNA", ...)@cell.embeddings
   }
   
+  # run Seurat::RunUMAP.Default on the everything
+  list_output[[3]] <- Seurat::RunUMAP(everything_embedding, metric = "euclidean", 
+                                      verbose = verbose, assay = "RNA", ...)@cell.embeddings
+  
   if(!only_embedding) {
     if(all(is.na(membership_vec))){
       col_cells <- rep(col_vec[1], n)
@@ -67,8 +86,8 @@ plot_embeddings2 <- function(c_g, d_g, e_g, nn, membership_vec = NA,
     ylim <- range(sapply(list_output, function(x){x[,2]}))
     n_idx <- sample(1:nrow(list_output))
     
-    graphics::par(mfrow = c(1,3))
-    for(i in 1:3){
+    graphics::par(mfrow = c(1,length(list_g)))
+    for(i in 1:length(list_g)){
       graphics::plot(list_output[[i]][n_idx,1], list_output[[i]][n_idx,2],
                      asp = T, pch = 16, col = col_vec[as.numeric(membership_vec)][n_idx], 
                      main = paste0(main_vec[i], main_addition),
