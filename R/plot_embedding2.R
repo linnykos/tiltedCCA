@@ -43,11 +43,12 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
 
   # Use Seurat::RunUMAP.Graph for the common and distinct embeddings
   for(i in 1:length(list_g)){
-    nn_idx <- lapply(1:n, function(j){.nonzero_col(list_g[[i]], j, bool_value = F)})
-    nn_dist <- lapply(1:n, function(j){.nonzero_col(list_g[[i]], j, bool_value = T)})
+    mat <- .symmetrize_sparse(list_g[[i]], set_ones = F)
+    nn_idx <- lapply(1:n, function(j){.nonzero_col(mat, j, bool_value = F)})
+    nn_dist <- lapply(1:n, function(j){.nonzero_col(mat, j, bool_value = T)})
     
     # remove edges randomly
-    for(j in 1:length(n)){
+    for(j in 1:n){
       if(length(nn_idx[[j]]) <= nn) next()
       idx <- sample(1:length(nn_idx[[j]]), size = nn)
       nn_idx[[j]] <- nn_idx[[j]][idx]
