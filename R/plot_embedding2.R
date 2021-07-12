@@ -21,6 +21,7 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
                              membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
+                             sampling_type = "uniform",
                              verbose = T, ...){
   stopifnot(!data_1 | !data_2)
   
@@ -48,12 +49,8 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
     nn_dist <- lapply(1:n, function(j){.nonzero_col(mat, j, bool_value = T)})
     
     # remove edges randomly
-    for(j in 1:n){
-      if(length(nn_idx[[j]]) <= nn) next()
-      idx <- sample(1:length(nn_idx[[j]]), size = nn)
-      nn_idx[[j]] <- nn_idx[[j]][idx]
-      nn_dist[[j]] <- nn_dist[[j]][idx]
-    }
+    tmp <- .embedding_resampling(nn_idx, nn_dist, nn = nn, sampling_type = sampling_type)
+    nn_idx <- tmp$nn_idx; nn_dist <- tmp$nn_dist
     
     rann_obj <- list(id = nn_idx, dist = nn_dist)
     mat <- .nnlist_to_matrix(rann_obj, include_diag = F)
@@ -99,3 +96,34 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
     return(list_output)
   }
 }
+
+##########################################
+
+.embedding_resampling <- function(nn_idx, nn_dist, nn, sampling_type){
+  stopifnot(sampling_type %in% c("uniform", "gaussian", "adaptive_gaussian",
+                                 "median_gaussian"))
+  n <- length(nn_idx)
+  
+  for(j in 1:n){
+    if(length(nn_idx[[j]]) <= nn) next()
+    
+    if(sampling_type == "uniform"){
+      idx <- sample(1:length(nn_idx[[j]]), size = nn)
+    } else if(sampling_type == "gaussian"){
+      idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-nn_dist[[j]]))
+    } else if(sampling_type == "adaptive_gaussian"){
+      min_val <- min(nn_dist[[j]])
+      max_val <- max(nn_dist[[j]])
+      idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-(nn_dist[[j]] - min_val)/max_val))
+    } else {
+      med_val <- stats::median(nn_dist[[j]])
+      idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-nn_dist[[j]]/med_val))
+    }
+    
+    nn_idx[[j]] <- nn_idx[[j]][idx]
+    nn_dist[[j]] <- nn_dist[[j]][idx]
+  }
+  
+  list(nn_idx = nn_idx, nn_dist = nn_dist)
+}
+

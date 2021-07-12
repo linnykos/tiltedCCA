@@ -48,6 +48,7 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
     .compute_radius(embedding[[i]], nn, radius_quantile)
   })
   vec_rad_org <- vec_rad
+  names(vec_rad_org) <- c("common", "distinct", "everything")
   vec_rad[1:2] <- max(vec_rad[1:2])
   
   # construct frnn
