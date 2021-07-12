@@ -21,7 +21,7 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
                              membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
-                             sampling_type = "uniform",
+                             sampling_type = "uniform", keep_nn = T,
                              verbose = T, ...){
   stopifnot(!data_1 | !data_2)
   
@@ -49,7 +49,8 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
     nn_dist <- lapply(1:n, function(j){.nonzero_col(mat, j, bool_value = T)})
     
     # remove edges randomly
-    tmp <- .embedding_resampling(nn_idx, nn_dist, nn = nn, sampling_type = sampling_type)
+    tmp <- .embedding_resampling(nn_idx, nn_dist, nn = nn, 
+                                 sampling_type = sampling_type, keep_nn = keep_nn)
     nn_idx <- tmp$nn_idx; nn_dist <- tmp$nn_dist
     
     rann_obj <- list(id = nn_idx, dist = nn_dist)
@@ -99,9 +100,10 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
 
 ##########################################
 
-.embedding_resampling <- function(nn_idx, nn_dist, nn, sampling_type){
+.embedding_resampling <- function(nn_idx, nn_dist, nn, 
+                                  sampling_type, keep_nn){
   stopifnot(sampling_type %in% c("uniform", "gaussian", "adaptive_gaussian",
-                                 "median_gaussian"))
+                                 "median_gaussian"), is.logical(keep_nn))
   n <- length(nn_idx)
   
   for(j in 1:n){
@@ -118,6 +120,10 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
     } else {
       med_val <- stats::median(nn_dist[[j]])
       idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-nn_dist[[j]]/med_val))
+    }
+    
+    if(keep_nn){
+      idx <- unique(c(idx, order(nn_dist[[j]], decreasing = F)[1:nn]))
     }
     
     nn_idx[[j]] <- nn_idx[[j]][idx]
