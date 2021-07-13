@@ -21,7 +21,7 @@
 #' @export
 construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
                            max_subsample_frnn = nrow(obj$common_score),
-                           frnn_approx = 0, radius_quantile = 0.9,
+                           frnn_approx = 0, radius_quantile = 0.5,
                            bool_matrix = T, include_diag = T, verbose = T){
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
             length(membership_vec) == nrow(obj$common_score),

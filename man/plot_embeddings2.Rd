@@ -5,30 +5,37 @@
 \title{Plot embeddings via frNN}
 \usage{
 plot_embeddings2(
-  c_g,
-  d_g,
-  e_g,
+  dcca_res,
   nn,
+  data_1 = T,
+  data_2 = F,
+  c_g = NA,
+  d_g = NA,
   membership_vec = NA,
   col_vec = (scales::hue_pal())(length(levels(membership_vec))),
   only_embedding = F,
   main_addition = "",
+  sampling_type = "adaptive_gaussian",
+  keep_nn = T,
   verbose = T,
   ...
 )
 }
 \arguments{
+\item{dcca_res}{output of \code{dcca_decomposition}}
+
+\item{nn}{integer of number of nearest neighbors to determine the appropriate radius
+for the frNN graph}
+
+\item{data_1}{boolean}
+
+\item{data_2}{boolean}
+
 \item{c_g}{sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 representing the common embedding, where the non-zero entries represent distances}
 
 \item{d_g}{sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 representing the distinct embedding, where the non-zero entries represent distances}
-
-\item{e_g}{sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
-representing the everything embedding, where the non-zero entries represent distances}
-
-\item{nn}{integer of number of nearest neighbors to determine the appropriate radius
-for the frNN graph}
 
 \item{membership_vec}{factor vector}
 
@@ -37,6 +44,10 @@ for the frNN graph}
 \item{only_embedding}{boolean}
 
 \item{main_addition}{additional string to append to main of each plot}
+
+\item{sampling_type}{string}
+
+\item{keep_nn}{boolean}
 
 \item{verbose}{boolean}
 

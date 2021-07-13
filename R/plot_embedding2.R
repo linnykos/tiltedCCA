@@ -1,15 +1,20 @@
 #' Plot embeddings via frNN
 #'
+#' @param dcca_res output of \code{dcca_decomposition}
+#' @param nn integer of number of nearest neighbors to determine the appropriate radius
+#' for the frNN graph
+#' @param data_1 boolean
+#' @param data_2 boolean
 #' @param c_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 #' representing the common embedding, where the non-zero entries represent distances
 #' @param d_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
 #' representing the distinct embedding, where the non-zero entries represent distances
-#' @param nn integer of number of nearest neighbors to determine the appropriate radius
-#' for the frNN graph
 #' @param membership_vec factor vector
 #' @param col_vec vector of colors
 #' @param only_embedding boolean
 #' @param main_addition additional string to append to main of each plot
+#' @param sampling_type string
+#' @param keep_nn boolean
 #' @param verbose boolean
 #' @param ... additional parameters for \code{Seurat:::RunUMAP.Graph}
 #'
@@ -21,7 +26,7 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
                              membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
-                             sampling_type = "uniform", keep_nn = T,
+                             sampling_type = "adaptive_gaussian", keep_nn = T,
                              verbose = T, ...){
   stopifnot(!data_1 | !data_2)
   
