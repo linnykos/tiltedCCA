@@ -191,6 +191,7 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   n <- nrow(common_score)
   canonical_score <- .add_two_matrices(common_score, distinct_score)
   full_mat <- .mult_mat_vec(svd_e$u, svd_e$d/max(svd_e$d))
+  ## [[note to self: check that the scales of all these are correct -- is 1/n the correct scale?]]
   full_mat <- canonical_score %*% crossprod(canonical_score, full_mat)/n # reorient for consistency for the rest of the pipeline
   center_vec <- apply(full_mat, 2, mean)
   tmp <- full_mat

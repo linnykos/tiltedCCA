@@ -5,7 +5,7 @@
 \title{Plot embeddings via frNN}
 \usage{
 plot_embeddings2(
-  dcca_res,
+  dcca_obj,
   nn,
   data_1 = T,
   data_2 = F,
@@ -22,7 +22,7 @@ plot_embeddings2(
 )
 }
 \arguments{
-\item{dcca_res}{output of \code{dcca_decomposition}}
+\item{dcca_obj}{output of \code{dcca_decomposition}}
 
 \item{nn}{integer of number of nearest neighbors to determine the appropriate radius
 for the frNN graph}

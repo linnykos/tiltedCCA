@@ -13,8 +13,6 @@
 #' @param bool_matrix boolean. If \code{TRUE}, output the graphs as a sparse matrix.
 #' If \code{FALSE}, output the graphs as a list where each element of the list
 #' corresponds with the element's neighbors
-#' @param include_diag boolean on whether or not the diagonal is included in the 
-#' graph (currently only impactful if \code{bool_matrix=TRUE}).
 #' @param verbose boolean
 #'
 #' @return list, depends on \code{bool_matrix}
@@ -22,7 +20,7 @@
 construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
                            max_subsample_frnn = nrow(obj$common_score),
                            frnn_approx = 0, radius_quantile = 0.5,
-                           bool_matrix = T, include_diag = T, verbose = T){
+                           bool_matrix = T, verbose = T){
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
             length(membership_vec) == nrow(obj$common_score),
             is.factor(membership_vec))
@@ -61,7 +59,7 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
   # convert to matrix if needed
   if(bool_matrix){
     for(i in 1:3){
-      list_g[[i]] <- .nnlist_to_matrix(list_g[[i]], include_diag)
+      list_g[[i]] <- .nnlist_to_matrix(list_g[[i]])
       
       if(length(rownames(obj$common_score)) != 0){
         rownames(list_g[[i]]) <- rownames(obj$common_score)
@@ -74,6 +72,91 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
               membership_vec = membership_vec,
               original_radius = vec_rad_org))
 }
+
+combine_frnn <- function(dcca_obj, g_1, g_2, nn, 
+                         common_1 = T, common_2 = T, keep_n = T,
+                         verbose = T){
+  stopifnot(all(dim(g_1) == dim(g_2)))
+  
+  # extract the relevant embeddings from dcca_obj
+  embedding_1 <- .prepare_embeddings(dcca_obj, data_1 = T, data_2 = F, 
+                                    add_noise = F)
+  if(common_1){
+    embedding_1 <- embedding_1$common
+  } else {
+    embedding_1 <- embedding_1$distinct
+  }
+  
+  embedding_2 <- .prepare_embeddings(dcca_obj, data_1 = F, data_2 = T, 
+                                     add_noise = F)
+  if(common_2){
+    embedding_2 <- embedding_2$common 
+  } else {
+    embedding_2 <- embedding_2$distinct
+  }
+  
+  # symmetrize g_1 and g_2
+  g_1 <- .symmetrize_sparse(g_1, set_ones = F)
+  g_2 <- .symmetrize_sparse(g_2, set_ones = F)
+  
+  # prepare
+  n <- nrow(g_1)
+  nn_idx_1 <- lapply(1:n, function(j){.nonzero_col(g_1, j, bool_value = F)})
+  nn_dist_1 <- lapply(1:n, function(j){.nonzero_col(g_1, j, bool_value = T)})
+  nn_idx_2 <- lapply(1:n, function(j){.nonzero_col(g_2, j, bool_value = F)})
+  nn_dist_2 <- lapply(1:n, function(j){.nonzero_col(g_2, j, bool_value = T)})
+  
+  # apply the following procedure for each cell n
+  nn_idx_all <- vector("list", n); nn_dist_all <- vector("list", n)
+  for(i in 1:n){
+    # intersect
+    idx_all <- unique(c(nn_idx_1[[i]], nn_idx_2[[i]]))
+    idx_intersect <- intersect(nn_idx_1[[i]], nn_idx_2[[i]])
+    if(length(idx_intersect) < nn){
+      idx_subset <- setdiff(idx_all, idx_intersect)
+      idx_intersect <- c(idx_intersect, sample(idx_subset, size = nn - length(idx_intersect)))
+    }
+    
+    # start tabulating nn_dist
+    nn_idx_all[[i]] <- idx_intersect
+    nn_dist_all[[i]] <- .compute_distance_from_idx(embedding_1, embedding_2, 
+                                                   nn_idx_1[[i]], nn_idx_2[[i]],
+                                                   nn_dist_1[[i]], nn_dist_2[[i]],
+                                                   start_idx = i, end_idx_vec = idx_intersect)
+    
+    # find the nn's
+    if(length(nn_idx_1[[i]]) < nn){
+      order_1 <- nn_idx_1[[i]]
+    } else {
+      order_1 <- order(nn_dist_1[[i]], decreasing = F)[1:nn]
+    }
+    if(length(nn_idx_2[[i]]) < nn){
+      order_2 <- nn_idx_2[[i]]
+    } else {
+      order_2 <- order(nn_dist_2[[i]], decreasing = F)[1:nn]
+    }
+   
+    tmp_idx <- unique(c(nn_idx_1[[i]][order_1], nn_idx_2[[i]][order_2]))
+    tmp_dist <- .compute_distance_from_idx(embedding_1, embedding_2, 
+                                           nn_idx_1[[i]], nn_idx_2[[i]],
+                                           nn_dist_1[[i]], nn_dist_2[[i]],
+                                           start_idx = i, end_idx_vec = tmp_idx)
+    zz <- intersect(order(tmp_dist, decreasing = F)[1:nn], which(!tmp_idx %in% nn_idx_all[[i]]))
+    nn_idx_all[[i]] <- c(nn_idx_all[[i]], tmp_idx[zz])
+    nn_dist_all[[i]] <- c(nn_dist_all[[i]], tmp_dist[zz])
+  }
+  
+  tmp_list <- list(id = nn_idx_all, dist = nn_dist_all)
+  res <- .nnlist_to_matrix(tmp_list)
+  
+  if(length(rownames(dcca_obj$common_score)) != 0){
+    rownames(res) <- rownames(dcca_obj$common_score)
+    colnames(res) <- rownames(dcca_obj$common_score)
+  }
+  
+  res
+}
+
 
 ########################
 
@@ -118,13 +201,13 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
   res
 }
 
-.nnlist_to_matrix <- function(rann_obj, include_diag){
-  if(!include_diag){
-    for(i in 1:length(rann_obj$id)){
-      idx <- rann_obj$id[[i]]
-      rann_obj$id[[i]] <- rann_obj$id[[i]][idx != i]
-      rann_obj$dist[[i]] <- rann_obj$dist[[i]][idx != i]
-    }
+.nnlist_to_matrix <- function(rann_obj){
+  stopifnot(all(c("id", "dist") %in% names(rann_obj)))
+  
+  for(i in 1:length(rann_obj$id)){
+    idx <- rann_obj$id[[i]]
+    rann_obj$id[[i]] <- rann_obj$id[[i]][idx != i]
+    rann_obj$dist[[i]] <- rann_obj$dist[[i]][idx != i]
   }
   
   j_vec <- unlist(rann_obj$id)
@@ -133,4 +216,31 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
   }))
   x_vec <- unlist(rann_obj$dist)
   Matrix::sparseMatrix(i = i_vec, j = j_vec, x = x_vec)
+}
+
+.compute_distance_from_idx <- function(embedding_1, embedding_2, 
+                                       nn_idx_1_vec, nn_idx_2_vec,
+                                       nn_dist_1_vec, nn_dist_2_vec,
+                                       start_idx, end_idx_vec){
+  stopifnot(!start_idx %in% end_idx_vec)
+  
+  res <- sapply(end_idx_vec, function(j){
+    tmp <- 0
+    z1 <- which(nn_idx_1_vec == j)
+    
+    if(length(z1) == 1) {
+      tmp <- tmp + nn_dist_1_vec[z1]
+    } else {
+      tmp <- tmp + .l2norm(embedding_1[start_idx,] - embedding_1[j,])
+    }
+    
+    z2 <- which(nn_idx_2_vec == j)
+    if(length(z2) == 1) {
+      tmp <- tmp + nn_dist_2_vec[z2]
+    } else {
+      tmp <- tmp + .l2norm(embedding_2[start_idx,] - embedding_2[j,])
+    }
+  })
+  
+  res
 }

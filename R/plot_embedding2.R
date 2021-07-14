@@ -1,6 +1,6 @@
 #' Plot embeddings via frNN
 #'
-#' @param dcca_res output of \code{dcca_decomposition}
+#' @param dcca_obj output of \code{dcca_decomposition}
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
 #' @param data_1 boolean
@@ -22,7 +22,7 @@
 #' If \code{TRUE}, returns three matrices as a list.
 #' If \code{FALSE}, shows a plot but returns nothing
 #' @export
-plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g = NA, 
+plot_embeddings2 <- function(dcca_obj, nn, data_1 = T, data_2 = F, c_g = NA, d_g = NA, 
                              membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
@@ -31,16 +31,16 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
   stopifnot(!data_1 | !data_2)
   
   if(all(is.na(c_g)) || all(is.na(d_g))){
-    rna_frnn <- multiomicCCA::construct_frnn(dcca_res, nn = nn, membership_vec = membership_vec,
+    rna_frnn <- multiomicCCA::construct_frnn(dcca_obj, nn = nn, membership_vec = membership_vec,
                                              data_1 = data_1, data_2 = data_2,
-                                             bool_matrix = T, include_diag = F, verbose = verbose)
+                                             bool_matrix = T, verbose = verbose)
     c_g <- rna_frnn$c_g; d_g <- rna_frnn$d_g
   }
   
   if(data_1){
-    everything_embedding <- .mult_mat_vec(dcca_res$svd_1$u, dcca_res$svd_1$d)
+    everything_embedding <- .mult_mat_vec(dcca_obj$svd_1$u, dcca_obj$svd_1$d)
   } else if(data_2) {
-    everything_embedding <- .mult_mat_vec(dcca_res$svd_2$u, dcca_res$svd_2$d)
+    everything_embedding <- .mult_mat_vec(dcca_obj$svd_2$u, dcca_obj$svd_2$d)
   }
  
   list_g <- list(c_g = c_g, d_g = d_g)
@@ -59,7 +59,7 @@ plot_embeddings2 <- function(dcca_res, nn, data_1 = T, data_2 = F, c_g = NA, d_g
     nn_idx <- tmp$nn_idx; nn_dist <- tmp$nn_dist
     
     rann_obj <- list(id = nn_idx, dist = nn_dist)
-    mat <- .nnlist_to_matrix(rann_obj, include_diag = F)
+    mat <- .nnlist_to_matrix(rann_obj)
     
     # symmetrize
     mat <- .symmetrize_sparse(mat, set_ones = F)

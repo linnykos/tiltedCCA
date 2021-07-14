@@ -14,7 +14,6 @@ construct_frnn(
   frnn_approx = 0,
   radius_quantile = 0.5,
   bool_matrix = T,
-  include_diag = T,
   verbose = T
 )
 }
@@ -40,9 +39,6 @@ compute cLISI for}
 \item{bool_matrix}{boolean. If \code{TRUE}, output the graphs as a sparse matrix.
 If \code{FALSE}, output the graphs as a list where each element of the list
 corresponds with the element's neighbors}
-
-\item{include_diag}{boolean on whether or not the diagonal is included in the 
-graph (currently only impactful if \code{bool_matrix=TRUE}).}
 
 \item{verbose}{boolean}
 }
