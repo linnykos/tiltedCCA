@@ -73,8 +73,26 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
               original_radius = vec_rad_org))
 }
 
+#' Combining two frNN graphs
+#'
+#' @param dcca_obj output of \code{dcca_decomposition}
+#' @param g_1 graph object of class \code{dgCMatrix} where the non-zero entries represent distances
+#' between nearest cells
+#' @param g_2 graph object of class \code{dgCMatrix} where the non-zero entries represent distances
+#' between nearest cells
+#' @param nn integer of number of nearest neighbors to determine the appropriate radius
+#' for the frNN graph
+#' @param common_1 boolean
+#' @param common_2 boolean
+#' @param keep_nn boolean
+#' @param sampling_type string
+#' @param verbose boolean
+#'
+#' @return object of class \code{dgCMatrix}
+#' @export
 combine_frnn <- function(dcca_obj, g_1, g_2, nn, 
-                         common_1 = T, common_2 = T, keep_n = T,
+                         common_1 = T, common_2 = T, keep_nn = T,
+                         sampling_type = "adaptive_gaussian",
                          verbose = T){
   stopifnot(all(dim(g_1) == dim(g_2)))
   
@@ -123,31 +141,38 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
                                                    nn_idx_1[[i]], nn_idx_2[[i]],
                                                    nn_dist_1[[i]], nn_dist_2[[i]],
                                                    start_idx = i, end_idx_vec = idx_intersect)
+    # sample these entries
+    tmp <- .embedding_resampling(nn_idx_all, nn_dist_all, nn = nn, 
+                                 sampling_type = sampling_type, keep_nn = F)
+    nn_idx_all <- tmp$nn_idx; nn_dist_all <- tmp$nn_dist
     
     # find the nn's
-    if(length(nn_idx_1[[i]]) < nn){
-      order_1 <- nn_idx_1[[i]]
-    } else {
-      order_1 <- order(nn_dist_1[[i]], decreasing = F)[1:nn]
-    }
-    if(length(nn_idx_2[[i]]) < nn){
-      order_2 <- nn_idx_2[[i]]
-    } else {
-      order_2 <- order(nn_dist_2[[i]], decreasing = F)[1:nn]
-    }
+    if(keep_nn){
+      if(length(nn_idx_1[[i]]) < nn){
+        order_1 <- nn_idx_1[[i]]
+      } else {
+        order_1 <- order(nn_dist_1[[i]], decreasing = F)[1:nn]
+      }
+      if(length(nn_idx_2[[i]]) < nn){
+        order_2 <- nn_idx_2[[i]]
+      } else {
+        order_2 <- order(nn_dist_2[[i]], decreasing = F)[1:nn]
+      }
    
-    tmp_idx <- unique(c(nn_idx_1[[i]][order_1], nn_idx_2[[i]][order_2]))
-    tmp_dist <- .compute_distance_from_idx(embedding_1, embedding_2, 
-                                           nn_idx_1[[i]], nn_idx_2[[i]],
-                                           nn_dist_1[[i]], nn_dist_2[[i]],
-                                           start_idx = i, end_idx_vec = tmp_idx)
-    zz <- intersect(order(tmp_dist, decreasing = F)[1:nn], which(!tmp_idx %in% nn_idx_all[[i]]))
-    nn_idx_all[[i]] <- c(nn_idx_all[[i]], tmp_idx[zz])
-    nn_dist_all[[i]] <- c(nn_dist_all[[i]], tmp_dist[zz])
+      tmp_idx <- unique(c(nn_idx_1[[i]][order_1], nn_idx_2[[i]][order_2]))
+      tmp_dist <- .compute_distance_from_idx(embedding_1, embedding_2, 
+                                             nn_idx_1[[i]], nn_idx_2[[i]],
+                                             nn_dist_1[[i]], nn_dist_2[[i]],
+                                             start_idx = i, end_idx_vec = tmp_idx)
+      zz <- intersect(order(tmp_dist, decreasing = F)[1:nn], which(!tmp_idx %in% nn_idx_all[[i]]))
+      nn_idx_all[[i]] <- c(nn_idx_all[[i]], tmp_idx[zz])
+      nn_dist_all[[i]] <- c(nn_dist_all[[i]], tmp_dist[zz])
+    }
   }
   
   tmp_list <- list(id = nn_idx_all, dist = nn_dist_all)
   res <- .nnlist_to_matrix(tmp_list)
+  res <- .symmetrize_sparse(res, set_ones = F)
   
   if(length(rownames(dcca_obj$common_score)) != 0){
     rownames(res) <- rownames(dcca_obj$common_score)

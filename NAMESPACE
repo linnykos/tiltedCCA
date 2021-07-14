@@ -3,6 +3,7 @@
 export(.compute_prob_mat)
 export(.generate_adjaceny_mat)
 export(clisi_information)
+export(combine_frnn)
 export(compute_laplacian)
 export(compute_smooth_signal)
 export(construct_frnn)

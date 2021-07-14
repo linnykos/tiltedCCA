@@ -45,6 +45,25 @@ test_that(".construct_frnn works", {
   }
 })
 
+test_that(".construct_frnn works in the presence of outliers", {
+  set.seed(10)
+  n <- 100; p <- 2
+  mat <- matrix(rnorm(n*p), n, p)
+  mat <- rbind(mat, matrix(c(10,-10,10,-10), 2, 2))
+  n <- nrow(mat)
+  rad <- .compute_radius(mat, 5, radius_quantile = 0.5)
+  res <- .construct_frnn(mat, radius = rad, nn = 5, frnn_approx = 0)
+  
+  expect_true(is.list(res))
+  expect_true(length(res$id) == n)
+  expect_true(length(res$dist) == n)
+  for(i in 1:n){
+    expect_true(length(res$id[[i]]) > 0)
+    expect_true(all(res$id[[i]] %% 1 == 0))
+    expect_true(!i %in% res$id[[i]])
+  }
+})
+
 #####################
 
 ## construct_frnn is correct
