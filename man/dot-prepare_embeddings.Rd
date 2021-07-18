@@ -4,7 +4,7 @@
 \alias{.prepare_embeddings}
 \title{Prepare the appropriate inputs}
 \usage{
-.prepare_embeddings(obj, data_1, data_2, add_noise)
+.prepare_embeddings(obj, data_1, data_2, add_noise, center, renormalize)
 }
 \arguments{
 \item{obj}{output from either \code{generate_data} or \code{dcca_decomposition}}
@@ -15,6 +15,10 @@
 
 \item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
 distinct scores "on the same scale" by adding appropriately-scaled Gaussian noise}
+
+\item{center}{boolean}
+
+\item{renormalize}{boolean}
 }
 \value{
 a list of 3 elements, representing the low-dimensional

@@ -26,7 +26,7 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
             is.factor(membership_vec))
   
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
-                                   add_noise = F)
+                                   add_noise = F, center = T, renormalize = T)
   n <- nrow(embedding[[1]])
   
   # construct subsamples
@@ -56,18 +56,21 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
                     frnn_approx = frnn_approx, verbose = verbose)
   }) 
  
-  # convert to matrix if needed
-  if(bool_matrix){
-    for(i in 1:3){
-      list_g[[i]] <- .nnlist_to_matrix(list_g[[i]])
-      
+  for(i in 1:3){
+    list_g[[i]] <- .symmetrize_sparse(.nnlist_to_matrix(list_g[[i]]), set_ones = F)
+  
+    # convert back to list form if needed
+    if(bool_matrix){
       if(length(rownames(obj$common_score)) != 0){
         rownames(list_g[[i]]) <- rownames(obj$common_score)
         colnames(list_g[[i]]) <- rownames(obj$common_score)
       }
+    } else {
+      list_g[[i]] <- .matrix_to_nnlist(list_g[[i]])
     }
   }
   
+  # [[note to self: I'm not sure if we need to output e_g]]
   return(list(c_g = list_g[[1]], d_g = list_g[[2]], e_g = list_g[[3]], 
               membership_vec = membership_vec,
               original_radius = vec_rad_org))
@@ -98,7 +101,7 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   
   # extract the relevant embeddings from dcca_obj
   embedding_1 <- .prepare_embeddings(dcca_obj, data_1 = T, data_2 = F, 
-                                    add_noise = F)
+                                    add_noise = F, center = T, renormalize = T)
   if(common_1){
     embedding_1 <- embedding_1$common
   } else {
@@ -106,7 +109,7 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   }
   
   embedding_2 <- .prepare_embeddings(dcca_obj, data_1 = F, data_2 = T, 
-                                     add_noise = F)
+                                     add_noise = F, center = T, renormalize = T)
   if(common_2){
     embedding_2 <- embedding_2$common 
   } else {
@@ -144,7 +147,7 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
     # sample these entries
     tmp <- .embedding_resampling(nn_idx_all, nn_dist_all, nn = nn, 
                                  sampling_type = sampling_type, keep_nn = F)
-    nn_idx_all <- tmp$nn_idx; nn_dist_all <- tmp$nn_dist
+    nn_idx_all <- tmp$id; nn_dist_all <- tmp$dist
     
     # find the nn's
     if(keep_nn){
@@ -243,6 +246,14 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   Matrix::sparseMatrix(i = i_vec, j = j_vec, x = x_vec)
 }
 
+.matrix_to_nnlist <- function(g_mat){
+  n <- nrow(g_mat)
+  nn_idx <- lapply(1:n, function(j){.nonzero_col(g_mat, j, bool_value = F)})
+  nn_dist <- lapply(1:n, function(j){.nonzero_col(g_mat, j, bool_value = T)})
+
+  structure(list(id = nn_idx, dist = nn_dist), class = "frNN")
+}
+
 .compute_distance_from_idx <- function(embedding_1, embedding_2, 
                                        nn_idx_1_vec, nn_idx_2_vec,
                                        nn_dist_1_vec, nn_dist_2_vec,
@@ -268,4 +279,14 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   })
   
   res
+}
+
+.symmetrize_sparse <- function(g_mat, set_ones){
+  stopifnot(inherits(g_mat, "dgCMatrix"))
+  
+  tmp <- Matrix::t(g_mat)
+  g_mat <- g_mat + tmp - sqrt(g_mat * tmp)
+  if(set_ones) g_mat@x <- rep(1, length(g_mat@x))
+  
+  g_mat
 }

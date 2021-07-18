@@ -50,15 +50,12 @@ plot_embeddings2 <- function(dcca_obj, nn, data_1 = T, data_2 = F, c_g = NA, d_g
   # Use Seurat::RunUMAP.Graph for the common and distinct embeddings
   for(i in 1:length(list_g)){
     mat <- .symmetrize_sparse(list_g[[i]], set_ones = F)
-    nn_idx <- lapply(1:n, function(j){.nonzero_col(mat, j, bool_value = F)})
-    nn_dist <- lapply(1:n, function(j){.nonzero_col(mat, j, bool_value = T)})
-    
+    tmp <- .matrix_to_nnlist(mat)
+ 
     # remove edges randomly
-    tmp <- .embedding_resampling(nn_idx, nn_dist, nn = nn, 
+    tmp <- .embedding_resampling(tmp$id, tmp$dist, nn = nn, 
                                  sampling_type = sampling_type, keep_nn = keep_nn)
-    nn_idx <- tmp$nn_idx; nn_dist <- tmp$nn_dist
-    
-    rann_obj <- list(id = nn_idx, dist = nn_dist)
+    rann_obj <- list(id = tmp$id, dist = tmp$dist)
     mat <- .nnlist_to_matrix(rann_obj)
     
     # symmetrize
@@ -135,6 +132,6 @@ plot_embeddings2 <- function(dcca_obj, nn, data_1 = T, data_2 = F, c_g = NA, d_g
     nn_dist[[j]] <- nn_dist[[j]][idx]
   }
   
-  list(nn_idx = nn_idx, nn_dist = nn_dist)
+  list(id = nn_idx, dist = nn_dist)
 }
 

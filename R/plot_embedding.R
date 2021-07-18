@@ -28,7 +28,7 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   
   n <- nrow(obj$common_score)
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
-                                   add_noise = add_noise)
+                                   add_noise = add_noise, center = F, renormalize = T)
   if(pca) {
     embedding <- .extract_pca_embedding(embedding)
   } else {
@@ -106,18 +106,22 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
 #' @param data_2 boolean, for computing the embedding for data 2
 #' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
 #' distinct scores "on the same scale" by adding appropriately-scaled Gaussian noise
+#' @param center boolean
+#' @param renormalize boolean
 #'
 #' @return a list of 3 elements, representing the low-dimensional
 #' representation for the common, distinct and everything matrices
 #' for the intended dataset(s)
-.prepare_embeddings <- function(obj, data_1, data_2, add_noise){
+.prepare_embeddings <- function(obj, data_1, data_2, add_noise, center, renormalize){
   if(data_1){
     res_1 <- .prepare_embeddings_singleton(obj$common_score, obj$distinct_score_1,
-                                           obj$svd_1, add_noise = add_noise)
+                                           obj$svd_1, add_noise = add_noise,
+                                           center = center, renormalize = renormalize)
   } else res_1 <- NA
   if(data_2){
     res_2 <- .prepare_embeddings_singleton(obj$common_score, obj$distinct_score_2,
-                                           obj$svd_2, add_noise = add_noise)
+                                           obj$svd_2, add_noise = add_noise,
+                                           center = center, renormalize = renormalize)
   } else res_2 <- NA
   
   if(!all(is.na(res_1)) & all(is.na(res_2))){
@@ -134,19 +138,20 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   
 }
 
-.prepare_embeddings_singleton <- function(common_score, distinct_score, svd_res, add_noise){
+.prepare_embeddings_singleton <- function(common_score, distinct_score, svd_res, add_noise,
+                                          center, renormalize){
   embedding <- vector("list", 3)
   names(embedding) <- c("common", "distinct", "everything")
   
   embedding[[1]] <- .extract_matrix_helper(common_score, distinct_score,
                                            svd_res, common_bool = T, distinct_bool = F,
-                                           center = F, renormalize = F, add_noise = add_noise)
+                                           center = center, renormalize = renormalize, add_noise = add_noise)
   embedding[[2]] <- .extract_matrix_helper(common_score, distinct_score,
                                            svd_res, common_bool = F, distinct_bool = T,
-                                           center = F, renormalize = F, add_noise = add_noise)
+                                           center = center, renormalize = renormalize, add_noise = add_noise)
   embedding[[3]] <- .extract_matrix_helper(common_score, distinct_score,
                                            svd_res, common_bool = T, distinct_bool = T,
-                                           center = F, renormalize = F, add_noise = add_noise)
+                                           center = center, renormalize = renormalize, add_noise = add_noise)
   
   for(i in 1:3){
     if(length(rownames(common_score)) != 0) rownames(embedding[[i]]) <- rownames(common_score)
@@ -189,19 +194,20 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
             common_bool | distinct_bool)
   
   n <- nrow(common_score)
+  
+  # normalize so crossprod(common_score) and crossprod(distinct_score) have sqrt(n) along diagonal
+  common_score <- common_score/n^(1/4)
+  distinct_score <- distinct_score/n^(1/4)
+  
+  # [[note to self: if rank_c isn't rank_1 or rank_2, this would need to change.]]
   canonical_score <- .add_two_matrices(common_score, distinct_score)
-  full_mat <- .mult_mat_vec(svd_e$u, svd_e$d/max(svd_e$d))
-  ## [[note to self: check that the scales of all these are correct -- is 1/n the correct scale?]]
-  full_mat <- canonical_score %*% crossprod(canonical_score, full_mat)/n # reorient for consistency for the rest of the pipeline
-  center_vec <- apply(full_mat, 2, mean)
-  tmp <- full_mat
-  if(center) tmp <- sapply(1:ncol(full_mat), function(k){full_mat[,k] - center_vec[k]})
+  full_mat <- .mult_mat_vec(svd_e$u, svd_e$d/svd_e$d[1])
+  tmp <- canonical_score %*% crossprod(canonical_score, full_mat) # reorient for consistency for the rest of the pipeline
+  center_vec <- apply(tmp, 2, mean)
+  if(center) tmp <- sapply(1:ncol(tmp), function(k){tmp[,k] - center_vec[k]})
   if(renormalize) l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
   
-  if(common_bool == distinct_bool){
-    tmp <- full_mat
-    
-  } else {
+  if(common_bool != distinct_bool){
     if(common_bool){ 
       if(add_noise){
         common_score <- .add_columnwise_noise(common_score, distinct_score)
@@ -210,7 +216,7 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
           common_score <- cbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score)-ncol(common_score)))
         }
       }
-      tmp <- tcrossprod(common_score, canonical_score) %*% full_mat/n
+      tmp <- common_score %*% crossprod(canonical_score, full_mat)
       
     } else { 
       if(add_noise){
@@ -220,7 +226,7 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
           distinct_score <- cbind(distinct_score, matrix(0, nrow = n, ncol = ncol(common_score)-ncol(distinct_score)))
         }
       }
-      tmp <- tcrossprod(distinct_score, canonical_score) %*% full_mat/n
+      tmp <- distinct_score %*% crossprod(canonical_score, full_mat)
     }
     
     # center variables

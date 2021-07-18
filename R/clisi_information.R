@@ -38,17 +38,7 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
        everything_clisi = e_score), class = "clisi")
 }
 
-#############
-
-.symmetrize_sparse <- function(g_mat, set_ones){
-  stopifnot(inherits(g_mat, "dgCMatrix"))
-  
-  tmp <- Matrix::t(g_mat)
-  g_mat <- g_mat + tmp - sqrt(g_mat * tmp)
-  if(set_ones) g_mat@x <- rep(1, length(g_mat@x))
-  
-  g_mat
-}
+############
 
 .clisi <- function(g, membership_vec, cell_subidx, verbose = F){
   stopifnot(is.factor(membership_vec))
