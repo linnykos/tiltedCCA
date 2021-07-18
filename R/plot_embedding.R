@@ -205,7 +205,6 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   tmp <- canonical_score %*% crossprod(canonical_score, full_mat) # reorient for consistency for the rest of the pipeline
   center_vec <- apply(tmp, 2, mean)
   if(center) tmp <- sapply(1:ncol(tmp), function(k){tmp[,k] - center_vec[k]})
-  if(renormalize) l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
   
   if(common_bool != distinct_bool){
     if(common_bool){ 
@@ -236,7 +235,12 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   }
   
   # normalize cells
-  if(renormalize){.mult_vec_mat(1/l2_vec, tmp)} else {tmp}
+  if(renormalize) {
+    l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
+    .mult_vec_mat(1/l2_vec, tmp)
+  } else {
+    tmp
+  }
 }
 
 # helper function for when mat1 has less columns than mat2
