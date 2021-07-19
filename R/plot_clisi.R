@@ -36,10 +36,11 @@ plot_clisi <- function(local_1, local_2,
   # construct colors
   bg_col_vec <- .adjust_colors(col_vec, l_bg = l_bg, c_bg = c_bg, alpha_bg = alpha_bg)
   all_col_vec <- c(col_vec, bg_col_vec)
-  tmp <- plot_lis[[1]]$common_clisi$membership_info$celltype
+  tmp <- local_lis[[1]]$common_clisi$membership_info$celltype
   names(all_col_vec) <- c(tmp, paste0(tmp, "0"))
   custom_colors <- ggplot2::scale_colour_manual(values = all_col_vec)
   category = celltype = common = distinct = NULL # for appeasing R CHECK
+  print(all_col_vec)
   
   for(i in 1:2){
     df <- data.frame("celltype" = as.factor(c(paste0(as.character(local_lis[[i]]$common_clisi$cell_info$celltype), "0"), 
