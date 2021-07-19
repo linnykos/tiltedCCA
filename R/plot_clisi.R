@@ -52,10 +52,10 @@ plot_clisi <- function(local_1, local_2,
     plot1 <- plot1 + ggplot2::geom_point()
     if(i == 1){
       plot1 <- plot1 + ggplot2::xlim(1, 0) + ggplot2::ylim(0, 1)
-      plot1 <- plot1 + ggplot2::geom_abline(intercept = 1, slope = 1, color = "red", linetype = "dashed")
+      plot1 <- plot1 + ggplot2::geom_abline(intercept = 0, slope = -1, color = "red", linetype = "dashed")
     } else {
       plot1 <- plot1 + ggplot2::xlim(0, 1) + ggplot2::ylim(0, 1)
-      plot1 <- plot1 + ggplot2::geom_abline(intercept = 1, slope = -1, color = "red", linetype = "dashed")
+      plot1 <- plot1 + ggplot2::geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed")
     }
     plot1 <- plot1 + ggplot2::geom_point(data = subset(df, category == 1), 
                                          ggplot2::aes(x = distinct, y = common), 

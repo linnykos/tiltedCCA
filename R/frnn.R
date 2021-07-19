@@ -15,6 +15,7 @@
 #' corresponds with the element's neighbors
 #' @param center boolean
 #' @param renormalize boolean
+#' @param symmetrize boolean
 #' @param verbose boolean
 #'
 #' @return list, depends on \code{bool_matrix}
@@ -23,7 +24,8 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
                            max_subsample_frnn = nrow(obj$common_score),
                            frnn_approx = 0, radius_quantile = 0.5,
                            bool_matrix = T, center = T,
-                           renormalize = F, verbose = T){
+                           renormalize = F, symmetrize = F,
+                           verbose = T){
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
             length(membership_vec) == nrow(obj$common_score),
             is.factor(membership_vec))
@@ -61,7 +63,10 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
   }) 
  
   for(i in 1:3){
-    list_g[[i]] <- .symmetrize_sparse(.nnlist_to_matrix(list_g[[i]]), set_ones = F)
+    list_g[[i]] <- .nnlist_to_matrix(list_g[[i]])
+    if(symmetrize){
+      list_g[[i]] <- .symmetrize_sparse(list_g[[i]], set_ones = F)
+    }
   
     # convert back to list form if needed
     if(bool_matrix){
@@ -70,6 +75,7 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
         colnames(list_g[[i]]) <- rownames(obj$common_score)
       }
     } else {
+      # [[note to self: add a test to make sure this conversion is bijective]]
       list_g[[i]] <- .matrix_to_nnlist(list_g[[i]])
     }
   }

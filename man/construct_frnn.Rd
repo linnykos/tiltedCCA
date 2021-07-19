@@ -16,6 +16,7 @@ construct_frnn(
   bool_matrix = T,
   center = T,
   renormalize = F,
+  symmetrize = F,
   verbose = T
 )
 }
@@ -45,6 +46,8 @@ corresponds with the element's neighbors}
 \item{center}{boolean}
 
 \item{renormalize}{boolean}
+
+\item{symmetrize}{boolean}
 
 \item{verbose}{boolean}
 }
