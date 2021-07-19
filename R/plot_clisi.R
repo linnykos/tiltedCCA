@@ -1,94 +1,90 @@
-#' Making the plot for cLISI
+#' Making the plot for local enrichment
 #' 
-#' See https://www.r-bloggers.com/2012/06/two-tips-adding-title-for-graph-with-multiple-plots-add-significance-asterix-onto-a-boxplot/
 #'
-#' @param clisi_1 output of \code{clisi_information} on one Modality
-#' @param clisi_2 output of \code{clisi_information} on the other Modality
+#' @param local_1 output of \code{clisi_information} on one Modality
+#' @param local_2 output of \code{clisi_information} on the other Modality
 #' @param col_vec vector of colors
-#' @param cell_max number of cells of each cell-type to plot
-#' @param par_mar \code{mar} parameter for \code{par}
-#' @param par_oma \code{oma} parameter for \code{par}
-#' @param asp graphical \code{asp} parameter
-#' @param pch_main \code{pch} parameter for cell-types
-#' @param cex_main \code{cex} parameter for cell-types
-#' @param pch_bg \code{pch} parameter for individual cells
-#' @param cex_bg \code{cex} parameter for individual cells
+#' @param l_bg \code{l} parameter (luminosity, i.e., brightness) for individual cells
+#' @param c_bg \code{c} parameter (chroma, i.e., color intensity) for individual cells
 #' @param alpha_bg \code{alpha} parameter (color) for individual cells
-#' @param l_bg \code{l} parameter (luminosity) for individual cells
-#' @param c_bg \code{c} parameter (chroma, i.e., brightness) for individual cells
-#' @param xlim \code{xlim} graphical parameter
-#' @param ylim \code{ylim} graphical parameter
-#' @param gridsize number of grid ticks
-#' @param col_grid \code{col} for grid
-#' @param lty_grid \code{lty} for grid
-#' @param lwd_grid \code{lwd} for grid
-#' @param col_diag \code{col} for diagonal line
-#' @param lty_diag \code{lty} for diagonal line
-#' @param lwd_diag \code{lwd} for diagonal line
 #' @param xlab1 \code{xlab} for Modality 1
 #' @param xlab2 \code{xlab} for Modality 2
 #' @param ylab \code{ylab} for the shared modality
-#' @param ylab_dist distance of \code{ylab} from y-axis
-#' @param main \code{main} parameter
-#' @param cex_text_main \code{cex} for \code{main} parameter
+#' @param main1 Title for plot corresponding to Modality 1
+#' @param main2 Title for plot corresponding to Modality 2
+#' @param ... extra parameters for \code{ggrepel::geom_text_repel}
 #'
-#' @return nothing
+#' @return List of two \code{gg} objects
 #' @export
-plot_clisi <- function(clisi_1, clisi_2,
-                       col_vec = scales::hue_pal()(nrow(clisi_1$common_clisi$membership_info)),
-                       cell_max = 5000,
-                       par_mar = c(4,2.5,0.5,0.5), par_oma = c(0,0,2,0),
-                       asp = T,
-                       pch_main = 16, cex_main = 1.5,
-                       pch_bg = 16, cex_bg = 1, alpha_bg = 0.5,
-                       l_bg = 95, c_bg = 50,
-                       xlim = c(0,1), ylim = c(0,1), 
-                       gridsize = 5, col_grid = grDevices::rgb(0.8,0.8,0.8),
-                       lty_grid = 3, lwd_grid = 1,
-                       col_diag = "firebrick", lty_diag = 2, lwd_diag = 2,
-                       xlab1 = "Distinct information 1",
-                       xlab2 = "Distinct information 2",
-                       ylab = "Common information", ylab_dist = 0.5,
-                       main = "cLISI Information", cex_text_main = 1.5){
-  stopifnot(class(clisi_1) == "clisi", class(clisi_2) == "clisi",
-            all(dim(clisi_1$common_clisi$membership_info) == dim(clisi_2$common_clisi$membership_info)))
-  stopifnot(length(col_vec) == nrow(clisi_1$common_clisi$membership_info))
+plot_clisi <- function(local_1, local_2,
+                       col_vec = scales::hue_pal()(nrow(local_1$common_clisi$membership_info)),
+                       l_bg = 75, c_bg = 50, alpha_bg = 0.5, 
+                       xlab1 = "Distinct enrichment",
+                       xlab2 = "Distinct enrichment",
+                       ylab = "Common enrichment",
+                       main1 = "Modality 1", main2 = "Modality 2", ...){
+  stopifnot(class(local_1) == "clisi", class(local_2) == "clisi",
+            all(dim(local_1$common_clisi$membership_info) == dim(local_2$common_clisi$membership_info)))
+  stopifnot(length(col_vec) == nrow(local_1$common_clisi$membership_info))
   
-  bg_col_vec <- .adjust_colors(col_vec, l_bg, c_bg, alpha_bg)
-  graphics::par(mfrow = c(1,2), mar = par_mar, oma = par_oma)
-  x_vec <- seq(xlim[1], xlim[2], length.out = gridsize)
-  y_vec <- seq(ylim[1], ylim[2], length.out = gridsize)
+  # setup
+  n <- nrow(local_1$common_clisi$cell_info)
+  k <- nrow(local_1$common_clisi$membership_info)
+  local_lis <- list(local_1, local_2)
+  plot_lis <- vector("list", length = 2)
   
-  graphics::plot(NA, xlim = sort(-1*xlim), ylim = ylim, asp = asp, xlab = xlab1,
-                 ylab = "", yaxt = 'n', xaxt = 'n')
-  graphics::title(ylab = ylab, line = ylab_dist)
-  graphics::axis(1, at = -1*x_vec, labels = as.character(round(x_vec, 2)))
-  graphics::axis(4, at = y_vec, labels = NA)
-  .draw_grid(x_vec, y_vec, xlim, ylim, col_grid, lty_grid, lwd_grid,
-             flip = T)
+  # construct colors
+  bg_col_vec <- .adjust_colors(col_vec, l_bg = l_bg, c_bg = c_bg, alpha_bg = alpha_bg)
+  all_col_vec <- c(col_vec, bg_col_vec)
+  tmp <- plot_lis[[1]]$common_clisi$membership_info$celltype
+  names(all_col_vec) <- c(tmp, paste0(tmp, "0"))
+  custom_colors <- ggplot2::scale_colour_manual(values = all_col_vec)
+  category = celltype = common = distinct = NULL # for appeasing R CHECK
   
-  .plot_clisi_cell(clisi_1, bg_col_vec, pch_bg, cex_bg, cell_max, flip = T)
-  graphics::lines(c(0,-1),c(0,1), col = col_diag, lty = lty_diag, lwd = lwd_diag)
-  .plot_clisi_type(clisi_1, col_vec, pch_main, cex_main, flip = T)
+  for(i in 1:2){
+    df <- data.frame("celltype" = as.factor(c(paste0(as.character(local_lis[[i]]$common_clisi$cell_info$celltype), "0"), 
+                                            as.character(local_lis[[i]]$common_clisi$membership_info$celltype))), 
+                     "common" = c(local_lis[[i]]$common_clisi$cell_info$clisi_score, local_lis[[i]]$common_clisi$membership_info$mean_clisi),
+                     "distinct" = c(local_lis[[i]]$distinct_clisi$cell_info$clisi_score, local_lis[[i]]$distinct_clisi$membership_info$mean_clisi),
+                     "category" = as.factor(c(rep(0, n), rep(1, k))))
+    
+    plot1 <- ggplot2::ggplot(data = subset(df, category == 0), ggplot2::aes(x = distinct, y = common, color = celltype))
+    plot1 <- plot1 + ggplot2::geom_point()
+    if(i == 1){
+      plot1 <- plot1 + ggplot2::xlim(1, 0) + ggplot2::ylim(0, 1)
+      plot1 <- plot1 + ggplot2::geom_abline(intercept = 1, slope = 1, color = "red", linetype = "dashed")
+    } else {
+      plot1 <- plot1 + ggplot2::xlim(0, 1) + ggplot2::ylim(0, 1)
+      plot1 <- plot1 + ggplot2::geom_abline(intercept = 1, slope = -1, color = "red", linetype = "dashed")
+    }
+    plot1 <- plot1 + ggplot2::geom_point(data = subset(df, category == 1), 
+                                         ggplot2::aes(x = distinct, y = common), 
+                                         size = 3, color = "black")
+    plot1 <- plot1 + ggplot2::geom_point(data = subset(df, category == 1), 
+                                         ggplot2::aes(x = distinct, y = common), 
+                                         size = 2.5, color = "white")
+    plot1 <- plot1 + ggplot2::geom_point(data = subset(df, category == 1), 
+                                         ggplot2::aes(x = distinct, y = common,
+                                                      color = celltype), 
+                                         size = 2)
+    plot1 <- plot1 + custom_colors
+    plot1 <- plot1 + ggrepel::geom_text_repel(data = subset(df, category == 1), ggplot2::aes(label = celltype),
+                                              color = "black",
+                                              segment.color = "grey50",
+                                              size = 2, ...)
+    plot1 <- plot1 + ggplot2::ylab(ylab)
+    if(i == 1){
+      plot1 <- plot1 + ggplot2::xlab(xlab1)
+      plot1 <- plot1 + ggplot2::ggtitle(main1)
+    } else {
+      plot1 <- plot1 + ggplot2::xlab(xlab2)
+      plot1 <- plot1 + ggplot2::ggtitle(main2)
+    }
+    plot1 <- plot1 + Seurat::NoLegend()
+    plot_lis[[i]] <- plot1
+  }
   
-  ####
-  
-  graphics::plot(NA, xlim = xlim, ylim = ylim, asp = asp, xlab = xlab2,
-                 ylab = "", yaxt = 'n', xaxt = 'n')
-  graphics::axis(1, at = x_vec, labels = as.character(round(x_vec, 2)))
-  graphics::axis(2, at = y_vec, labels = as.character(round(y_vec, 2)))
-  .draw_grid(x_vec, y_vec, xlim, ylim, col_grid, lty_grid, lwd_grid,
-             flip = F)
-  
-  .plot_clisi_cell(clisi_2, bg_col_vec, pch_bg, cex_bg, cell_max, flip = F)
-  graphics::lines(c(0,1),c(0,1), col = col_diag, lty = lty_diag, lwd = lwd_diag)
-  .plot_clisi_type(clisi_2, col_vec, pch_main, cex_main, flip = F)
-  
-  ####
-  
-  graphics::mtext(main, outer = TRUE, cex = cex_text_main)
-  
-  invisible()
+  plot_lis
 }
 
 #' Plot the cLISI legend
@@ -121,61 +117,6 @@ plot_clisi_legend <- function(clisi_obj, col_vec = scales::hue_pal()(nrow(clisi_
   graphics::text(x = rep(0+text_nudge,n), y = seq(1,0,length.out=n), 
                  labels = sort(clisi_obj$common_clisi$membership_info$celltype, decreasing = F),
                  pos = 4)
-  
-  invisible()
-}
-
-##################################
-
-.draw_grid <- function(x_vec, y_vec, xlim, ylim, 
-                       col_grid, lty_grid, lwd_grid,
-                       flip){
-  s <- ifelse(flip, -1, 1)
-  for(i in 1:length(x_vec)){
-    graphics::lines(s*rep(x_vec[i],2), ylim, lty = lty_grid, lwd = lwd_grid, col = col_grid)
-  }
-  
-  for(i in 1:length(y_vec)){
-    graphics::lines(s*xlim, rep(y_vec[i],2), lty = lty_grid, lwd = lwd_grid, col = col_grid)
-  }
-  
-  invisible()
-}
-
-.plot_clisi_cell <- function(clisi_obj, bg_col_vec, pch_bg, cex_bg, cell_max, flip){
-  stopifnot(class(clisi_obj) == "clisi")
-  stopifnot(length(bg_col_vec) == nrow(clisi_obj$common_clisi$membership_info))
-  
-  s <- ifelse(flip, -1, 1)
-  n <- nrow(clisi_obj$common_clisi$cell_info)
-  n_idx <- sample(1:n, size = min(n, cell_max))
-  graphics::points(s*clisi_obj$distinct_clisi$cell_info$clisi_score[n_idx],
-                   clisi_obj$common_clisi$cell_info$clisi_score[n_idx],
-                   col = bg_col_vec[as.numeric(clisi_obj$common_clisi$cell_info$celltype)][n_idx],
-                   pch = pch_bg, cex = cex_bg)
-  
-  invisible()
-}
-
-.plot_clisi_type <- function(clisi_obj, col_vec, pch_main, cex_main, flip){
-  stopifnot(class(clisi_obj) == "clisi")
-  stopifnot(length(col_vec) == nrow(clisi_obj$common_clisi$membership_info))
-  
-  s <- ifelse(flip, -1, 1)
-  n <- nrow(clisi_obj$common_clisi$membership_info)
-  n_idx <- sample(1:n)
-  graphics::points(s*clisi_obj$distinct_clisi$membership_info$mean_clisi[n_idx],
-                   clisi_obj$common_clisi$membership_info$mean_clisi[n_idx],
-                   col = "black",
-                   pch = pch_main, cex = 1.25*cex_main)
-  graphics::points(s*clisi_obj$distinct_clisi$membership_info$mean_clisi[n_idx],
-                   clisi_obj$common_clisi$membership_info$mean_clisi[n_idx],
-                   col = "white",
-                   pch = pch_main, cex = 1.2*cex_main)
-  graphics::points(s*clisi_obj$distinct_clisi$membership_info$mean_clisi[n_idx],
-                   clisi_obj$common_clisi$membership_info$mean_clisi[n_idx],
-                   col = col_vec[order(clisi_obj$common_clisi$membership_info$celltype, decreasing = F)][n_idx],
-                   pch = pch_main, cex = cex_main)
   
   invisible()
 }

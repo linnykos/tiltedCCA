@@ -14,6 +14,8 @@ construct_frnn(
   frnn_approx = 0,
   radius_quantile = 0.5,
   bool_matrix = T,
+  center = T,
+  renormalize = F,
   verbose = T
 )
 }
@@ -39,6 +41,10 @@ compute cLISI for}
 \item{bool_matrix}{boolean. If \code{TRUE}, output the graphs as a sparse matrix.
 If \code{FALSE}, output the graphs as a list where each element of the list
 corresponds with the element's neighbors}
+
+\item{center}{boolean}
+
+\item{renormalize}{boolean}
 
 \item{verbose}{boolean}
 }

@@ -13,6 +13,8 @@ combine_frnn(
   common_2 = T,
   keep_nn = T,
   sampling_type = "adaptive_gaussian",
+  center = T,
+  renormalize = F,
   verbose = T
 )
 }
@@ -35,6 +37,10 @@ for the frNN graph}
 \item{keep_nn}{boolean}
 
 \item{sampling_type}{string}
+
+\item{center}{boolean}
+
+\item{renormalize}{boolean}
 
 \item{verbose}{boolean}
 }

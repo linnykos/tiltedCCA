@@ -9,7 +9,7 @@ clisi_information(
   d_g,
   e_g,
   membership_vec,
-  max_subsample_clisi = min(500, nrow(c_g)),
+  max_subsample_clisi = min(1000, nrow(c_g)),
   verbose = T
 )
 }

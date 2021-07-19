@@ -14,7 +14,7 @@
 #' @return three lists
 #' @export
 clisi_information <- function(c_g, d_g, e_g, membership_vec, 
-                              max_subsample_clisi = min(500, nrow(c_g)),
+                              max_subsample_clisi = min(1000, nrow(c_g)),
                               verbose = T){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(c_g),
             all(dim(c_g) == dim(d_g)), all(dim(c_g) == dim(e_g)))

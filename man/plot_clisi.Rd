@@ -2,86 +2,35 @@
 % Please edit documentation in R/plot_clisi.R
 \name{plot_clisi}
 \alias{plot_clisi}
-\title{Making the plot for cLISI}
+\title{Making the plot for local enrichment}
 \usage{
 plot_clisi(
-  clisi_1,
-  clisi_2,
-  col_vec = (scales::hue_pal())(nrow(clisi_1$common_clisi$membership_info)),
-  cell_max = 5000,
-  par_mar = c(4, 2.5, 0.5, 0.5),
-  par_oma = c(0, 0, 2, 0),
-  asp = T,
-  pch_main = 16,
-  cex_main = 1.5,
-  pch_bg = 16,
-  cex_bg = 1,
-  alpha_bg = 0.5,
-  l_bg = 95,
+  local_1,
+  local_2,
+  col_vec = (scales::hue_pal())(nrow(local_1$common_clisi$membership_info)),
+  l_bg = 75,
   c_bg = 50,
-  xlim = c(0, 1),
-  ylim = c(0, 1),
-  gridsize = 5,
-  col_grid = grDevices::rgb(0.8, 0.8, 0.8),
-  lty_grid = 3,
-  lwd_grid = 1,
-  col_diag = "firebrick",
-  lty_diag = 2,
-  lwd_diag = 2,
-  xlab1 = "Distinct information 1",
-  xlab2 = "Distinct information 2",
-  ylab = "Common information",
-  ylab_dist = 0.5,
-  main = "cLISI Information",
-  cex_text_main = 1.5
+  alpha_bg = 0.5,
+  xlab1 = "Distinct enrichment",
+  xlab2 = "Distinct enrichment",
+  ylab = "Common enrichment",
+  main1 = "Modality 1",
+  main2 = "Modality 2",
+  ...
 )
 }
 \arguments{
-\item{clisi_1}{output of \code{clisi_information} on one Modality}
+\item{local_1}{output of \code{clisi_information} on one Modality}
 
-\item{clisi_2}{output of \code{clisi_information} on the other Modality}
+\item{local_2}{output of \code{clisi_information} on the other Modality}
 
 \item{col_vec}{vector of colors}
 
-\item{cell_max}{number of cells of each cell-type to plot}
+\item{l_bg}{\code{l} parameter (luminosity, i.e., brightness) for individual cells}
 
-\item{par_mar}{\code{mar} parameter for \code{par}}
-
-\item{par_oma}{\code{oma} parameter for \code{par}}
-
-\item{asp}{graphical \code{asp} parameter}
-
-\item{pch_main}{\code{pch} parameter for cell-types}
-
-\item{cex_main}{\code{cex} parameter for cell-types}
-
-\item{pch_bg}{\code{pch} parameter for individual cells}
-
-\item{cex_bg}{\code{cex} parameter for individual cells}
+\item{c_bg}{\code{c} parameter (chroma, i.e., color intensity) for individual cells}
 
 \item{alpha_bg}{\code{alpha} parameter (color) for individual cells}
-
-\item{l_bg}{\code{l} parameter (luminosity) for individual cells}
-
-\item{c_bg}{\code{c} parameter (chroma, i.e., brightness) for individual cells}
-
-\item{xlim}{\code{xlim} graphical parameter}
-
-\item{ylim}{\code{ylim} graphical parameter}
-
-\item{gridsize}{number of grid ticks}
-
-\item{col_grid}{\code{col} for grid}
-
-\item{lty_grid}{\code{lty} for grid}
-
-\item{lwd_grid}{\code{lwd} for grid}
-
-\item{col_diag}{\code{col} for diagonal line}
-
-\item{lty_diag}{\code{lty} for diagonal line}
-
-\item{lwd_diag}{\code{lwd} for diagonal line}
 
 \item{xlab1}{\code{xlab} for Modality 1}
 
@@ -89,15 +38,15 @@ plot_clisi(
 
 \item{ylab}{\code{ylab} for the shared modality}
 
-\item{ylab_dist}{distance of \code{ylab} from y-axis}
+\item{main1}{Title for plot corresponding to Modality 1}
 
-\item{main}{\code{main} parameter}
+\item{main2}{Title for plot corresponding to Modality 2}
 
-\item{cex_text_main}{\code{cex} for \code{main} parameter}
+\item{...}{extra parameters for \code{ggrepel::geom_text_repel}}
 }
 \value{
-nothing
+List of two \code{gg} objects
 }
 \description{
-See https://www.r-bloggers.com/2012/06/two-tips-adding-title-for-graph-with-multiple-plots-add-significance-asterix-onto-a-boxplot/
+Making the plot for local enrichment
 }

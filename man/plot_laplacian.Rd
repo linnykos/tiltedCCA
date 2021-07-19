@@ -14,8 +14,7 @@ plot_laplacian(
   e_res,
   c_res,
   d_res,
-  sig_digits = 2,
-  filename
+  sig_digits = 2
 )
 }
 \arguments{
@@ -43,11 +42,9 @@ from the \code{dcca_decomposition} function}
 \item{d_res}{result applying \code{d_vec} to \code{compute_smooth_signal}}
 
 \item{sig_digits}{integer}
-
-\item{filename}{string, filename to save the plot to}
 }
 \value{
-nothing
+list of 6 \code{gg} objects
 }
 \description{
 Plot signal with respect to Laplacians
