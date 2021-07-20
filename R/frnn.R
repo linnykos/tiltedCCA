@@ -101,7 +101,7 @@ construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
 #' @param sampling_type string
 #' @param center boolean
 #' @param renormalize boolean
-#' @param verbose boolean
+#' @param verbose numeric from 0 to 2
 #'
 #' @return object of class \code{dgCMatrix}
 #' @export
@@ -109,10 +109,11 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
                          common_1 = T, common_2 = T, keep_nn = T,
                          sampling_type = "adaptive_gaussian",
                          center = T, renormalize = F,
-                         verbose = T){
+                         verbose = 0){
   stopifnot(all(dim(g_1) == dim(g_2)))
   
   # extract the relevant embeddings from dcca_obj
+  if(verbose > 0) print(paste0(Sys.time(),": Preparing first embedding"))
   embedding_1 <- .prepare_embeddings(dcca_obj, data_1 = T, data_2 = F, 
                                     add_noise = F, center = center, 
                                     renormalize = renormalize)
@@ -122,6 +123,7 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
     embedding_1 <- embedding_1$distinct
   }
   
+  if(verbose > 0) print(paste0(Sys.time(),": Preparing second embedding"))
   embedding_2 <- .prepare_embeddings(dcca_obj, data_1 = F, data_2 = T, 
                                      add_noise = F, center = center, 
                                      renormalize = renormalize)
@@ -132,10 +134,12 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   }
   
   # symmetrize g_1 and g_2
+  if(verbose > 0) print(paste0(Sys.time(),": Symmetrizing"))
   g_1 <- .symmetrize_sparse(g_1, set_ones = F)
   g_2 <- .symmetrize_sparse(g_2, set_ones = F)
   
   # prepare
+  if(verbose > 0) print(paste0(Sys.time(),": Converting matrices to list"))
   n <- nrow(g_1)
   nn_idx_1 <- lapply(1:n, function(j){.nonzero_col(g_1, j, bool_value = F)})
   nn_dist_1 <- lapply(1:n, function(j){.nonzero_col(g_1, j, bool_value = T)})
@@ -145,6 +149,12 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   # apply the following procedure for each cell n
   nn_idx_all <- vector("list", n); nn_dist_all <- vector("list", n)
   for(i in 1:n){
+    if(verbose == 2) {
+      print(i)
+    } else if(verbose == 1 && n > 10 && i %% floor(n/10) == 0) {
+      print(paste0(Sys.time(),": Converting matrices to list"))
+    }
+      
     # intersect
     idx_all <- unique(c(nn_idx_1[[i]], nn_idx_2[[i]]))
     idx_intersect <- intersect(nn_idx_1[[i]], nn_idx_2[[i]])

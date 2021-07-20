@@ -89,7 +89,7 @@ plot_laplacian_variables <- function(val_vec, name_vec, factor_vec, col_vec,
                                      xlab = "Order of variables", ylab, main,
                                      baseline_col = "orange", ...){
   stopifnot(length(val_vec) == length(name_vec), length(val_vec) == length(factor_vec),
-            length(col_vec) %in% c(2,3), is.factor(factor_vec),
+            length(col_vec) %in% c(1,2,3), is.factor(factor_vec),
             length(levels(factor_vec)) == length(col_vec),
             all(as.character(factor_vec) %in% c("0", "1", "2")))
   p <- length(val_vec)
