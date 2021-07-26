@@ -1,3 +1,28 @@
+#' Construct cell-type subsamples
+#' 
+#' Sample at most \code{min_subsample_cell} cells from each
+#' unique level of \code{membership_vec}
+#'
+#' @param membership_vec factor vector
+#' @param min_subsample_cell positive integer
+#'
+#' @return indices
+#' @export
+construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
+  stopifnot(is.factor(membership_vec))
+  
+  res <- lapply(levels(membership_vec), function(x){
+    idx <- which(membership_vec == x)
+    stopifnot(length(idx) > 2)
+    
+    if(length(idx) <= min_subsample_cell) return(idx)
+    
+    sample(idx, min_subsample_cell, replace = F)
+  })
+  
+  sort(unlist(res))
+}
+
 .l2norm <- function(x){sqrt(sum(x^2))}
 
 ##############

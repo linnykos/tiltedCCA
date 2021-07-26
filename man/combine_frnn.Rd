@@ -15,7 +15,7 @@ combine_frnn(
   sampling_type = "adaptive_gaussian",
   center = T,
   renormalize = F,
-  verbose = T
+  verbose = 0
 )
 }
 \arguments{
@@ -42,7 +42,7 @@ for the frNN graph}
 
 \item{renormalize}{boolean}
 
-\item{verbose}{boolean}
+\item{verbose}{numeric from 0 to 2}
 }
 \value{
 object of class \code{dgCMatrix}
