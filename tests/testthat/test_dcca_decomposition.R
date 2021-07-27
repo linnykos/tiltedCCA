@@ -262,7 +262,8 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise", {
     mat_1 <- common_space %*% transform_mat_1; mat_2 <- common_space %*% transform_mat_2 
     
     dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, 
-                            apply_shrinkage = F, verbose = F)
+                            verbose = F, center_1 = F, center_2 = F, 
+                            scale_1 = F, scale_2 = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     # correct common_space
@@ -302,7 +303,8 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise with meta
     meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
     
     dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
-                            apply_shrinkage = F, verbose = F)
+                            verbose = F, center_1 = F, center_2 = F, 
+                            scale_1 = F, scale_2 = F)
     res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
     
     # correct common_space
@@ -348,12 +350,14 @@ test_that("(Math) dcca_decomposition can obtain the same result when fed into it
   dat <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
   
   dcca_res <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:K, dims_2 = 1:K,
-                          apply_shrinkage = F, verbose = F)
+                          verbose = F, center_1 = F, center_2 = F, 
+                          scale_1 = F, scale_2 = F)
   res <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
   
   dcca_res2 <- dcca_factor(res$common_mat_1 + res$distinct_mat_1,
                            res$common_mat_2 + res$distinct_mat_2,
-                           dims_1 = 1:K, dims_2 = 1:K, apply_shrinkage = F, verbose = F)
+                           dims_1 = 1:K, dims_2 = 1:K, verbose = F, center_1 = F, center_2 = F, 
+                           scale_1 = F, scale_2 = F)
   res2 <- dcca_decomposition(dcca_res2, rank_c = K, verbose = F)
   
   expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)

@@ -11,10 +11,11 @@ dcca_factor(
   dims_2,
   center_1 = T,
   center_2 = T,
+  scale_1 = T,
+  scale_2 = T,
   meta_clustering = NA,
-  num_neigh = max(round(nrow(mat_1)/20), 40),
+  num_neigh = 30,
   cell_max = nrow(mat_1),
-  apply_shrinkage = T,
   fix_distinct_perc = F,
   verbose = T
 )
@@ -28,17 +29,19 @@ dcca_factor(
 
 \item{dims_2}{desired latent dimensions of data matrix 2}
 
-\item{center_1}{boolean, on whether or not the center \code{mat_1} prior to SVD}
+\item{center_1}{boolean, on whether or not to center \code{mat_1} prior to SVD}
 
-\item{center_2}{boolean, on whether or not the center \code{mat_2} prior to SVD}
+\item{center_2}{boolean, on whether or not to center \code{mat_2} prior to SVD}
+
+\item{scale_1}{boolean, on whether or not to rescale \code{mat_1} prior to SVD}
+
+\item{scale_2}{boolean, on whether or not to rescale \code{mat_2} prior to SVD}
 
 \item{meta_clustering}{optional clustering}
 
 \item{num_neigh}{number of neighbors to consider to computed the common percentage}
 
 \item{cell_max}{number of cells used to compute the distinct percentaage}
-
-\item{apply_shrinkage}{boolean}
 
 \item{fix_distinct_perc}{boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.

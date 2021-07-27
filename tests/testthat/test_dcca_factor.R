@@ -133,7 +133,7 @@ test_that("(Coding) dcca_factor preserves rownames and colnames with metacells",
   meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
   
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
-                     apply_shrinkage = T, verbose = F)
+                     verbose = F)
   
   expect_true(length(res$common_score) > 1)
   expect_true(length(res$distinct_score_1) > 1)
@@ -194,7 +194,7 @@ test_that("(Coding) dcca_factor works with meta-cells", {
   meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
   
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
-                     apply_shrinkage = T, verbose = F)
+                     verbose = F)
   
   expect_true(is.list(res))
   expect_true(class(res) == "dcca")

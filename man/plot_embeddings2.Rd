@@ -6,7 +6,7 @@
 \usage{
 plot_embeddings2(
   dcca_obj,
-  nn,
+  nn = 30,
   data_1 = T,
   data_2 = F,
   c_g = NA,

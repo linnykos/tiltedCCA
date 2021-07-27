@@ -6,12 +6,13 @@
 #' @param mat_2 data matrix 2
 #' @param dims_1 desired latent dimensions of data matrix 1
 #' @param dims_2 desired latent dimensions of data matrix 2
-#' @param center_1 boolean, on whether or not the center \code{mat_1} prior to SVD
-#' @param center_2 boolean, on whether or not the center \code{mat_2} prior to SVD
+#' @param center_1 boolean, on whether or not to center \code{mat_1} prior to SVD
+#' @param center_2 boolean, on whether or not to center \code{mat_2} prior to SVD
+#' @param scale_1 boolean, on whether or not to rescale \code{mat_1} prior to SVD
+#' @param scale_2 boolean, on whether or not to rescale \code{mat_2} prior to SVD
 #' @param meta_clustering optional clustering
 #' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param cell_max number of cells used to compute the distinct percentaage
-#' @param apply_shrinkage boolean 
 #' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
 #' If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
@@ -22,10 +23,11 @@
 #' @export
 dcca_factor <- function(mat_1, mat_2, dims_1, dims_2, 
                         center_1 = T, center_2 = T,
+                        scale_1 = T, scale_2 = T,
                         meta_clustering = NA,
-                        num_neigh = max(round(nrow(mat_1)/20), 40),
+                        num_neigh = 30,
                         cell_max = nrow(mat_1),
-                        apply_shrinkage = T, fix_distinct_perc = F, verbose = T){
+                        fix_distinct_perc = F, verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
@@ -34,9 +36,9 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
 
   if(verbose) print(paste0(Sys.time(),": D-CCA: Starting matrix shrinkage"))
   svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
-                          mean_vec = center_1, sd_vec = NULL, K_full_rank = F)
+                          mean_vec = center_1, sd_vec = scale_1, K_full_rank = F)
   svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
-                          mean_vec = center_2, sd_vec = NULL, K_full_rank = F)
+                          mean_vec = center_2, sd_vec = scale_2, K_full_rank = F)
   
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
@@ -98,7 +100,9 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
 #' @export
 dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   stopifnot(class(dcca_res) == "dcca")
+  
   if(is.na(rank_c)) rank_c <- min(c(ncol(dcca_res$distinct_score_1), ncol(dcca_res$distinct_score_2)))
+  stopifnot( rank_c <= min(c(ncol(dcca_res$distinct_score_1), ncol(dcca_res$distinct_score_2))))
   n <- nrow(dcca_res$svd_1$u)
   
   if(verbose) print(paste0(Sys.time(),": D-CCA: Form denoised observation matrices"))

@@ -34,18 +34,8 @@ construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
   stopifnot(min(dim(mat)) >= K)
   if(K == min(dim(mat))) K_full_rank <- T
   
-  ## [[note to self: probably factor this out and add sd_vec]]
-  if(length(mean_vec) == 1 && !is.null(mean_vec)){
-    if(mean_vec){
-      if(inherits(x = mat, what = c('dgCMatrix', 'dgTMatrix'))){
-        mean_vec <- sparseMatrixStats::colMeans2(mat)
-      } else {
-        mean_vec <- matrixStats::colMeans2(mat)
-      }
-    } else{
-      mean_vec <- NULL
-    }
-  }
+  mean_vec <- .compute_matrix_mean(mat, mean_vec)
+  sd_vec <- .compute_matrix_sd(mat, sd_vec)
   
   if(min(dim(mat)) > 2*(K+2)){
     res <- tryCatch({
@@ -97,6 +87,38 @@ construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
   svd_res$d <- svd_res$d[idx]
   
   svd_res
+}
+
+.compute_matrix_mean <- function(mat, mean_vec){
+  if(length(mean_vec) == 1 && !is.null(mean_vec)){
+    if(mean_vec){
+      if(inherits(x = mat, what = c('dgCMatrix', 'dgTMatrix'))){
+        mean_vec <- sparseMatrixStats::colMeans2(mat)
+      } else {
+        mean_vec <- matrixStats::colMeans2(mat)
+      }
+    } else{
+      mean_vec <- NULL
+    }
+  }
+  
+  mean_vec
+}
+
+.compute_matrix_sd <- function(mat, sd_vec){
+  if(length(sd_vec) == 1 && !is.null(sd_vec)){
+    if(sd_vec){
+      if(inherits(x = mat, what = c('dgCMatrix', 'dgTMatrix'))){
+        sd_vec <- sparseMatrixStats::colSds(mat)
+      } else {
+        sd_vec <- matrixStats::colSds(mat)
+      }
+    } else{
+      sd_vec <- NULL
+    }
+  }
+  
+  sd_vec
 }
 
 #######################

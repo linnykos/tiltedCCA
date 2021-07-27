@@ -22,7 +22,7 @@
 #' If \code{TRUE}, returns three matrices as a list.
 #' If \code{FALSE}, shows a plot but returns nothing
 #' @export
-plot_embeddings2 <- function(dcca_obj, nn, data_1 = T, data_2 = F, c_g = NA, d_g = NA, 
+plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA, d_g = NA, 
                              membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",

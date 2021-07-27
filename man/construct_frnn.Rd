@@ -6,8 +6,8 @@
 \usage{
 construct_frnn(
   obj,
-  nn,
   membership_vec,
+  nn = 30,
   data_1 = T,
   data_2 = F,
   max_subsample_frnn = nrow(obj$common_score),
@@ -23,10 +23,10 @@ construct_frnn(
 \arguments{
 \item{obj}{output of either \code{generate_data} or \code{dcca_decomposition}}
 
+\item{membership_vec}{factor vector}
+
 \item{nn}{integer of number of nearest neighbors to determine the appropriate radius
 for the frNN graph}
-
-\item{membership_vec}{factor vector}
 
 \item{data_1}{boolean}
 

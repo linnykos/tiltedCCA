@@ -1,9 +1,9 @@
 #' Construct fixed-radius NN graph
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#' @param membership_vec factor vector
 #' @param nn integer of number of nearest neighbors to determine the appropriate radius
 #' for the frNN graph
-#' @param membership_vec factor vector
 #' @param data_1 boolean
 #' @param data_2 boolean
 #' @param max_subsample_frnn positive integer, used for determining number of cells to 
@@ -20,7 +20,7 @@
 #'
 #' @return list, depends on \code{bool_matrix}
 #' @export
-construct_frnn <- function(obj, nn, membership_vec, data_1 = T, data_2 = F,
+construct_frnn <- function(obj, membership_vec, nn = 30, data_1 = T, data_2 = F,
                            max_subsample_frnn = nrow(obj$common_score),
                            frnn_approx = 0, radius_quantile = 0.5,
                            bool_matrix = T, center = T,
