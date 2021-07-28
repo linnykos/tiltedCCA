@@ -21,6 +21,7 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   n <- length(membership_vec)
   
   # remove all distance information and symmetrize
+  if(verbose) print(paste0(Sys.time(),": cLISI: Symmetrizing matrices"))
   c_g <- .symmetrize_sparse(c_g, set_ones = T)
   d_g <- .symmetrize_sparse(d_g, set_ones = T)
   e_g <- .symmetrize_sparse(e_g, set_ones = T)
@@ -40,30 +41,18 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
 
 ############
 
-.clisi <- function(g, membership_vec, cell_subidx, verbose = F){
+.clisi <- function(g, membership_vec, cell_subidx, tol = 1e-3, verbose = F){
   stopifnot(is.factor(membership_vec))
   stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), length(cell_subidx) == length(unique(cell_subidx)))
   
-  n <- nrow(g)
-  bg_prop <- as.numeric(table(membership_vec))/n
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
   
   clisi_info <- sapply(1:length(cell_subidx), function(i){
     if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
-    neigh <- .nonzero_col(g, cell_subidx[i], bool_value = F)
-    len <- length(neigh)
-    if(len == 0){
-      return(c(len = 0, in_ratio = 0, clisi_score = 0))
-    }
     target_mem <- membership_vec[cell_subidx[i]]
-    mem_vec <- membership_vec[neigh]
-    in_len <- length(which(mem_vec == target_mem))
-    
-    target_bg <- bg_prop[target_mem]
-    clisi_score <- max((in_len/len - target_bg)/(1-target_bg), 0)
-    
-    c(len = len, in_ratio = in_len/len, clisi_score = clisi_score)
+    idx <- which(membership_vec == target_mem)
+    .clisi_cell(g, idx, position = which(idx == i), tol = tol)
   })
   
   clisi_info <- as.data.frame(t(clisi_info))
@@ -90,4 +79,20 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   res <- cbind(celltype = levels(membership_vec), res)
   
   list(cell_info = clisi_info, membership_info = res)
+}
+
+.clisi_cell <- function(g, idx, position, tol = 1e-3){
+  stopifnot(position > 0, position <= length(idx), position %% 1 == 0)
+  
+  n <- nrow(g)
+  target_bg <- length(idx)/n
+  neigh <- .nonzero_col(g, idx[position], bool_value = F)
+  len <- length(neigh)
+  if(len == 0){
+    return(c(len = 0, in_ratio = 0, clisi_score = 0))
+  }
+  in_len <- length(which(neigh %in% idx))
+  
+  clisi_score <- max((in_len/len - target_bg + tol)/(1-target_bg+tol), 0)
+  c(len = len, in_ratio = in_len/len, clisi_score = clisi_score)
 }
