@@ -129,28 +129,81 @@ compute_enrichment_scores <- function(c_g, d_g_1, d_g_2, idx){
                                         distinct_enrich_2, max_tries){
   bool_vec <- c(common_enrich, distinct_enrich_1, distinct_enrich_2)
   bool_idx <- which(bool_vec)
+  len <- length(bool_idx)
   graph_list <- list(c_g, d_g_1, d_g_2)
   
+  # extract neighbors
   neigh_list <- lapply(bool_idx, function(k){
-    neigh_vec <- unlist(lapply(idx, function(i){.nonzero_col(graph_list[[k]], i, bool_value = F)}))
-    neigh_vec <- setdiff(neigh_vec, idx)
+    unlist(lapply(idx, function(i){.nonzero_col(graph_list[[k]], i, bool_value = F)}))
+  })
+  rank_list <- lapply(bool_idx, function(k){
+    unlist(lapply(idx, function(i){rank(.nonzero_col(graph_list[[k]], i, bool_value = T))}))
   })
   
-  if(length(neigh_list) == 1){
+  # remove elements already in the list
+  for(k in 1:len){
+    tmp <- which(!neigh_list[[k]] %in% idx)
+    if(length(tmp) == 0) return(numeric(0))
+    neigh_list[[k]] <- neigh_list[[k]][tmp]
+    rank_list[[k]] <- rank_list[[k]][tmp]
+  }
+  
+  if(len == 1){
     if(length(neigh_list[[1]]) == 0) return(numeric(0))
-    return(as.numeric(names(sort(table(neigh_list[[1]]), decreasing = T))[1:max_tries]))
+    summary_df <- .organize_candidate_df(neigh_list[[1]], rank_list[[1]], sort = T)
+    summary_df$idx[1:max_tries]
+    
   } else{
     all_idx <- sort(.common_intersection(neigh_list))
     if(length(all_idx) == 0) return(numeric(0))
+ 
+    # keep only the element in the intersection
+    for(k in 1:length(neigh_list)){
+      tmp <- which(neigh_list[[k]] %in% all_idx)
+      neigh_list[[k]] <- neigh_list[[k]][tmp]
+      rank_list[[k]] <- rank_list[[k]][tmp]
+    }
     
-    df <- sapply(1:length(neigh_list), function(k){
-      table(intersect(neigh_list[[k]], all_idx))
+    summary_list <- lapply(1:len, function(k){
+      .organize_candidate_df(neigh_list[[k]], rank_list[[k]], sort = F)
     })
-    min_neigh <- apply(df, 1, min)
-    all_idx[order(min_neigh, decreasing = T)][1:max_tries]
+    
+    summary_df <- .merge_summary_dfs(summary_list, sort = T)
+    summary_df$idx[1:max_tries]
   }
 }
 
 .common_intersection <- function(lis){
   Reduce(intersect, lis)
+}
+
+# remember the rank here is negative (so larger number is closer points)
+.organize_candidate_df <- function(neigh_vec, rank_vec, sort){
+  stopifnot(length(neigh_vec) == length(rank_vec))
+  
+  uniq_val <- sort(unique(neigh_vec))
+  summary_mat <- sapply(uniq_val, function(x){
+    tmp <- which(neigh_vec == x)
+    c(idx = x, count = length(tmp), rank = -stats::median(rank_vec[tmp]))
+  })
+  summary_df <- as.data.frame(t(summary_mat))
+  
+  if(sort){
+    summary_df[order(summary_df$count, summary_df$rank, decreasing = T),]
+  } else {
+    summary_df
+  }
+}
+
+.merge_summary_dfs <- function(summary_list, sort){
+  len <- length(summary_list)
+  count_vec <- apply(sapply(1:len, function(k){summary_list[[k]]$count}), 1, min)
+  rank_vec <- apply(sapply(1:len, function(k){summary_list[[k]]$rank}), 1, min)
+  
+  summary_df <- data.frame(idx = summary_list[[1]]$idx, count = count_vec, rank = rank_vec)
+  if(sort){
+    summary_df[order(summary_df$count, summary_df$rank, decreasing = T),]
+  } else {
+    summary_df
+  }
 }

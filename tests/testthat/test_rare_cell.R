@@ -69,3 +69,53 @@ test_that(".find_enrichment_candidates works", {
                                      distinct_enrich_2 = T, max_tries = max_tries)
   expect_true(length(res) == max_tries)
 })
+
+#####################
+
+## .organize_candidate_df is correct
+
+test_that(".organize_candidate_df works", {
+  neigh_vec <- c(rep(10,5), rep(11,5), rep(12,5), rep(1,3), rep(2,2), 7)
+  rank_vec <- c(c(5,2,7,10,12), c(2,2,5,2,2), c(5,15,20,21,21),
+                c(1,1,1), c(10,12), 5)
+  res <- .organize_candidate_df(neigh_vec, rank_vec, sort = F)
+  expect_true(is.data.frame(res))
+  expect_true(all(sort(names(res)) == sort(c("idx", "count", "rank"))))
+  expect_true(all(dim(res) == c(6,3)))
+  
+  res2 <- .organize_candidate_df(neigh_vec, rank_vec, sort = T)
+  expect_true(is.data.frame(res))
+  expect_true(all(sort(names(res)) == sort(c("idx", "count", "rank"))))
+  expect_true(all(dim(res) == c(6,3)))
+  expect_true(all(res2$idx == c(11,10,12,1,2,7)))
+})
+
+####################
+
+## .merge_summary_dfs is correct
+
+test_that(".organize_candidate_df works", {
+  summary_list <- vector("list", 2)
+  
+  neigh_vec <- c(rep(10,5), rep(11,5), rep(12,5), rep(1,3), rep(2,2), 7)
+  rank_vec <- c(c(5,2,7,10,12), c(2,2,5,2,2), c(5,15,20,21,21),
+                c(1,1,1), c(10,12), 5)
+  summary_list[[1]] <- .organize_candidate_df(neigh_vec, rank_vec, sort = F)
+  
+  neigh_vec <- c(rep(10,3), rep(11,7), rep(12,5), rep(1,2), 2, 7)
+  rank_vec <- c(c(2,5,3), c(7,7,7,8,6,8,10), c(1,1,1,2,2),
+                c(10,3), 4, 2)
+  summary_list[[2]] <- .organize_candidate_df(neigh_vec, rank_vec, sort = F)
+  
+  res <- .merge_summary_dfs(summary_list, sort = F)
+  
+  expect_true(all(dim(res) == dim(summary_list[[1]])))
+  expect_true(all(res$idx == c(1,2,7,10,11,12)))
+  expect_true(all(res$count == c(2,1,1,3,5,5)))
+  expect_true(all(res$rank == c(-6.5,-11,-5,-7,-7,-20)))
+  
+  res2 <- .merge_summary_dfs(summary_list, sort = T)
+  expect_true(all(res2$idx == c(11,12,10,1,7,2)))
+})
+
+
