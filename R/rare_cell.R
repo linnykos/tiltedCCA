@@ -48,11 +48,10 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
                                               common_enrich, distinct_enrich_1,
                                               distinct_enrich_2, 
                                               deg_threshold, max_tries)
-    print(candidates)
     if(length(candidates) == 0) break()
     try_idx <- 1
     
-    while(try_idx <= max_tries){
+    while(try_idx <= min(max_tries, length(candidates))){
       bool_continue <- FALSE
       tmp_idx <- c(idx, candidates[try_idx])
       new_scores <- compute_enrichment_scores(c_g, d_g_1, d_g_2, tmp_idx)
