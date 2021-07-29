@@ -15,6 +15,10 @@
 #' with a high distinct enrichment in the other modality
 #' @param custom_threshold vector of length 3, where each entry is either \code{NA}
 #' or a value between \code{0} and \code{1} (inclusive)
+#' @param deg_threshold for a cell to be included into the set, it must be
+#' neighbors with at least \code{deg_threshold} of the cells 
+#' already in the set
+#' @param max_size maximum size of the desired set
 #' @param tol small positive integer
 #' @param max_tries positive integer
 #' @param verbose boolean
@@ -34,6 +38,7 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
   stopifnot(nrow(c_g) == ncol(c_g), all(dim(c_g) == dim(d_g_1)), all(dim(c_g) == dim(d_g_2)))
   
   baseline_scores <- compute_enrichment_scores(c_g, d_g_1, d_g_2, idx)
+  new_scores <- baseline_scores
   
   iter <- 1
   baseline_idx <- idx
@@ -43,6 +48,7 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
                                               common_enrich, distinct_enrich_1,
                                               distinct_enrich_2, 
                                               deg_threshold, max_tries)
+    print(candidates)
     if(length(candidates) == 0) break()
     try_idx <- 1
     
