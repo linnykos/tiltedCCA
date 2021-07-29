@@ -25,6 +25,7 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
                              common_enrich, distinct_enrich_1,
                              distinct_enrich_2,
                              custom_threshold = rep(NA, 3),
+                             deg_threshold = 0.25, max_size = NA,
                              tol = 0.02, max_tries = 10, verbose = F){
   bool_vec <- c(common_enrich, distinct_enrich_1, distinct_enrich_2)
   stopifnot(any(bool_vec), any(!bool_vec))
@@ -40,7 +41,8 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
     if(verbose) print(paste0("Iteration ", iter, ": Length of ", length(idx)))
     candidates <- .find_enrichment_candidates(c_g, d_g_1, d_g_2, idx, 
                                               common_enrich, distinct_enrich_1,
-                                              distinct_enrich_2, max_tries)
+                                              distinct_enrich_2, 
+                                              deg_threshold, max_tries)
     if(length(candidates) == 0) break()
     try_idx <- 1
     
@@ -66,6 +68,7 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
       }
     }
     
+    if(!is.na(max_size) && length(idx) > max_size) break()
     if(!bool_continue) break()
     if(verbose) print(round(new_scores, 2))
     iter <- iter + 1
@@ -126,7 +129,8 @@ compute_enrichment_scores <- function(c_g, d_g_1, d_g_2, idx){
 
 .find_enrichment_candidates <- function(c_g, d_g_1, d_g_2, idx, 
                                         common_enrich, distinct_enrich_1,
-                                        distinct_enrich_2, max_tries){
+                                        distinct_enrich_2, deg_threshold,
+                                        max_tries){
   bool_vec <- c(common_enrich, distinct_enrich_1, distinct_enrich_2)
   bool_idx <- which(bool_vec)
   len <- length(bool_idx)
@@ -151,7 +155,9 @@ compute_enrichment_scores <- function(c_g, d_g_1, d_g_2, idx){
   if(len == 1){
     if(length(neigh_list[[1]]) == 0) return(numeric(0))
     summary_df <- .organize_candidate_df(neigh_list[[1]], rank_list[[1]], sort = T)
-    summary_df$idx[1:max_tries]
+    summary_df <- summary_df[summary_df$count >= deg_threshold*length(idx),]
+    if(nrow(summary_df) == 0) return(numeric(0))
+    summary_df$idx[1:min(nrow(summary_df), max_tries)]
     
   } else{
     all_idx <- sort(.common_intersection(neigh_list))
@@ -169,7 +175,9 @@ compute_enrichment_scores <- function(c_g, d_g_1, d_g_2, idx){
     })
     
     summary_df <- .merge_summary_dfs(summary_list, sort = T)
-    summary_df$idx[1:max_tries]
+    summary_df <- summary_df[summary_df$count >= deg_threshold*length(idx),]
+    if(nrow(summary_df) == 0) return(numeric(0))
+    summary_df$idx[1:min(nrow(summary_df), max_tries)]
   }
 }
 

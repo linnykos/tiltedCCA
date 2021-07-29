@@ -66,7 +66,9 @@ test_that(".find_enrichment_candidates works", {
   max_tries <- 10
   res <- .find_enrichment_candidates(dat$c_g, dat$d_g_1, dat$d_g_2, idx = 1:10,
                                      common_enrich = F, distinct_enrich_1 = T,
-                                     distinct_enrich_2 = T, max_tries = max_tries)
+                                     distinct_enrich_2 = T, 
+                                     deg_threshold = 0,
+                                     max_tries = max_tries)
   expect_true(length(res) == max_tries)
 })
 
