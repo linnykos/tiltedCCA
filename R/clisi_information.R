@@ -86,6 +86,7 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   
   n <- nrow(g)
   target_bg <- length(idx)/n
+  print(idx[position])
   neigh <- .nonzero_col(g, idx[position], bool_value = F)
   len <- length(neigh)
   if(len == 0){
