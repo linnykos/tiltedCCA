@@ -90,7 +90,7 @@ plot_laplacian <- function(seurat_obj, var_name, prefix = "RNA",
 #' @export
 plot_laplacian_variables <- function(val_vec, name_vec, factor_vec, col_vec,
                                      xlab = "Order of variables", ylab, main,
-                                     baseline_col = "orange", ...){
+                                     baseline_col = "orange", text_cex = 2, ...){
   stopifnot(length(val_vec) == length(name_vec), length(val_vec) == length(factor_vec),
             length(col_vec) %in% c(1,2,3), is.factor(factor_vec),
             length(levels(factor_vec)) == length(col_vec),
@@ -118,7 +118,7 @@ plot_laplacian_variables <- function(val_vec, name_vec, factor_vec, col_vec,
                                             ggplot2::aes(label = name, color = factor),
                                             box.padding = ggplot2::unit(0.5, 'lines'),
                                             point.padding = ggplot2::unit(1.6, 'lines'),
-                                            size = 2, ...)
+                                            size = text_cex, ...)
   plot1 <- plot1 + ggplot2::geom_hline(yintercept = 0, linetype="dashed",
                                        color = baseline_col)
   plot1 <- plot1 + ggplot2::xlab(xlab)
