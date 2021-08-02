@@ -21,6 +21,9 @@
 plot_laplacian <- function(seurat_obj, var_name, prefix = "RNA", 
                            e_vec, c_vec, d_vec, 
                            e_res, c_res, d_res,
+                           reduction_1 = "everything",
+                           reduction_2 = "common",
+                           reduction_3 = "distinct",
                            sig_digits = 2){
   gene_mat <- cbind(e_vec, c_vec, d_vec, 
                     e_res$smoothed_vec, c_res$smoothed_vec, d_res$smoothed_vec)
@@ -33,25 +36,25 @@ plot_laplacian <- function(seurat_obj, var_name, prefix = "RNA",
   c_range <- range(c(c_vec, c_res$smoothed_vec))
   d_range <- range(c(d_vec, d_res$smoothed_vec))
   
-  plot1 <- Seurat::FeaturePlot(seurat_obj, features = "gene_1", reduction = "everything")
+  plot1 <- Seurat::FeaturePlot(seurat_obj, features = "gene_1", reduction = reduction_1)
   plot1 <- plot1 + ggplot2::labs(title = paste0(var_name, "\n", prefix, " Denoised, Everything"), x = "Everything 1", y = "Everything 2") + 
     ggplot2::scale_color_gradientn(colours = RColorBrewer::brewer.pal(n = 9, name = "Purples"), limits = e_range)
-  plot2 <- Seurat::FeaturePlot(seurat_obj, features = "gene_2", reduction = "common")
+  plot2 <- Seurat::FeaturePlot(seurat_obj, features = "gene_2", reduction = reduction_2)
   plot2 <- plot2 + ggplot2::labs(title = paste0(var_name, "\n", prefix, " Denoised, Common"), x = "Common 1", y = "Common 2") + 
     ggplot2::scale_color_gradientn(colours = RColorBrewer::brewer.pal(n = 9, name = "Purples"), limits = c_range)
-  plot3 <- Seurat::FeaturePlot(seurat_obj, features = "gene_3", reduction = "distinct")
+  plot3 <- Seurat::FeaturePlot(seurat_obj, features = "gene_3", reduction = reduction_3)
   plot3 <- plot3 + ggplot2::labs(title = paste0(var_name, "\n", prefix, " Denoised, Distinct"), x = "Distinct 1", y = "Distinct 2") + 
     ggplot2::scale_color_gradientn(colours = RColorBrewer::brewer.pal(n = 9, name = "Purples"), limits = d_range)
   
-  plot4 <- Seurat::FeaturePlot(seurat_obj, features = "gene_4", reduction = "everything")
+  plot4 <- Seurat::FeaturePlot(seurat_obj, features = "gene_4", reduction = reduction_1)
   plot4 <- plot4 + ggplot2::labs(title = paste0("Smoothed Everything\nVar: ", round(e_res$variance, sig_digits), ", R2: ", round(e_res$r_squared, 2)), 
                                  x = "Everything 1", y = "Everything 2") + 
     ggplot2::scale_color_gradientn(colours = RColorBrewer::brewer.pal(n = 9, name = "Purples"), limits = e_range)
-  plot5 <- Seurat::FeaturePlot(seurat_obj, features = "gene_5", reduction = "common")
+  plot5 <- Seurat::FeaturePlot(seurat_obj, features = "gene_5", reduction = reduction_2)
   plot5 <- plot5 + ggplot2::labs(title = paste0("Smoothed Common\nVar: ", round(c_res$variance, sig_digits), ", R2: ", round(c_res$r_squared, 2)), 
                                  x = "Common 1", y = "Common 2") + 
     ggplot2::scale_color_gradientn(colours = RColorBrewer::brewer.pal(n = 9, name = "Purples"), limits = c_range)
-  plot6 <- Seurat::FeaturePlot(seurat_obj, features = "gene_6", reduction = "distinct")
+  plot6 <- Seurat::FeaturePlot(seurat_obj, features = "gene_6", reduction = reduction_3)
   plot6 <- plot6 + ggplot2::labs(title = paste0("Smoothed Distinct\nVar: ", round(d_res$variance, sig_digits), ", R2: ", round(d_res$r_squared, 2)), 
                                  x = "Distinct 1", y = "Distinct 2") + 
     ggplot2::scale_color_gradientn(colours = RColorBrewer::brewer.pal(n = 9, name = "Purples"), limits = d_range)
@@ -93,7 +96,7 @@ plot_laplacian_variables <- function(val_vec, name_vec, factor_vec, col_vec,
             length(levels(factor_vec)) == length(col_vec),
             all(as.character(factor_vec) %in% c("0", "1", "2")))
   p <- length(val_vec)
-  if(length(names(col_vec)) == 0) names(col_vec) <- as.character(c(1:length(col_vec)))
+  if(length(names(col_vec)) == 0) names(col_vec) <- as.character(c(0:(length(col_vec)-1)))
   custom_colors <- ggplot2::scale_colour_manual(values = col_vec)
   
   # construct df
