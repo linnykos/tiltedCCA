@@ -163,18 +163,29 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
 #'
 #' @return shows a plot but returns nothing
 #' @export
-plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10, 
-                                log_scale = F, scaling_power = 1, luminosity = F){
+plot_scores_heatmap.dcca <- function(obj, main_vec = c("Common score", "Distinct score 1", "Distinct score 2"),
+                                     membership_vec = NA, num_col = 10, 
+                                     log_scale = F, scaling_power = 1, luminosity = F){
+  lis <- list(obj$common_score, obj$distinct_score_1, obj$distinct_score_2)
   
-  n <- nrow(obj$common_score)
-  common_score <- obj$common_score
-  distinct_score_1 <- obj$distinct_score_1; distinct_score_2 <- obj$distinct_score_2
-  if(log_scale){
-    common_score <- log(abs(common_score)+1)*sign(common_score)
-    distinct_score_1 <- log(abs(distinct_score_1)+1)*sign(distinct_score_1)
-    distinct_score_2 <- log(abs(distinct_score_2)+1)*sign(distinct_score_2)
-  } 
-  zlim <- range(c(common_score, distinct_score_1, distinct_score_2))
+  plot_scores_heatmap.list(lis, 
+                           main_vec = main_vec, 
+                           membership_vec = membership_vec,
+                           num_col = num_col,
+                           log_scale = log_scale,
+                           scaling_power = scaling_power,
+                           luminosity = luminosity)
+  
+}
+
+plot_scores_heatmap.list <- function(obj, main_vec = NA, membership_vec = NA, num_col = 10, 
+                                     log_scale = F, scaling_power = 1, luminosity = F){
+  stopifnot(is.list(obj), all(sapply(obj, is.matrix)), length(unique(sapply(obj, nrow)) == 1))
+  if(!all(is.na(main_vec))) stopifnot(length(obj) == length(main_vec))
+  
+  n <- nrow(obj[[1]])
+  if(log_scale) obj <- sapply(obj, function(x){log(abs(x)+1)*sign(x)})
+  zlim <- range(unlist(obj))
   
   # construct colors. green is negative
   max_val <- max(abs(zlim)); min_val <- max(min(abs(zlim)), 1e-3)
@@ -194,7 +205,7 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10,
   col_vec <- c(col_vec_neg, "white", col_vec_pos)
   
   if(!all(is.na(membership_vec))){
-    stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(common_score))
+    stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj[[1]]))
     
     membership_vec <- as.numeric(membership_vec) ## convert to integers
     idx <- order(membership_vec, decreasing = F)
@@ -203,30 +214,17 @@ plot_scores_heatmap <- function(obj, membership_vec = NA, num_col = 10,
     idx <- 1:n
   }
   
-  line_func <- function(){
-    if(!all(is.na(membership_vec))){
-      for(i in 1:length(breakpoints)){
-        graphics::lines(c(-10, 10), rep(breakpoints[i], 2), lwd = 2.1, col = "white")
-        graphics::lines(c(-10, 10), rep(breakpoints[i], 2), lwd = 2, lty = 2)
-      }
-    }
+  graphics::par(mfrow = c(1,length(obj)))
+  for(i in 1:length(obj)){
+    graphics::image(.rotate(obj[[i]][idx,,drop = F]), 
+                    main = ifelse(!all(is.na(main_vec)), main_vec[i], ""),
+                    col = col_vec, breaks = break_vec)
+    line_func()
   }
-  
-  graphics::par(mfrow = c(1,3))
-  graphics::image(.rotate(common_score[idx,,drop = F]), main = "Common score",
-                  col = col_vec, breaks = break_vec)
-  line_func()
-  
-  graphics::image(.rotate(distinct_score_1[idx,,drop = F]), main = "Distinct score 1",
-                  col = col_vec, breaks = break_vec)
-  line_func()
-  
-  graphics::image(.rotate(distinct_score_2[idx,,drop = F]), main = "Distinct score 2",
-                  col = col_vec, breaks = break_vec)
-  line_func()
   
   invisible()
 }
+  
 
 #######################################
 
