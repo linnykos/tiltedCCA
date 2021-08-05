@@ -227,12 +227,22 @@ plot_scores_heatmap.list <- function(obj, main_vec = NA, membership_vec = NA, nu
     idx <- 1:n
   }
   
+  
+  line_func <- function(membership_vec, breakpoints){
+    if(!all(is.na(membership_vec))){
+      for(i in 1:length(breakpoints)){
+        graphics::lines(c(-10, 10), rep(breakpoints[i], 2), lwd = 2.1, col = "white")
+        graphics::lines(c(-10, 10), rep(breakpoints[i], 2), lwd = 2, lty = 2)
+      }
+    }
+  }
+  
   graphics::par(mfrow = c(1,length(obj)))
   for(i in 1:length(obj)){
     graphics::image(.rotate(obj[[i]][idx,,drop = F]), 
                     main = ifelse(!all(is.na(main_vec)), main_vec[i], ""),
                     col = col_vec, breaks = break_vec)
-    line_func()
+    line_func(membership_vec, breakpoints)
   }
   
   invisible()
