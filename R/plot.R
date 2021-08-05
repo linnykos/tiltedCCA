@@ -197,7 +197,7 @@ plot_scores_heatmap.list <- function(obj, main_vec = NA, membership_vec = NA, nu
   if(!all(is.na(main_vec))) stopifnot(length(obj) == length(main_vec))
   
   n <- nrow(obj[[1]])
-  if(log_scale) obj <- sapply(obj, function(x){log(abs(x)+1)*sign(x)})
+  if(log_scale) obj <- lapply(obj, function(x){log(abs(x)+1)*sign(x)})
   zlim <- range(unlist(obj))
   
   # construct colors. green is negative
