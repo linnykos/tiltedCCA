@@ -13,6 +13,8 @@ detect_rare_cell(
   distinct_enrich_1,
   distinct_enrich_2,
   custom_threshold = rep(NA, 3),
+  deg_threshold = 0,
+  max_size = NA,
   tol = 0.02,
   max_tries = 10,
   verbose = F
@@ -41,6 +43,12 @@ with a high distinct enrichment in the other modality}
 
 \item{custom_threshold}{vector of length 3, where each entry is either \code{NA}
 or a value between \code{0} and \code{1} (inclusive)}
+
+\item{deg_threshold}{for a cell to be included into the set, it must be
+neighbors with at least \code{deg_threshold} of the cells 
+already in the set}
+
+\item{max_size}{maximum size of the desired set}
 
 \item{tol}{small positive integer}
 

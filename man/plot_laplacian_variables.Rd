@@ -13,6 +13,7 @@ plot_laplacian_variables(
   ylab,
   main,
   baseline_col = "orange",
+  text_cex = 2,
   ...
 )
 }

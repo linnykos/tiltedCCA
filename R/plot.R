@@ -155,6 +155,7 @@ plot_scores <- function(obj, membership_vec, col_vec = scales::hue_pal()(length(
 #' Side-by-side plot of the canonical scores as heatmaps
 #'
 #' @param obj output of either \code{generate_data} or \code{dcca_decomposition}
+#' @param main_vec vector of characters for the title of the plots
 #' @param membership_vec factor vector
 #' @param num_col positive integers for number of distinct colors
 #' @param log_scale boolean
@@ -178,6 +179,18 @@ plot_scores_heatmap.dcca <- function(obj, main_vec = c("Common score", "Distinct
   
 }
 
+#' Side-by-side plot of the canonical scores as heatmaps
+#'
+#' @param obj \code{list}
+#' @param main_vec vector of characters for the title of the plots
+#' @param membership_vec factor vector
+#' @param num_col positive integers for number of distinct colors
+#' @param log_scale boolean
+#' @param scaling_power positive numeric
+#' @param luminosity boolean
+#'
+#' @return shows a plot but returns nothing
+#' @export
 plot_scores_heatmap.list <- function(obj, main_vec = NA, membership_vec = NA, num_col = 10, 
                                      log_scale = F, scaling_power = 1, luminosity = F){
   stopifnot(is.list(obj), all(sapply(obj, is.matrix)), length(unique(sapply(obj, nrow)) == 1))

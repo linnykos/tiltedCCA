@@ -14,6 +14,9 @@ plot_laplacian(
   e_res,
   c_res,
   d_res,
+  reduction_1 = "everything",
+  reduction_2 = "common",
+  reduction_3 = "distinct",
   sig_digits = 2
 )
 }
