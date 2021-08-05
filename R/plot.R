@@ -193,7 +193,7 @@ plot_scores_heatmap.dcca <- function(obj, main_vec = c("Common score", "Distinct
 #' @export
 plot_scores_heatmap.list <- function(obj, main_vec = NA, membership_vec = NA, num_col = 10, 
                                      log_scale = F, scaling_power = 1, luminosity = F){
-  stopifnot(is.list(obj), all(sapply(obj, is.matrix)), length(unique(sapply(obj, nrow)) == 1))
+  stopifnot(is.list(obj), all(sapply(obj, is.matrix)), length(unique(sapply(obj, nrow))) == 1)
   if(!all(is.na(main_vec))) stopifnot(length(obj) == length(main_vec))
   
   n <- nrow(obj[[1]])

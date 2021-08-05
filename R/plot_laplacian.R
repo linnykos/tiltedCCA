@@ -14,6 +14,12 @@
 #' @param e_res result applying \code{e_vec} to \code{compute_smooth_signal}
 #' @param c_res result applying \code{c_vec} to \code{compute_smooth_signal}
 #' @param d_res result applying \code{d_vec} to \code{compute_smooth_signal}
+#' @param reducition_1 character, for the assay in \code{seurat_obj} to pull the
+#' everything embedding from
+#' @param reducition_2 character, for the assay in \code{seurat_obj} to pull the
+#' common embedding from
+#' @param reducition_3 character, for the assay in \code{seurat_obj} to pull the
+#' distinct embedding from
 #' @param sig_digits integer
 #'
 #' @return list of 6 \code{gg} objects
@@ -84,6 +90,7 @@ plot_laplacian <- function(seurat_obj, var_name, prefix = "RNA",
 #' @param ylab string
 #' @param main string
 #' @param baseline_col color for the horizontal line
+#' @param text_cex numeric
 #' @param ... extra parameters for \code{ggrepel::geom_text_repel}
 #'
 #' @return \code{gg} object
