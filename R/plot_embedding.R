@@ -10,6 +10,8 @@
 #' @param pca boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 #' If \code{FALSE}, plot the UMAP embedding.
 #' @param only_embedding boolean
+#' @param metric character for the distance metric used in \code{Seurat::RunUMAP},
+#' typically \code{"cosine"} or \code{"euclidean"}
 #' @param main_addition additional string to append to main of each plot
 #' @param verbose boolean
 #'
@@ -21,6 +23,7 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
                             add_noise = T, 
                             col_vec = scales::hue_pal()(length(levels(membership_vec))),
                             pca = F, only_embedding = F,
+                            metric = "cosine",
                             main_addition = "", verbose = F){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score),
             class(obj) %in% c("dcca", "dcca_decomp"))
@@ -32,7 +35,7 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   if(pca) {
     embedding <- .extract_pca_embedding(embedding)
   } else {
-    embedding <- .extract_umap_embedding(embedding, only_embedding = T)
+    embedding <- .extract_umap_embedding(embedding, only_embedding = T, metric = metric)
   }
   
   if(!only_embedding) {
@@ -67,18 +70,20 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
 #'
 #' @param embedding return object from \code{.prepare_embeddings}
 #' @param only_embedding boolean
+#' @param metric character for the distance metric used in \code{Seurat::RunUMAP},
+#' typically \code{"cosine"} or \code{"euclidean"}
 #' @param reduction_key string for \code{Seurat::RunUMAP}
 #'
 #' @return list of three 2-column matrix or \code{Seurat} object, one for the
 #' common, distinct and everything matrix
-.extract_umap_embedding <- function(embedding, only_embedding, reduction_key = "UMAP"){
+.extract_umap_embedding <- function(embedding, only_embedding, metric, reduction_key = "UMAP"){
   stopifnot(length(embedding) == 3)
   for(i in 1:3){
     if(only_embedding){
-      embedding[[i]] <- Seurat::RunUMAP(embedding[[i]], metric = "euclidean", 
+      embedding[[i]] <- Seurat::RunUMAP(embedding[[i]], metric = metric, 
                                         verbose = F)@cell.embeddings
     } else {
-      embedding[[i]] <- Seurat::RunUMAP(embedding[[i]], metric = "euclidean", 
+      embedding[[i]] <- Seurat::RunUMAP(embedding[[i]], metric = metric, 
                                         reduction.key = reduction_key, verbose = F)
     }
   }

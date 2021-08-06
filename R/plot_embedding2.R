@@ -15,6 +15,8 @@
 #' @param main_addition additional string to append to main of each plot
 #' @param sampling_type string
 #' @param keep_nn boolean
+#' @param metric character for the distance metric used in \code{Seurat::RunUMAP.Graph},
+#' typically \code{"cosine"} or \code{"euclidean"}
 #' @param verbose boolean
 #' @param ... additional parameters for \code{Seurat:::RunUMAP.Graph}
 #'
@@ -27,6 +29,7 @@ plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
                              only_embedding = F, main_addition = "",
                              sampling_type = "adaptive_gaussian", keep_nn = T,
+                             metric = "cosine",
                              verbose = T, ...){
   stopifnot(!data_1 | !data_2)
   
@@ -71,7 +74,7 @@ plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA
   }
   
   # run Seurat::RunUMAP.Default on the everything
-  list_output[[3]] <- Seurat::RunUMAP(everything_embedding, metric = "euclidean", 
+  list_output[[3]] <- Seurat::RunUMAP(everything_embedding, metric = metric, 
                                       verbose = verbose, assay = "RNA", ...)@cell.embeddings
   
   if(!only_embedding) {
