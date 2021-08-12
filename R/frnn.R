@@ -152,7 +152,7 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
     if(verbose == 2) {
       print(i)
     } else if(verbose == 1 && n > 10 && i %% floor(n/10) == 0) {
-      print(paste0(Sys.time(),": Converting matrices to list"))
+      cat('*')
     }
       
     # intersect
