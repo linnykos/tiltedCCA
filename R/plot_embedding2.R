@@ -70,7 +70,8 @@ plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA
     graph_obj <- SeuratObject::as.Graph(mat)
     
     # use Seurat
-    list_output[[i]]  <- Seurat::RunUMAP(graph_obj, verbose = verbose, assay = "RNA", ...)@cell.embeddings
+    list_output[[i]]  <- Seurat::RunUMAP(graph_obj, verbose = verbose, assay = "RNA",
+                                         metric = metric, ...)@cell.embeddings
   }
   
   # run Seurat::RunUMAP.Default on the everything
