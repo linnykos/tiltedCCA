@@ -27,9 +27,9 @@ test_that("plot_embeddings2 works", {
                         verbose = F, bool_matrix = T)
   
   set.seed(10)
-  res <- plot_embeddings2(dcca_obj, nn = 5, data_1 = T, data_2 = F, 
+  res <- suppressWarnings(plot_embeddings2(dcca_obj, nn = 5, data_1 = T, data_2 = F, 
                           c_g = list_g[[1]], d_g = list_g[[2]], 
-                          only_embedding = T, verbose = F)
+                          only_embedding = T, verbose = F))
   
   expect_true(is.list(res))
   for(i in 1:3){

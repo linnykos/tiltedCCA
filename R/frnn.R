@@ -6,6 +6,9 @@
 #' for the frNN graph
 #' @param data_1 boolean
 #' @param data_2 boolean
+#' @param normalization_type character among \code{"cosine_itself"},
+#' \code{"cosine_everything"}, \code{"signac_itself"}, \code{"signac_everything"},
+#' and \code{"none"}
 #' @param max_subsample_frnn positive integer, used for determining number of cells to 
 #' compute cLISI for
 #' @param frnn_approx small non-negative number
@@ -25,6 +28,7 @@ construct_frnn <- function(obj,
                            nn = 30, 
                            data_1 = T, 
                            data_2 = F,
+                           normalization_type = "none",
                            max_subsample_frnn = nrow(obj$common_score),
                            frnn_approx = 0, 
                            radius_quantile = 0.5,
@@ -40,6 +44,7 @@ construct_frnn <- function(obj,
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
                                    center = center, 
                                    renormalize = renormalize)
+  embedding <- .normalize_embeddings(embedding, normalization_type)
   n <- nrow(embedding[[1]])
   
   # construct subsamples
@@ -226,6 +231,74 @@ combine_frnn <- function(dcca_obj,
 
 ########################
 
+.normalize_embeddings <- function(embedding, normalization_type){
+  stopifnot(normalization_type %in% c("cosine_itself", "cosine_everything",
+                                      "signac_itself", "signac_everything",
+                                      "none"),
+            sort(names(embedding)) == sort(c("common", "distinct", "everything")))
+  
+  len <- length(embedding)
+  
+  if(normalization_type == "cosine_everything"){
+    l2_vec <- apply(embedding[["everything"]], 1, .l2norm)
+    
+    for(i in 1:len){
+      embedding[[i]] <-.mult_vec_mat(1/l2_vec, embedding[[i]])
+    }
+    
+  } else if(normalization_type == "cosine_itself"){
+    for(i in 1:len){
+      l2_vec <- apply(embedding[[i]], 1, .l2norm)
+      embedding[[i]] <- .mult_vec_mat(1/l2_vec, embedding[[i]])
+    }
+
+  } else if(normalization_type == "signac_everything"){
+    center_vec <- matrixStats::colMeans2(embedding[["everything"]])
+    sd_vec <- matrixStats::colSds(embedding[["everything"]])
+    embedding[["everything"]] <- sweep(embedding[["everything"]], 
+                                       MARGIN = 2, 
+                                       STATS = center_vec, 
+                                       FUN = "-")
+    embedding[["everything"]] <- sweep(embedding[["everything"]], 
+                                       MARGIN = 2, 
+                                       STATS = sd_vec, 
+                                       FUN = "/")
+    l2_vec <- apply(embedding[["everything"]], 1, .l2norm)
+    embedding[["everything"]] <- .mult_vec_mat(1/l2_vec, embedding[["everything"]])
+    
+    for(i in c("common", "distinct")){
+      embedding[[i]] <- sweep(embedding[[i]], 
+                                         MARGIN = 2, 
+                                         STATS = center_vec, 
+                                         FUN = "-")
+      embedding[[i]] <- sweep(embedding[[i]], 
+                                         MARGIN = 2, 
+                                         STATS = sd_vec, 
+                                         FUN = "/")
+      embedding[[i]] <- .mult_vec_mat(1/l2_vec, embedding[[i]])
+    }
+    
+  } else if(normalization_type == "signac_itself"){
+    for(i in 1:len){
+      center_vec <- matrixStats::colMeans2(embedding[[i]])
+      sd_vec <- matrixStats::colSds(embedding[[i]])
+      embedding[[i]] <- sweep(embedding[[i]], 
+                                         MARGIN = 2, 
+                                         STATS = center_vec, 
+                                         FUN = "-")
+      embedding[[i]] <- sweep(embedding[[i]], 
+                                         MARGIN = 2, 
+                                         STATS = sd_vec, 
+                                         FUN = "/")
+      l2_vec <- apply(embedding[[i]], 1, .l2norm)
+      embedding[[i]] <- .mult_vec_mat(1/l2_vec, embedding[[i]])
+    }
+    
+  } 
+  
+  embedding
+}
+
 .construct_celltype_subsample <- function(membership_vec, max_subsample_cell){
   res <- lapply(levels(membership_vec), function(x){
     idx <- which(membership_vec == x)
@@ -303,17 +376,19 @@ combine_frnn <- function(dcca_obj,
     z1 <- which(nn_idx_1_vec == j)
     
     if(length(z1) == 1) {
-      tmp <- tmp + nn_dist_1_vec[z1]
+      tmp <- tmp + (nn_dist_1_vec[z1])^2
     } else {
-      tmp <- tmp + .l2norm(embedding_1[start_idx,] - embedding_1[j,])
+      tmp <- tmp + .l2norm(embedding_1[start_idx,] - embedding_1[j,])^2
     }
     
     z2 <- which(nn_idx_2_vec == j)
     if(length(z2) == 1) {
-      tmp <- tmp + nn_dist_2_vec[z2]
+      tmp <- tmp + (nn_dist_2_vec[z2])^2
     } else {
-      tmp <- tmp + .l2norm(embedding_2[start_idx,] - embedding_2[j,])
+      tmp <- tmp + .l2norm(embedding_2[start_idx,] - embedding_2[j,])^2
     }
+    
+    sqrt(tmp)
   })
   
   res
