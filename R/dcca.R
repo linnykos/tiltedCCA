@@ -30,7 +30,8 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                         fix_distinct_perc = F, verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
-            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), num_neigh <= min(nrow(mat_1), nrow(mat_2)))
+            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), 
+            num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
   n <- nrow(mat_1)
 

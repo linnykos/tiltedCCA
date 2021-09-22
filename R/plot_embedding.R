@@ -4,8 +4,6 @@
 #' @param membership_vec factor vector
 #' @param data_1 boolean
 #' @param data_2 boolean
-#' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
-#' distinct "on the same scale" by adding appropriately-scaled Gaussian noise
 #' @param col_vec vector of colors
 #' @param pca boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 #' If \code{FALSE}, plot the UMAP embedding.
@@ -19,19 +17,26 @@
 #' If \code{TRUE}, returns three matrices as a list.
 #' If \code{FALSE}, shows a plot but returns nothing
 #' @export
-plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F, 
-                            add_noise = T, 
+plot_embeddings <- function(obj, 
+                            membership_vec = NA, 
+                            data_1 = T, 
+                            data_2 = F, 
                             col_vec = scales::hue_pal()(length(levels(membership_vec))),
-                            pca = F, only_embedding = F,
+                            pca = F, 
+                            only_embedding = F,
                             metric = "cosine",
-                            main_addition = "", verbose = F){
+                            main_addition = "", 
+                            verbose = F){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(obj$common_score),
             class(obj) %in% c("dcca", "dcca_decomp"))
   stopifnot(data_1 | data_2)
   
   n <- nrow(obj$common_score)
-  embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
-                                   add_noise = add_noise, center = F, renormalize = T)
+  embedding <- .prepare_embeddings(obj, 
+                                   data_1 = data_1, 
+                                   data_2 = data_2, 
+                                   center = F, 
+                                   renormalize = T)
   if(pca) {
     embedding <- .extract_pca_embedding(embedding)
   } else {
@@ -109,24 +114,26 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
 #' @param obj output from either \code{generate_data} or \code{dcca_decomposition}
 #' @param data_1 boolean, for computing the embedding for data 1
 #' @param data_2 boolean, for computing the embedding for data 2
-#' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
-#' distinct scores "on the same scale" by adding appropriately-scaled Gaussian noise
 #' @param center boolean
 #' @param renormalize boolean
 #'
 #' @return a list of 3 elements, representing the low-dimensional
 #' representation for the common, distinct and everything matrices
 #' for the intended dataset(s)
-.prepare_embeddings <- function(obj, data_1, data_2, add_noise, center, renormalize){
+.prepare_embeddings <- function(obj, data_1, data_2, center, renormalize){
   if(data_1){
-    res_1 <- .prepare_embeddings_singleton(obj$common_score, obj$distinct_score_1,
-                                           obj$svd_1, add_noise = add_noise,
-                                           center = center, renormalize = renormalize)
+    res_1 <- .prepare_embeddings_singleton(obj$common_score, 
+                                           obj$distinct_score_1,
+                                           obj$svd_1,
+                                           center = center, 
+                                           renormalize = renormalize)
   } else res_1 <- NA
   if(data_2){
-    res_2 <- .prepare_embeddings_singleton(obj$common_score, obj$distinct_score_2,
-                                           obj$svd_2, add_noise = add_noise,
-                                           center = center, renormalize = renormalize)
+    res_2 <- .prepare_embeddings_singleton(obj$common_score, 
+                                           obj$distinct_score_2,
+                                           obj$svd_2, 
+                                           center = center, 
+                                           renormalize = renormalize)
   } else res_2 <- NA
   
   if(!all(is.na(res_1)) & all(is.na(res_2))){
@@ -143,20 +150,35 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   
 }
 
-.prepare_embeddings_singleton <- function(common_score, distinct_score, svd_res, add_noise,
-                                          center, renormalize){
+.prepare_embeddings_singleton <- function(common_score, 
+                                          distinct_score, 
+                                          svd_res, 
+                                          center, 
+                                          renormalize){
   embedding <- vector("list", 3)
   names(embedding) <- c("common", "distinct", "everything")
   
-  embedding[[1]] <- .extract_matrix_helper(common_score, distinct_score,
-                                           svd_res, common_bool = T, distinct_bool = F,
-                                           center = center, renormalize = renormalize, add_noise = add_noise)
-  embedding[[2]] <- .extract_matrix_helper(common_score, distinct_score,
-                                           svd_res, common_bool = F, distinct_bool = T,
-                                           center = center, renormalize = renormalize, add_noise = add_noise)
-  embedding[[3]] <- .extract_matrix_helper(common_score, distinct_score,
-                                           svd_res, common_bool = T, distinct_bool = T,
-                                           center = center, renormalize = renormalize, add_noise = add_noise)
+  embedding[[1]] <- .extract_matrix_helper(common_score, 
+                                           distinct_score,
+                                           svd_res, 
+                                           common_bool = T, 
+                                           distinct_bool = F,
+                                           center = center, 
+                                           renormalize = renormalize)
+  embedding[[2]] <- .extract_matrix_helper(common_score, 
+                                           distinct_score,
+                                           svd_res, 
+                                           common_bool = F, 
+                                           distinct_bool = T,
+                                           center = center, 
+                                           renormalize = renormalize)
+  embedding[[3]] <- .extract_matrix_helper(common_score, 
+                                           distinct_score,
+                                           svd_res, 
+                                           common_bool = T, 
+                                           distinct_bool = T,
+                                           center = center, 
+                                           renormalize = renormalize)
   
   for(i in 1:3){
     if(length(rownames(common_score)) != 0) rownames(embedding[[i]]) <- rownames(common_score)
@@ -179,9 +201,6 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
 #' @param svd_e list containing the SVD of the full matrix 
 #' @param common_bool boolean
 #' @param distinct_bool boolean
-#' @param add_noise boolean, intended (if \code{TRUE}) to put the common and 
-#' distinct scores "on the same scale" by adding appropriately-scaled Gaussian noise.
-#' Which matrices get the added noise depends on \code{common_bool} or \code{distinct_bool})
 #' @param center boolean. If \code{TRUE}, center each canonical variable (i.e., column)
 #' where the centering is based on \code{common_score+distinct_score}
 #' @param renormalize boolean. If \code{TRUE}, normalize each sample (i.e., row)
@@ -190,9 +209,13 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
 #' happens before the renormalization
 #'
 #' @return a matrix
-.extract_matrix_helper <- function(common_score, distinct_score,
-                                   svd_e, common_bool, distinct_bool, add_noise,
-                                   center, renormalize){
+.extract_matrix_helper <- function(common_score, 
+                                   distinct_score,
+                                   svd_e, 
+                                   common_bool, 
+                                   distinct_bool,
+                                   center, 
+                                   renormalize){
   stopifnot(nrow(common_score) == nrow(distinct_score),
             nrow(common_score) == nrow(svd_e$u), nrow(distinct_score) == nrow(svd_e$u),
             ncol(common_score) <= length(svd_e$d), ncol(distinct_score) == length(svd_e$d),
@@ -213,22 +236,14 @@ plot_embeddings <- function(obj, membership_vec = NA, data_1 = T, data_2 = F,
   
   if(common_bool != distinct_bool){
     if(common_bool){ 
-      if(add_noise){
-        common_score <- .add_columnwise_noise(common_score, distinct_score)
-      } else{
-        if(ncol(common_score) < ncol(distinct_score)) {
-          common_score <- cbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score)-ncol(common_score)))
-        }
+      if(ncol(common_score) < ncol(distinct_score)) {
+        common_score <- cbind(common_score, matrix(0, nrow = n, ncol = ncol(distinct_score)-ncol(common_score)))
       }
       tmp <- common_score %*% crossprod(canonical_score, full_mat)
       
     } else { 
-      if(add_noise){
-        distinct_score <- .add_columnwise_noise(distinct_score, common_score)
-      } else{
-        if(ncol(distinct_score) < ncol(common_score)) {
-          distinct_score <- cbind(distinct_score, matrix(0, nrow = n, ncol = ncol(common_score)-ncol(distinct_score)))
-        }
+      if(ncol(distinct_score) < ncol(common_score)) {
+        distinct_score <- cbind(distinct_score, matrix(0, nrow = n, ncol = ncol(common_score)-ncol(distinct_score)))
       }
       tmp <- distinct_score %*% crossprod(canonical_score, full_mat)
     }

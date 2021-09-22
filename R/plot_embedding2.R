@@ -24,19 +24,30 @@
 #' If \code{TRUE}, returns three matrices as a list.
 #' If \code{FALSE}, shows a plot but returns nothing
 #' @export
-plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA, d_g = NA, 
+plot_embeddings2 <- function(dcca_obj, 
+                             nn = 30, 
+                             data_1 = T, 
+                             data_2 = F, 
+                             c_g = NA, 
+                             d_g = NA, 
                              membership_vec = NA,
                              col_vec = scales::hue_pal()(length(levels(membership_vec))),
-                             only_embedding = F, main_addition = "",
-                             sampling_type = "adaptive_gaussian", keep_nn = T,
+                             only_embedding = F, 
+                             main_addition = "",
+                             sampling_type = "adaptive_gaussian", 
+                             keep_nn = T,
                              metric = "cosine",
                              verbose = T, ...){
   stopifnot(!data_1 | !data_2)
   
   if(all(is.na(c_g)) || all(is.na(d_g))){
-    rna_frnn <- multiomicCCA::construct_frnn(dcca_obj, nn = nn, membership_vec = membership_vec,
-                                             data_1 = data_1, data_2 = data_2,
-                                             bool_matrix = T, verbose = verbose)
+    rna_frnn <- construct_frnn(dcca_obj,
+                               nn = nn, 
+                               membership_vec = membership_vec,
+                               data_1 = data_1, 
+                               data_2 = data_2,
+                               bool_matrix = T, 
+                               verbose = verbose)
     c_g <- rna_frnn$c_g; d_g <- rna_frnn$d_g
   }
   
@@ -56,8 +67,11 @@ plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA
     tmp <- .matrix_to_nnlist(mat)
  
     # remove edges randomly
-    tmp <- .embedding_resampling(tmp$id, tmp$dist, nn = nn, 
-                                 sampling_type = sampling_type, keep_nn = keep_nn)
+    tmp <- .embedding_resampling(tmp$id, 
+                                 tmp$dist, 
+                                 nn = nn, 
+                                 sampling_type = sampling_type, 
+                                 keep_nn = keep_nn)
     rann_obj <- list(id = tmp$id, dist = tmp$dist)
     mat <- .nnlist_to_matrix(rann_obj)
     
@@ -70,13 +84,19 @@ plot_embeddings2 <- function(dcca_obj, nn = 30, data_1 = T, data_2 = F, c_g = NA
     graph_obj <- SeuratObject::as.Graph(mat)
     
     # use Seurat
-    list_output[[i]]  <- Seurat::RunUMAP(graph_obj, verbose = verbose, assay = "RNA",
-                                         metric = metric, ...)@cell.embeddings
+    # [[note to self: I don't think the metric impacts anything here...]]
+    list_output[[i]]  <- Seurat::RunUMAP(graph_obj, 
+                                         verbose = verbose, 
+                                         assay = "RNA",
+                                         metric = metric, 
+                                         ...)@cell.embeddings
   }
   
   # run Seurat::RunUMAP.Default on the everything
-  list_output[[3]] <- Seurat::RunUMAP(everything_embedding, metric = metric, 
-                                      verbose = verbose, assay = "RNA", ...)@cell.embeddings
+  list_output[[3]] <- Seurat::RunUMAP(everything_embedding, 
+                                      metric = metric, 
+                                      verbose = verbose, 
+                                      assay = "RNA", ...)@cell.embeddings
   
   if(!only_embedding) {
     if(all(is.na(membership_vec))){

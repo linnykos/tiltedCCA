@@ -20,18 +20,25 @@
 #'
 #' @return list, depends on \code{bool_matrix}
 #' @export
-construct_frnn <- function(obj, membership_vec, nn = 30, data_1 = T, data_2 = F,
+construct_frnn <- function(obj, 
+                           membership_vec, 
+                           nn = 30, 
+                           data_1 = T, 
+                           data_2 = F,
                            max_subsample_frnn = nrow(obj$common_score),
-                           frnn_approx = 0, radius_quantile = 0.5,
-                           bool_matrix = T, center = T,
-                           renormalize = F, symmetrize = F,
+                           frnn_approx = 0, 
+                           radius_quantile = 0.5,
+                           bool_matrix = T, 
+                           center = T,
+                           renormalize = F, 
+                           symmetrize = F,
                            verbose = T){
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
             length(membership_vec) == nrow(obj$common_score),
             is.factor(membership_vec))
   
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
-                                   add_noise = F, center = center, 
+                                   center = center, 
                                    renormalize = renormalize)
   n <- nrow(embedding[[1]])
   
@@ -105,17 +112,23 @@ construct_frnn <- function(obj, membership_vec, nn = 30, data_1 = T, data_2 = F,
 #'
 #' @return object of class \code{dgCMatrix}
 #' @export
-combine_frnn <- function(dcca_obj, g_1, g_2, nn, 
-                         common_1 = T, common_2 = T, keep_nn = T,
+combine_frnn <- function(dcca_obj, 
+                         g_1, 
+                         g_2, 
+                         nn, 
+                         common_1 = T, 
+                         common_2 = T, 
+                         keep_nn = T,
                          sampling_type = "adaptive_gaussian",
-                         center = T, renormalize = F,
+                         center = T, 
+                         renormalize = F,
                          verbose = 0){
   stopifnot(all(dim(g_1) == dim(g_2)))
   
   # extract the relevant embeddings from dcca_obj
   if(verbose > 0) print(paste0(Sys.time(),": Preparing first embedding"))
   embedding_1 <- .prepare_embeddings(dcca_obj, data_1 = T, data_2 = F, 
-                                    add_noise = F, center = center, 
+                                    center = center, 
                                     renormalize = renormalize)
   if(common_1){
     embedding_1 <- embedding_1$common
@@ -125,7 +138,7 @@ combine_frnn <- function(dcca_obj, g_1, g_2, nn,
   
   if(verbose > 0) print(paste0(Sys.time(),": Preparing second embedding"))
   embedding_2 <- .prepare_embeddings(dcca_obj, data_1 = F, data_2 = T, 
-                                     add_noise = F, center = center, 
+                                     center = center, 
                                      renormalize = renormalize)
   if(common_2){
     embedding_2 <- embedding_2$common 
