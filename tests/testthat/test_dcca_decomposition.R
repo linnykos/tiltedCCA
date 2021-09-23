@@ -111,7 +111,7 @@ test_that("(Math) dcca_decomposition yields uncorrelated distinct matrices with 
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     nc <- 20
-    meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+    meta_clustering <- as.factor(stats::kmeans(mat_1, centers = nc)$cluster)
     
     dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), meta_clustering = meta_clustering,
                             verbose = F)
@@ -171,7 +171,7 @@ test_that("(Math) dcca_decomposition yields a low-rank matrix with meta-cells", 
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     nc <- 20
-    meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+    meta_clustering <- as.factor(stats::kmeans(mat_1, centers = nc)$cluster)
     
     dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), meta_clustering = meta_clustering,
                             verbose = F)
@@ -232,7 +232,7 @@ test_that("(Math) dcca_decomposition yields common matrices with the same column
     mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
     mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     nc <- 20
-    meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+    meta_clustering <- as.factor(stats::kmeans(mat_1, centers = nc)$cluster)
     
     dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:(K+1), meta_clustering = meta_clustering,
                             verbose = F)
@@ -300,7 +300,7 @@ test_that("(Math) dcca_decomposition is a decomposition under no noise with meta
     
     mat_1 <- common_space %*% transform_mat_1; mat_2 <- common_space %*% transform_mat_2 
     nc <- 20
-    meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+    meta_clustering <- as.factor(stats::kmeans(mat_1, centers = nc)$cluster)
     
     dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
                             verbose = F, center_1 = F, center_2 = F, 

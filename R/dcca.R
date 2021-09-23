@@ -34,7 +34,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
             num_neigh <= min(nrow(mat_1), nrow(mat_2)))
   
   n <- nrow(mat_1)
-
+  
   if(verbose) print(paste0(Sys.time(),": D-CCA: Starting matrix shrinkage"))
   svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
                           mean_vec = center_1, sd_vec = scale_1, K_full_rank = F)
@@ -49,24 +49,32 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
     # apply D-CCA to meta-cells
     msg <- " (meta-cells)"
     
-    stopifnot(all(meta_clustering > 0), all(meta_clustering %% 1 == 0),
-              max(meta_clustering) == length(unique(meta_clustering)),
+    stopifnot(is.factor(meta_clustering),
               length(meta_clustering) == nrow(mat_1))
-    num_meta <- max(meta_clustering)
+    num_meta <- length(levels(meta_clustering))
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 1"))
     mat_1_meta <- t(sapply(1:num_meta, function(x){
-      if(verbose & x %% floor(num_meta/10) == 0) cat('*')
-      idx <- which(meta_clustering == x)
-      apply(mat_1[idx,,drop = F], 2, mean)
+      if(verbose && num_meta > 10 && x %% floor(num_meta/10) == 0) cat('*')
+      idx <- which(meta_clustering == levels(meta_clustering)[x])
+      
+      if(inherits(mat_1, "dgCMatrix")){
+        sparseMatrixStats::colMeans2(mat_1[idx,,drop = F])
+      } else {
+        matrixStats::colMeans2(mat_1[idx,,drop = F])
+      }
     }))
     
-    # [[note to self: See if we still need this...]]
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 2"))
     mat_2_meta <- t(sapply(1:num_meta, function(x){
-      if(verbose & x %% floor(num_meta/10) == 0) cat('*')
-      idx <- which(meta_clustering == x)
-      apply(mat_2[idx,,drop = F], 2, mean)
+      if(verbose && num_meta > 10 && x %% floor(num_meta/10) == 0) cat('*')
+      idx <- which(meta_clustering == levels(meta_clustering)[x])
+      
+      if(inherits(mat_2, "dgCMatrix")){
+        sparseMatrixStats::colMeans2(mat_2[idx,,drop = F])
+      } else {
+        matrixStats::colMeans2(mat_2[idx,,drop = F])
+      }
     }))
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
@@ -86,7 +94,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             cell_max = cell_max,
                             check_alignment = all(!is.na(meta_clustering)),
                             verbose = verbose, msg = msg)
-
+  
   class(res) <- "dcca"
   res
 }
@@ -116,20 +124,20 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   
   common_mat_1 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
   common_mat_2 <- dcca_res$common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
-   
+  
   if(verbose) print(paste0(Sys.time(),": D-CCA: Computing distinctive matrices"))
   distinct_mat_1 <- dcca_res$distinct_score_1 %*% coef_mat_1
   distinct_mat_2 <- dcca_res$distinct_score_2 %*% coef_mat_2
   
   if(verbose) print(paste0(Sys.time(),": D-CCA: Done"))
   structure(list(common_score = dcca_res$common_score[,1:rank_c, drop = F],
-       distinct_score_1 = dcca_res$distinct_score_1,
-       distinct_score_2 = dcca_res$distinct_score_2,
-       score_1 = dcca_res$score_1, score_2 = dcca_res$score_2,
-       svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
-       common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
-       distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
-       cca_obj = dcca_res$cca_obj, distinct_perc_2 = dcca_res$distinct_perc_2), class = "dcca_decomp")
+                 distinct_score_1 = dcca_res$distinct_score_1,
+                 distinct_score_2 = dcca_res$distinct_score_2,
+                 score_1 = dcca_res$score_1, score_2 = dcca_res$score_2,
+                 svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
+                 common_mat_1 = common_mat_1, common_mat_2 = common_mat_2, 
+                 distinct_mat_1 = distinct_mat_1, distinct_mat_2 = distinct_mat_2,
+                 cca_obj = dcca_res$cca_obj, distinct_perc_2 = dcca_res$distinct_perc_2), class = "dcca_decomp")
 }
 
 
@@ -170,7 +178,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   stopifnot(ncol(score_1) == length(svd_1$d), ncol(score_2) == length(svd_2$d),
             nrow(score_1) == nrow(score_2))
-
+  
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing common factors"))
   if(check_alignment){
     # reparameterize the scores
@@ -207,7 +215,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
- 
+  
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Done"))
   list(common_score = common_score, 
        distinct_score_1 = distinct_score_1,
@@ -320,7 +328,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   # perform CCA
   cov_1_invhalf <- .mult_mat_vec(svd_1$v, sqrt(n)/svd_1$d)
   cov_2_invhalf <- .mult_mat_vec(svd_2$v, sqrt(n)/svd_2$d)
-                                    
+  
   agg_mat <-  .compute_cca_aggregate_matrix(svd_1, svd_2, augment = T)
   svd_res <- svd(agg_mat)
   full_rank <- min(c(rank_1, rank_2))
@@ -364,7 +372,7 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
     if(nrow(res) < ncol(res)) res <- rbind(res, matrix(0, ncol(res)-nrow(res), ncol(res)))
     if(ncol(res) < nrow(res)) res <- cbind(res, matrix(0, nrow(res), nrow(res)-ncol(res)))
   }
-
+  
   res
 }
 

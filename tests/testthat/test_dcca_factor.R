@@ -130,7 +130,7 @@ test_that("(Coding) dcca_factor preserves rownames and colnames with metacells",
   colnames(mat_2) <- paste0("c", 1:p2)
   
   nc <- 20
-  meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+  meta_clustering <- as.factor(stats::kmeans(mat_1, centers = nc)$cluster)
   
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
                      verbose = F)
@@ -191,7 +191,7 @@ test_that("(Coding) dcca_factor works with meta-cells", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
   nc <- 20
-  meta_clustering <- stats::kmeans(mat_1, centers = nc)$cluster
+  meta_clustering <- as.factor(stats::kmeans(mat_1, centers = nc)$cluster)
   
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, meta_clustering = meta_clustering,
                      verbose = F)
