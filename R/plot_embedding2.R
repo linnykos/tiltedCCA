@@ -56,6 +56,8 @@ plot_embeddings2 <- function(dcca_obj,
   } else if(data_2) {
     everything_embedding <- .mult_mat_vec(dcca_obj$svd_2$u, dcca_obj$svd_2$d)
   }
+  
+  # [[note to self: allow signac-like normalization for this also]]
  
   list_g <- list(c_g = c_g, d_g = d_g)
   n <- nrow(c_g)

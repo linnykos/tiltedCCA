@@ -37,6 +37,7 @@ construct_frnn <- function(obj,
                            renormalize = F, 
                            symmetrize = F,
                            verbose = T){
+  # [[note to self: Make membership_vec optional]]
   stopifnot(frnn_approx >= 0, frnn_approx <= 1,
             length(membership_vec) == nrow(obj$common_score),
             is.factor(membership_vec))

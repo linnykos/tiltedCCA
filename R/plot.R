@@ -66,7 +66,7 @@ plot_summary <- function(obj, xlab = "Latent dimension",
                          ylab1 = "CCA objective", ylab2 = "Distinct % for Modality 2", 
                          main = "",
                          pch = 16, cex = 1, lwd = 1, ...){
-  stopifnot(class(obj) == "dcca_decomp", length(obj$cca_obj) == length(obj$distinct_perc_2))
+  stopifnot(inherits(obj, c("dcca_decomp", "dcca")), length(obj$cca_obj) == length(obj$distinct_perc_2))
   
   k <- length(obj$cca_obj)
   graphics::plot(x = 1:k, y = obj$cca_obj, xlim = c(1,k), ylim = c(0,1), 
