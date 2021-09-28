@@ -95,16 +95,15 @@ test_that(".extract_matrix_helper has the correct crossproduct magnitude", {
   mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   dcca_res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
-  dcca_obj <- dcca_decomposition(dcca_res, rank_c = K, verbose = F)
-  
-  res1 <- .extract_matrix_helper(dcca_obj$common_score, dcca_obj$distinct_score_1,
-                                dcca_obj$svd_1, common_bool = T, distinct_bool = F,
+ 
+  res1 <- .extract_matrix_helper(dcca_res$common_score, dcca_res$distinct_score_1,
+                                 dcca_res$svd_1, common_bool = T, distinct_bool = F,
                                 center = F, renormalize = F)
-  res2 <- .extract_matrix_helper(dcca_obj$common_score, dcca_obj$distinct_score_1,
-                                 dcca_obj$svd_1, common_bool = F, distinct_bool = T, 
+  res2 <- .extract_matrix_helper(dcca_res$common_score, dcca_res$distinct_score_1,
+                                 dcca_res$svd_1, common_bool = F, distinct_bool = T, 
                                  center = F, renormalize = F)
-  res3 <- .extract_matrix_helper(dcca_obj$common_score, dcca_obj$distinct_score_1,
-                                 dcca_obj$svd_1, common_bool = T, distinct_bool = T, 
+  res3 <- .extract_matrix_helper(dcca_res$common_score, dcca_res$distinct_score_1,
+                                 dcca_res$svd_1, common_bool = T, distinct_bool = T, 
                                  center = F, renormalize = F)
   
   expect_true(all(diag(crossprod(res1)) >= sqrt(n)))

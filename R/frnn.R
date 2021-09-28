@@ -232,7 +232,6 @@ combine_frnn <- function(dcca_obj,
   res
 }
 
-
 ########################
 
 .normalize_embeddings <- function(embedding, normalization_type){
