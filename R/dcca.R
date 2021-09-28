@@ -193,7 +193,9 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   
   # compute the common scores
   if(fix_distinct_perc){
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = NA, nn_2 = NA, fix_distinct_perc = T,
+    tmp <- .common_decomposition(score_1, score_2, 
+                                 nn_1 = NA, nn_2 = NA, 
+                                 fix_distinct_perc = T,
                                  verbose = verbose)
   } else {
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing kNN"))
@@ -208,8 +210,10 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
     tmp2 <- .mult_mat_vec(svd_2$u, svd_2$d)
     nn_2 <- RANN::nn2(tmp2, query = tmp2[n_idx,,drop = F], k = num_neigh)$nn.idx
     
-    tmp <- .common_decomposition(score_1, score_2, nn_1 = nn_1, nn_2 = nn_2, 
-                                 fix_distinct_perc = F, verbose = verbose)
+    tmp <- .common_decomposition(score_1, score_2, 
+                                 nn_1 = nn_1, nn_2 = nn_2, 
+                                 fix_distinct_perc = F, 
+                                 verbose = verbose)
   }
   common_score <- tmp$common_score; distinct_perc_2 <- tmp$distinct_perc_2
   

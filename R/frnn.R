@@ -24,7 +24,7 @@
 #' @return list, depends on \code{bool_matrix}
 #' @export
 construct_frnn <- function(obj, 
-                           membership_vec, 
+                           membership_vec = NA, 
                            nn = 30, 
                            data_1 = T, 
                            data_2 = F,
@@ -37,10 +37,11 @@ construct_frnn <- function(obj,
                            renormalize = F, 
                            symmetrize = F,
                            verbose = T){
-  # [[note to self: Make membership_vec optional]]
-  stopifnot(frnn_approx >= 0, frnn_approx <= 1,
-            length(membership_vec) == nrow(obj$common_score),
-            is.factor(membership_vec))
+  stopifnot(frnn_approx >= 0, frnn_approx <= 1)
+  if(!all(is.na(membership_vec))){
+    stopifnot(length(membership_vec) == nrow(obj$common_score),
+              is.factor(membership_vec))
+  }
   
   embedding <- .prepare_embeddings(obj, data_1 = data_1, data_2 = data_2, 
                                    center = center, 
@@ -49,12 +50,14 @@ construct_frnn <- function(obj,
   n <- nrow(embedding[[1]])
   
   # construct subsamples
-  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
-  if(length(cell_subidx) < n) {
-    membership_vec <- membership_vec[cell_subidx]
-  }
-  for(i in 1:3){
-    embedding[[i]] <- embedding[[i]][cell_subidx,,drop = F]
+  if(!all(is.na(membership_vec))){
+    cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_frnn)
+    if(length(cell_subidx) < n) {
+      membership_vec <- membership_vec[cell_subidx]
+    }
+    for(i in 1:3){
+      embedding[[i]] <- embedding[[i]][cell_subidx,,drop = F]
+    }
   }
   n <- nrow(embedding[[1]])
   
@@ -74,13 +77,13 @@ construct_frnn <- function(obj,
     .construct_frnn(embedding[[i]], radius = vec_rad[i], nn = nn, 
                     frnn_approx = frnn_approx, verbose = verbose)
   }) 
- 
+  
   for(i in 1:3){
     list_g[[i]] <- .nnlist_to_matrix(list_g[[i]])
     if(symmetrize){
       list_g[[i]] <- .symmetrize_sparse(list_g[[i]], set_ones = F)
     }
-  
+    
     # convert back to list form if needed
     if(bool_matrix){
       if(length(rownames(obj$common_score)) != 0){
@@ -134,8 +137,8 @@ combine_frnn <- function(dcca_obj,
   # extract the relevant embeddings from dcca_obj
   if(verbose > 0) print(paste0(Sys.time(),": Preparing first embedding"))
   embedding_1 <- .prepare_embeddings(dcca_obj, data_1 = T, data_2 = F, 
-                                    center = center, 
-                                    renormalize = renormalize)
+                                     center = center, 
+                                     renormalize = renormalize)
   if(common_1){
     embedding_1 <- embedding_1$common
   } else {
@@ -173,7 +176,7 @@ combine_frnn <- function(dcca_obj,
     } else if(verbose == 1 && n > 10 && i %% floor(n/10) == 0) {
       cat('*')
     }
-      
+    
     # intersect
     idx_all <- unique(c(nn_idx_1[[i]], nn_idx_2[[i]]))
     idx_intersect <- intersect(nn_idx_1[[i]], nn_idx_2[[i]])
@@ -205,7 +208,7 @@ combine_frnn <- function(dcca_obj,
       } else {
         order_2 <- order(nn_dist_2[[i]], decreasing = F)[1:nn]
       }
-   
+      
       tmp_idx <- unique(c(nn_idx_1[[i]][order_1], nn_idx_2[[i]][order_2]))
       tmp_dist <- .compute_distance_from_idx(embedding_1, embedding_2, 
                                              nn_idx_1[[i]], nn_idx_2[[i]],
@@ -252,7 +255,7 @@ combine_frnn <- function(dcca_obj,
       l2_vec <- apply(embedding[[i]], 1, .l2norm)
       embedding[[i]] <- .mult_vec_mat(1/l2_vec, embedding[[i]])
     }
-
+    
   } else if(normalization_type == "signac_everything"){
     center_vec <- matrixStats::colMeans2(embedding[["everything"]])
     sd_vec <- matrixStats::colSds(embedding[["everything"]])
@@ -269,13 +272,13 @@ combine_frnn <- function(dcca_obj,
     
     for(i in c("common", "distinct")){
       embedding[[i]] <- sweep(embedding[[i]], 
-                                         MARGIN = 2, 
-                                         STATS = center_vec, 
-                                         FUN = "-")
+                              MARGIN = 2, 
+                              STATS = center_vec, 
+                              FUN = "-")
       embedding[[i]] <- sweep(embedding[[i]], 
-                                         MARGIN = 2, 
-                                         STATS = sd_vec, 
-                                         FUN = "/")
+                              MARGIN = 2, 
+                              STATS = sd_vec, 
+                              FUN = "/")
       embedding[[i]] <- .mult_vec_mat(1/l2_vec, embedding[[i]])
     }
     
@@ -284,13 +287,13 @@ combine_frnn <- function(dcca_obj,
       center_vec <- matrixStats::colMeans2(embedding[[i]])
       sd_vec <- matrixStats::colSds(embedding[[i]])
       embedding[[i]] <- sweep(embedding[[i]], 
-                                         MARGIN = 2, 
-                                         STATS = center_vec, 
-                                         FUN = "-")
+                              MARGIN = 2, 
+                              STATS = center_vec, 
+                              FUN = "-")
       embedding[[i]] <- sweep(embedding[[i]], 
-                                         MARGIN = 2, 
-                                         STATS = sd_vec, 
-                                         FUN = "/")
+                              MARGIN = 2, 
+                              STATS = sd_vec, 
+                              FUN = "/")
       l2_vec <- apply(embedding[[i]], 1, .l2norm)
       embedding[[i]] <- .mult_vec_mat(1/l2_vec, embedding[[i]])
     }
@@ -362,7 +365,7 @@ combine_frnn <- function(dcca_obj,
   n <- nrow(g_mat)
   nn_idx <- lapply(1:n, function(j){.nonzero_col(g_mat, j, bool_value = F)})
   nn_dist <- lapply(1:n, function(j){.nonzero_col(g_mat, j, bool_value = T)})
-
+  
   structure(list(id = nn_idx, dist = nn_dist), class = "frNN")
 }
 

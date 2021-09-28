@@ -58,16 +58,17 @@ plot_embeddings2 <- function(dcca_obj,
   }
   
   # [[note to self: allow signac-like normalization for this also]]
- 
+  
   list_g <- list(c_g = c_g, d_g = d_g)
   n <- nrow(c_g)
   list_output <- vector("list", 3)
-
+  names(list_output) <- c("common", "distinct", "everything")
+  
   # Use Seurat::RunUMAP.Graph for the common and distinct embeddings
   for(i in 1:length(list_g)){
     mat <- .symmetrize_sparse(list_g[[i]], set_ones = F)
     tmp <- .matrix_to_nnlist(mat)
- 
+    
     # remove edges randomly
     tmp <- .embedding_resampling(tmp$id, 
                                  tmp$dist, 
@@ -87,11 +88,11 @@ plot_embeddings2 <- function(dcca_obj,
     
     # use Seurat
     # [[note to self: I don't think the metric impacts anything here...]]
-    list_output[[i]]  <- Seurat::RunUMAP(graph_obj, 
-                                         verbose = verbose, 
-                                         assay = "RNA",
-                                         metric = metric, 
-                                         ...)@cell.embeddings
+    list_output[[i]] <- Seurat::RunUMAP(graph_obj, 
+                                        verbose = verbose, 
+                                        assay = "RNA",
+                                        metric = metric, 
+                                        ...)@cell.embeddings
   }
   
   # run Seurat::RunUMAP.Default on the everything
