@@ -79,7 +79,7 @@ construct_frnn <- function(obj,
   }) 
   
   for(i in 1:3){
-    list_g[[i]] <- .nnlist_to_matrix(list_g[[i]])
+    list_g[[i]] <- .nnlist_to_matrix(list_g[[i]], set_to_one = F)
     if(symmetrize){
       list_g[[i]] <- .symmetrize_sparse(list_g[[i]], set_ones = F)
     }
@@ -221,7 +221,7 @@ combine_frnn <- function(dcca_obj,
   }
   
   tmp_list <- list(id = nn_idx_all, dist = nn_dist_all)
-  res <- .nnlist_to_matrix(tmp_list)
+  res <- .nnlist_to_matrix(tmp_list, set_to_one = F)
   res <- .symmetrize_sparse(res, set_ones = F)
   
   if(length(rownames(dcca_obj$common_score)) != 0){
@@ -343,7 +343,7 @@ combine_frnn <- function(dcca_obj,
   res
 }
 
-.nnlist_to_matrix <- function(rann_obj){
+.nnlist_to_matrix <- function(rann_obj, set_to_one){
   stopifnot(all(c("id", "dist") %in% names(rann_obj)))
   
   for(i in 1:length(rann_obj$id)){
@@ -356,7 +356,12 @@ combine_frnn <- function(dcca_obj,
   i_vec <- unlist(lapply(1:length(rann_obj$id), function(i){
     rep(i, length(rann_obj$id[[i]]))
   }))
-  x_vec <- unlist(rann_obj$dist)
+  if(set_to_one){
+    x_vec <- rep(1, length = length(i_vec))
+  } else {
+    x_vec <- unlist(rann_obj$dist)
+  }
+  
   Matrix::sparseMatrix(i = i_vec, j = j_vec, x = x_vec)
 }
 

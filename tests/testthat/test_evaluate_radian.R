@@ -29,14 +29,10 @@ compute_evaluate_radian_ingredients <- function(){
   svd_2 <- .check_svd(svd_2, dims = c(1:2))
   
   num_neigh <- 30
-  rescaling_factor <- max(c(svd_1$d, svd_2$d))
-  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d/svd_1$d[1]*rescaling_factor)
-  snn_1 <- .form_snn(dimred_1, num_neigh = num_neigh, 
-                     bool_intersect = T)
-  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d/svd_2$d[1]*rescaling_factor)
-  snn_2 <- .form_snn(dimred_2, num_neigh = num_neigh, 
-                     bool_intersect = T)
-  snn_union <- snn_1 + snn_2
+  frnn_union <- .compute_frnn_union(svd_1,
+                                    svd_2,
+                                    num_neigh,
+                                    radius_quantile = 0.5)
   
   cca_res <- .cca(svd_1, svd_2, 
                   dims_1 = NA, dims_2 = NA, 
@@ -57,7 +53,7 @@ compute_evaluate_radian_ingredients <- function(){
   })
   
   list(basis_list = basis_list, 
-       snn_union = snn_union,
+       frnn_union = frnn_union,
        num_neigh = num_neigh,
        score_1 = score_1,
        score_2 = score_2,
@@ -71,14 +67,14 @@ compute_evaluate_radian_ingredients <- function(){
 test_that(".evaluate_radian works", {
   set.seed(10)
   tmp <- compute_evaluate_radian_ingredients()
-  basis_list <- tmp$basis_list; snn_union <- tmp$snn_union
+  basis_list <- tmp$basis_list; frnn_union <- tmp$frnn_union
   num_neigh <- tmp$num_neigh; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
   
   res <- .evaluate_radian(percentage_val = 0.5,
                           basis_list = basis_list, 
-                          snn_union = snn_union,
+                          frnn_union = frnn_union,
                           num_neigh = num_neigh,
                           score_1 = score_1,
                           score_2 = score_2,
@@ -96,7 +92,7 @@ test_that(".evaluate_radian works", {
 test_that(".evaluate_radian is maximized reasonably at 0", {
   set.seed(10)
   tmp <- compute_evaluate_radian_ingredients()
-  basis_list <- tmp$basis_list; snn_union <- tmp$snn_union
+  basis_list <- tmp$basis_list; frnn_union <- tmp$frnn_union
   num_neigh <- tmp$num_neigh; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
@@ -104,14 +100,18 @@ test_that(".evaluate_radian is maximized reasonably at 0", {
   res <- sapply(seq(0, 1, length.out = 9), function(percentage_val){
     .evaluate_radian(percentage_val = percentage_val,
                      basis_list = basis_list, 
-                     snn_union = snn_union,
+                     frnn_union = frnn_union,
                      num_neigh = num_neigh,
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
                      svd_2 = svd_2,
+                     radius_quantile = 0.5,
                      circle_list = circle_list,
                      return_common_score = F,
-                     return_snn = F)
+                     return_frnn = F)
   })
+  
+  expect_true(length(res) == 9)
+  expect_true(all(res >= 0))
 })

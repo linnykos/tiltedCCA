@@ -1,15 +1,16 @@
-.common_decomposition <- function(snn_union,
+.common_decomposition <- function(frnn_union,
                                   num_neigh,
                                   score_1,
                                   score_2,
                                   svd_1, 
                                   svd_2,
                                   fix_distinct_perc,
+                                  radius_quantile,
                                   discretization_gridsize,
                                   iterations,
                                   tol = 1e-6, verbose = F){
-  stopifnot(!any(is.na(snn_union)) & !fix_distinct_perc | 
-              all(is.na(snn_union)) & fix_distinct_perc)
+  stopifnot(!any(is.na(frnn_union)) & !fix_distinct_perc | 
+              all(is.na(frnn_union)) & fix_distinct_perc)
   
   rank_c <- min(ncol(score_1), ncol(score_2))
   stopifnot(all(sapply(1:rank_c, function(k){
@@ -27,7 +28,7 @@
     distinct_perc <- .search_distinct_perc(
       score_1 = score_1,
       score_2 = score_2,
-      snn_union = snn_union,
+      frnn_union = frnn_union,
       discretization_gridsize = discretization_gridsize,
       iterations = iterations,
       basis_list = basis_list
@@ -44,12 +45,13 @@
   
   common_score <- .evaluate_radian(
     distinct_perc,
-    snn_union = snn_union,
+    frnn_union = frnn_union,
     num_neigh = num_neigh,
     score_1 = score_1,
     score_2 = score_2,
     svd_1 = svd_1, 
     svd_2 = svd_2,
+    radius_quantile = radius_quantile,
     basis_list = basis_list, 
     circle_list = circle_list,
     return_common_score = T
@@ -64,7 +66,7 @@
 
 .search_distinct_perc <- function(score_1,
                                   score_2,
-                                  snn_union,
+                                  frnn_union,
                                   discretization_gridsize,
                                   iterations,
                                   basis_list,
@@ -105,7 +107,7 @@
     for(i in which(is.na(value_vec))){
       value_vec[i] <- .evaluate_radian(percentage_grid[i],
                                        basis_list = basis_list, 
-                                       snn_union = snn_union,
+                                       frnn_union = frnn_union,
                                        num_neigh = num_neigh,
                                        score_1 = score_1,
                                        score_2 = score_2,
@@ -150,16 +152,17 @@
 }
 
 .evaluate_radian <- function(percentage_val,
-                             snn_union,
+                             frnn_union,
                              num_neigh,
                              score_1,
                              score_2,
                              svd_1, 
                              svd_2,
+                             radius_quantile,
                              basis_list,
                              circle_list,
                              return_common_score,
-                             return_snn){
+                             return_frnn){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
@@ -188,16 +191,23 @@
                                              svd_2)
   
   # compute nn's
-  snn_common <- .form_snn(common_mat, 
-                          num_neigh = num_neigh,
-                          bool_intersect = T)
-  if(return_snn){
-    return(snn_common)
+  radius <- .compute_radius(common_mat, 
+                           nn = num_neigh, 
+                           radius_quantile = radius_quantile)
+  frnn_common <- .nnlist_to_matrix(
+    .construct_frnn(common_mat, 
+                    radius = radius, 
+                    nn = num_neigh, 
+                    frnn_approx = 0, 
+                    verbose = F), set_to_one = T)
+  
+  if(return_frnn){
+    return(frnn_common)
   }
   
   # compute intersection
-  .computer_overlap(snn_target = snn_union,
-                    snn_query = snn_common)
+  .computer_overlap(snn_target = frnn_union,
+                    snn_query = frnn_common)
 }
 
 .update_values <- function(percentage_grid, percentage_grid_all,

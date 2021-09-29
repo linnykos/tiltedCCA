@@ -27,6 +27,9 @@
                                fix_distinct_perc, 
                                cell_max,
                                check_alignment, 
+                               radius_quantile,
+                               discretization_gridsize,
+                               iterations,
                                verbose = T, msg = ""){
   stopifnot(cell_max > 10)
   full_rank <- length(cca_res$obj_vec)
@@ -52,10 +55,16 @@
   
   # compute the common scores
   if(fix_distinct_perc){
-    tmp <- .common_decomposition(score_1, score_2, 
-                                 snn_union = NA, 
+    tmp <- .common_decomposition(frnn_union = NA,
+                                 num_neigh = NA,
+                                 score_1 = score_1,
+                                 score_2 = score_2,
+                                 svd_1 = svd_1, 
+                                 svd_2 = svd_2,
                                  fix_distinct_perc = T,
-                                 verbose = verbose)
+                                 radius_quantile = NA,
+                                 discretization_gridsize = NA,
+                                 iterations = NA)
   } else {
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing kNN"))
     n <- nrow(score_1)
@@ -65,18 +74,21 @@
       n_idx <- 1:n
     }
     
-    rescaling_factor <- max(c(svd_1$d, svd_2$d))
-    dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d/svd_1$d[1]*rescaling_factor)
-    snn_1 <- .form_snn(dimred_1[n_idx,,drop = F], num_neigh = num_neigh)
-    dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d/svd_2$d[1]*rescaling_factor)
-    snn_2 <- .form_snn(dimred_2[n_idx,,drop = F], num_neigh = num_neigh)
+    frnn_union <- .compute_frnn_union(svd_1,
+                                      svd_2,
+                                      num_neigh,
+                                      radius_quantile)
     
-    snn_union <- snn_1 + snn_2
-    
-    tmp <- .common_decomposition(score_1, score_2, 
-                                 snn_union = snn_union,
-                                 fix_distinct_perc = F, 
-                                 verbose = verbose)
+    tmp <- .common_decomposition(frnn_union = frnn_union,
+                                 num_neigh = num_neigh,
+                                 score_1 = score_1,
+                                 score_2 = score_2,
+                                 svd_1 = svd_1, 
+                                 svd_2 = svd_2,
+                                 fix_distinct_perc = T,
+                                 radius_quantile = radius_quantile,
+                                 discretization_gridsize = discretization_gridsize,
+                                 iterations = iterations)
   }
   
   common_score <- tmp$common_score; distinct_perc_2 <- tmp$distinct_perc_2
@@ -95,28 +107,60 @@
 
 ###################
 
-.form_snn <- function(mat, num_neigh, bool_intersect){
-  stopifnot(num_neigh > 1)
-  n <- nrow(mat)
-  nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
-  if(all(nn_mat[,1] == 1:n)){
-    nn_mat <- nn_mat[,-1,drop = F]
-  }
+.compute_frnn_union <- function(svd_1,
+                                svd_2,
+                                num_neigh,
+                                radius_quantile){
+  rescaling_factor <- max(c(svd_1$d, svd_2$d))
+  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d/svd_1$d[1]*rescaling_factor)
+  rad_1 <- .compute_radius(dimred_1, 
+                           nn = num_neigh, 
+                           radius_quantile = radius_quantile)
+  frnn_1 <- .nnlist_to_matrix(
+    .construct_frnn(dimred_1, 
+                    radius = rad_1, 
+                    nn = num_neigh, 
+                    frnn_approx = 0, 
+                    verbose = F), set_to_one = T)
   
-  i_vec <- rep(1:n, times = ncol(nn_mat))
-  j_vec <- as.numeric(nn_mat)
+  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d/svd_2$d[1]*rescaling_factor)
+  rad_2 <- .compute_radius(dimred_2, 
+                           nn = num_neigh, 
+                           radius_quantile = radius_quantile)
+  frnn_2 <- .nnlist_to_matrix(
+    .construct_frnn(dimred_2, 
+                    radius = rad_2, 
+                    nn = num_neigh, 
+                    frnn_approx = 0, 
+                    verbose = F), set_to_one = T)
   
-  sparseMat <- Matrix::sparseMatrix(i = i_vec,
-                                    j = j_vec,
-                                    x = rep(1, length(i_vec)),
-                                    repr = "C")
-  
-  if(bool_intersect){
-    sparseMat <- sparseMat * Matrix::t(sparseMat)
-  } else {
-    sparseMat <- sparseMat + Matrix::t(sparseMat)
-    sparseMat@x <- rep(1, length(sparseMat@x))
-  }
-  
-  sparseMat
+  print(sum(frnn_1@x))
+  print(sum(frnn_2@x))
+  frnn_union <- frnn_1 + frnn_2
 }
+
+# .form_snn <- function(mat, num_neigh, bool_intersect){
+#   stopifnot(num_neigh > 1)
+#   n <- nrow(mat)
+#   nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
+#   if(all(nn_mat[,1] == 1:n)){
+#     nn_mat <- nn_mat[,-1,drop = F]
+#   }
+#   
+#   i_vec <- rep(1:n, times = ncol(nn_mat))
+#   j_vec <- as.numeric(nn_mat)
+#   
+#   sparseMat <- Matrix::sparseMatrix(i = i_vec,
+#                                     j = j_vec,
+#                                     x = rep(1, length(i_vec)),
+#                                     repr = "C")
+#   
+#   if(bool_intersect){
+#     sparseMat <- sparseMat * Matrix::t(sparseMat)
+#   } else {
+#     sparseMat <- sparseMat + Matrix::t(sparseMat)
+#     sparseMat@x <- rep(1, length(sparseMat@x))
+#   }
+#   
+#   sparseMat
+# }
