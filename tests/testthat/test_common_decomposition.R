@@ -205,228 +205,94 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
   expect_true(all(bool_vec))
 })
 
-###############################
+########################
 
-## .sigmoid_ratio is correct
+## .grab_previous_values is correct
 
-test_that("(Math) .sigmoid_ratio gives an appropriate value w.r.t 0.5 ", {
-  trials <- 50
+test_that(".grab_previous_values works", {
+  percentage_grid <- c(0, 1/4, 1/2)
+  percentage_grid_all <- c(0, 1/2, 1)
+  value_vec_all <- c(1, 2, 3)
   
-  a_vec <- seq(0, 10, length.out = 11)
-  bool_vec <- sapply(a_vec, function(a){
-    all(sapply(1:trials, function(x){
-      b <- runif(1, min = 0, max = 2)*abs(a+rnorm(1, sd = 0.01))
-      val <- .sigmoid_ratio(a, b)
-      if(a < b) val < 0.5 else val > 0.5
-    }))
-  })
+  res <- .grab_previous_values(percentage_grid,
+                               percentage_grid_all,
+                               value_vec_all)
   
-  expect_true(all(bool_vec))
+  expect_true(all(res[c(1,3)] == c(1, 2)))
+  expect_true(is.na(res[2]))
+})
+
+###############
+
+## .update_values is correct
+
+test_that(".update_values works", {
+  percentage_grid <- c(0, 1/4, 1/2)
+  percentage_grid_all <- c(0, 1/2, 1)
+  value_vec <- c(1, 5, 2)
+  value_vec_all <- c(1, 2, 3)
   
-  b_vec <- seq(0, 10, length.out = 11)
-  bool_vec <- sapply(b_vec, function(b){
-    all(sapply(1:trials, function(x){
-      a <- runif(1, min = 0, max = 2)*abs(b+rnorm(1, sd = 0.01))
-      val <- .sigmoid_ratio(a, b)
-      if(a < b) val < 0.5 else val > 0.5
-    }))
-  })
+  res <- .update_values(percentage_grid, percentage_grid_all,
+                        value_vec, value_vec_all)
   
-  expect_true(all(bool_vec))
+  expect_true(all(sort(names(res)) == sort(c("percentage_grid_all",
+                                             "value_vec_all"))))
+  expect_true(all(res$percentage_grid_all == c(0, 1/4, 1/2, 1)))            
+  expect_true(all(res$value_vec_all == c(1, 5, 2, 3)))            
+})
+
+########################
+
+## .compute_radian is correct
+
+test_that(".compute_radian works", {
+  vec1 <- c(1, 0)
+  vec2 <- c(1/sqrt(2), 1/sqrt(2))
+  circle <- .construct_circle(vec1, vec2)
+  
+  res <- .compute_radian(percentage_val = 0,
+                         vec1, vec2,
+                         circle)
+  x_coord <- circle$center[1] + circle$radius*cos(res)
+  y_coord <- circle$center[2] + circle$radius*sin(res)
+  expect_true(sum(abs(vec2 - c(x_coord, y_coord))) <= 1e-6)
+  
+  res <- .compute_radian(percentage_val = 1,
+                         vec1, vec2,
+                         circle)
+  x_coord <- circle$center[1] + circle$radius*cos(res)
+  y_coord <- circle$center[2] + circle$radius*sin(res)
+  expect_true(sum(abs(vec1 - c(x_coord, y_coord))) <= 1e-6)
+  
+  res <- .compute_radian(percentage_val = 0.5,
+                         vec1, vec2,
+                         circle)
+  x_coord <- circle$center[1] + circle$radius*cos(res)
+  y_coord <- circle$center[2] + circle$radius*sin(res)
+  vec <- c(x_coord, y_coord)
+  expect_true(abs(.l2norm(vec1 - vec) - .l2norm(vec2 - vec)) <= 1e-6)
+  
+  res <- .compute_radian(percentage_val = 0.3,
+                         vec1, vec2,
+                         circle)
+  x_coord <- circle$center[1] + circle$radius*cos(res)
+  y_coord <- circle$center[2] + circle$radius*sin(res)
+  vec <- c(x_coord, y_coord)
+  expect_true(.l2norm(vec1 - vec) > .l2norm(vec2 - vec))
 })
 
 #####################
 
-## .sigmoid_ratio is correct
+## .position_from_circle is correct
 
-test_that(".sigmoid_ratio lies between 0 and 1", {
-  trials <- 50
+test_that(".position_from_circle works", {
+  circle <- list(center = c(0,0), radius = 2)
+  res <- .position_from_circle(circle, radian = 0)
+  expect_true(sum(abs(res - c(2,0))) <= 1e-6)
   
-  bool_vec <- sapply(1:trials, function(x){
-    a <- abs(rnorm(1)); b <- abs(rnorm(1))
-    res <- .sigmoid_ratio(a,b)
-    res >= 0 & res <= 1
-  })
+  res <- .position_from_circle(circle, radian = pi/2)
+  expect_true(sum(abs(res - c(0,2))) <= 1e-6)
   
-  expect_true(all(bool_vec))
+  res <- .position_from_circle(circle, radian = pi/4)
+  expect_true(sum(abs(res - rep(sqrt(2),2))) <= 1e-6)
 })
-
-test_that(".sigmoid_ratio is correctly above/below 0.5", {
-  trials <- 50
-  
-  bool_vec <- sapply(1:trials, function(x){
-    a <- abs(rnorm(1)); b <- abs(rnorm(1))
-    res <- .sigmoid_ratio(a,b)
-    
-    if(a < b) return(res < 0.5)
-    if(a > b) return(res > 0.5)
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-test_that(".sigmoid_ratio is symmetric", {
-  trials <- 50
-  
-  bool_vec <- sapply(1:trials, function(x){
-    a <- abs(rnorm(1)); b <- abs(rnorm(1))
-    res1 <- .sigmoid_ratio(a,b)
-    res2 <- .sigmoid_ratio(b,a)
-    
-    abs(res1 - (1-res2)) <= 1e-6
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-test_that(".sigmoid_ratio appropriately scales", {
-  trials <- 50
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    
-    a <- abs(rnorm(1)); b <- abs(rnorm(1))
-    res1 <- .sigmoid_ratio(a,b)
-    if(a < b){
-      res2 <- .sigmoid_ratio(a/2,b)
-      res3 <- .sigmoid_ratio(a,2*b)
-      
-      bool2 <- res2 <= res1
-      bool3 <- res3 <= res1
-    } else {
-      res2 <- .sigmoid_ratio(a,b/2)
-      res3 <- .sigmoid_ratio(2*a,b)
-      
-      bool2 <- res2 >= res1
-      bool3 <- res3 >= res1
-    }
-    
-    res4 <- .sigmoid_ratio(2*a,2*b)
-    bool1 <- abs(res1 - res4) <= 1e-6
-  
-    bool1 & bool2 & bool3
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-#######################
-
-## .latent_distinct_perc_2 is correct
-
-test_that(".latent_distinct_perc_2 works", {
-  set.seed(10)
-  n <- 100; k <- 5
-  score_vec_1 <- rnorm(n); score_vec_1 <- score_vec_1/.l2norm(score_vec_1)
-  score_vec_2 <- rnorm(n); score_vec_2 <- score_vec_2/.l2norm(score_vec_2)
-  nn_1 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
-  nn_2 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
-  
-  res <- .latent_distinct_perc_2(score_vec_1, score_vec_2, nn_1, nn_2)
-  
-  expect_true(is.numeric(res))
-})
-
-test_that(".latent_distinct_perc_2 roughly has the correct magnitude", {
-  trials <- 25
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    n <- 150; k <- 5
-    score_vec_1 <- rnorm(n)
-    score_vec_1 <- score_vec_1-mean(score_vec_1); score_vec_1 <- score_vec_1/.l2norm(score_vec_1)
-    score_vec_2 <- rnorm(n)
-    score_vec_2 <- score_vec_2-mean(score_vec_2); score_vec_2 <- score_vec_2/.l2norm(score_vec_2)
-    nn_1 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
-    nn_2 <- matrix(sample(1:n, size = n*k, replace = T), n, k)
-    res1 <- .latent_distinct_perc_2(score_vec_1, score_vec_2, nn_1, nn_2)
-    
-    score_vec_3 <- c(rnorm(50, mean = -5), rnorm(50, mean = 0), rnorm(50, mean = 5))
-    score_vec_3 <- score_vec_3-mean(score_vec_3); score_vec_3 <- score_vec_3/.l2norm(score_vec_3)
-    nn_3 <- do.call(rbind, lapply(1:3, function(x){
-      matrix(sample(1:50, size = 50*k, replace = T)+(x-1)*50, 50, k)
-    }))
-    res2 <- .latent_distinct_perc_2(score_vec_1, score_vec_3, nn_1, nn_3)
-    res3 <- .latent_distinct_perc_2(score_vec_3, score_vec_1, nn_3, nn_1)
-    
-    res1 < res2 & res1 > res3
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-################################
-
-## .binary_search_radian is correct
-
-test_that(".binary_search_radian works", {
-  circle <- .construct_circle(c(0,1), c(1,0))
-  res <- .binary_search_radian(circle, left_radian = 0, right_radian = pi/2, distinct_perc_2 = 0.5)
-  expect_true(is.numeric(res))
-})
-
-test_that(".binary_search_radian gives the correct value", {
-  trials <- 50
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    vec1 <- abs(rnorm(2)); vec1 <- vec1/.l2norm(vec1)
-    vec2 <- abs(rnorm(2)); vec2 <- vec2/.l2norm(vec2)
-    circle <- .construct_circle(vec1, vec2)
-    tmp <- .rightmost_vector(vec1, vec2)
-    vec1 <- tmp$vec_right; vec2 <- tmp$vec_left
-    right_radian <- .find_radian(circle, tmp$vec_right)
-    left_radian <- .find_radian(circle, tmp$vec_left)
-    stopifnot(right_radian < left_radian)
-    
-    distinct_perc_2 <- runif(1)
-    right_radian <- right_radian + 2*pi
-    res <- .binary_search_radian(circle, left_radian, right_radian, 
-                                 distinct_perc_2, max_iter = 50, tol = 1e-6)
-    common_vec <- .position_from_circle(circle, res)
-    
-    distinct1 <- vec1 - common_vec
-    distinct2 <- vec2 - common_vec
-    ratio <- .l2norm(distinct2)/(.l2norm(distinct1) + .l2norm(distinct2))
-    
-    abs(distinct_perc_2 - ratio) <= 1e-6
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-test_that(".binary_search_radian gives the correct value after basis transformation", {
-  trials <- 50
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    vec1 <- abs(rnorm(2)); vec1 <- vec1/.l2norm(vec1)
-    vec2 <- abs(rnorm(2)); vec2 <- vec2/.l2norm(vec2)
-    n <- 100
-    basis_mat <- svd(matrix(rnorm(2*n), n, 2))$u[,1:2]
-    vec1 <- as.numeric(basis_mat%*%vec1); vec2 <- as.numeric(basis_mat%*%vec2)
-    basis_res <- .representation_2d(vec1, vec2)
-    
-    circle <- .construct_circle(basis_res$rep1, basis_res$rep2)
-    tmp <- .rightmost_vector(basis_res$rep1, basis_res$rep2)
-    right_radian <- .find_radian(circle, tmp$vec_right)
-    left_radian <- .find_radian(circle, tmp$vec_left)
-    stopifnot(right_radian < left_radian)
-    
-    distinct_perc_2 <- runif(1)
-    right_radian <- right_radian + 2*pi
-    res <- .binary_search_radian(circle, left_radian, right_radian, 
-                                 distinct_perc_2, max_iter = 50, tol = 1e-6)
-    common_vec <- basis_res$basis_mat %*% .position_from_circle(circle, res)
-    
-    distinct1 <- vec1 - common_vec
-    distinct2 <- vec2 - common_vec
-    ratio <- .l2norm(distinct2)/(.l2norm(distinct1) + .l2norm(distinct2))
-    
-    abs(distinct_perc_2 - ratio) <= 1e-3
-  })
-  
-  expect_true(all(bool_vec))
-})
-
-

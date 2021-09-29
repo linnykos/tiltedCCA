@@ -1,5 +1,9 @@
-.common_decomposition <- function(score_1, score_2, 
-                                  snn_union, 
+.common_decomposition <- function(snn_union,
+                                  num_neigh,
+                                  score_1,
+                                  score_2,
+                                  svd_1, 
+                                  svd_2,
                                   fix_distinct_perc,
                                   discretization_gridsize,
                                   iterations,
@@ -18,47 +22,38 @@
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing distinct percentage"))
   if(fix_distinct_perc){
-    distinct_perc_2 <- 0.5
+    distinct_perc <- 0.5
   } else {
-    distinct_perc_2 <- .search_distinct_perc_2()
-    
-    
-    sapply(1:rank_c, function(k){
-      if(verbose){
-        if(rank_c < 10) { cat('*') } else if(k %% floor(rank_c/10) == 0) cat('*')
-      } 
-      else {
-        .latent_distinct_perc_2(score_1[,k], score_2[,k], nn_1, nn_2, verbose = F)
-      }
-    })
+    distinct_perc <- .search_distinct_perc(
+      score_1 = score_1,
+      score_2 = score_2,
+      snn_union = snn_union,
+      discretization_gridsize = discretization_gridsize,
+      iterations = iterations,
+      basis_list = basis_list
+    )
   }
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
-  common_score <- sapply(1:rank_c, function(k){
-    if(verbose){
-      if(rank_c < 10) { cat('*') } else if(k %% floor(rank_c/10) == 0) cat('*')
-    } 
-    
-    vec1 <- basis_list[[k]]$rep1; vec2 <- basis_list[[k]]$rep2
-    
-    if(sum(abs(vec1 - vec2)) < tol){
-      common_rep <- c(vec1 + vec2)/2
-    } else {
-      circle <- .construct_circle(vec1, vec2)
-      stopifnot(sum(abs(vec1 - rep(1,0))) <= 1e-6) ## specific to .representation_2d
-      rad1 <- .find_radian(circle, vec1); rad2 <- .find_radian(circle, vec2)
-      stopifnot(rad1 < 0 & rad2 > 0) # must be true based on how we constructed vec1 and vec2
-      
-      stopifnot(sum(abs(.position_from_circle(circle, rad1) - vec1)) <= 1e-6,
-                sum(abs(.position_from_circle(circle, rad2) - vec2)) <= 1e-6)
-      
-      rad1 <- rad1 + 2*pi # to ensure rad1 is larger than rad2
-      common_rad <- .binary_search_radian(circle, rad2, rad1, distinct_perc_2)
-      common_rep <- .position_from_circle(circle, common_rad)
-    }
-    
-    basis_list[[k]]$basis_mat %*% common_rep
+  # compute common score based on percentage_grid_all[idx_max]
+  circle_list <- lapply(1:r, function(k){
+    vec1 <- basis_list[[k]]$rep1
+    vec2 <- basis_list[[k]]$rep2
+    .construct_circle(vec1, vec2)
   })
+  
+  common_score <- .evaluate_radian(
+    distinct_perc,
+    snn_union = snn_union,
+    num_neigh = num_neigh,
+    score_1 = score_1,
+    score_2 = score_2,
+    svd_1 = svd_1, 
+    svd_2 = svd_2,
+    basis_list = basis_list, 
+    circle_list = circle_list,
+    return_common_score = T
+  )
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
@@ -67,12 +62,13 @@
 
 #####################
 
-.search_distinct_perc_2 <- function(score_1,
-                                    score_2,
-                                    snn_union,
-                                    discretization_gridsize,
-                                    iterations,
-                                    tol = 1e-3){
+.search_distinct_perc <- function(score_1,
+                                  score_2,
+                                  snn_union,
+                                  discretization_gridsize,
+                                  iterations,
+                                  basis_list,
+                                  tol = 1e-3){
   r <- length(basis_list)
   
   # handle corner case
@@ -131,17 +127,7 @@
     iter <- iter + 1
   }
   
-  # compute common score based on percentage_grid_all[idx_max]
-  .evaluate_radian(percentage_grid_all[idx_max],
-                   basis_list = basis_list, 
-                   snn_union = snn_union,
-                   num_neigh = num_neigh,
-                   score_1 = score_1,
-                   score_2 = score_2,
-                   svd_1 = svd_1, 
-                   svd_2 = svd_2,
-                   circle_list = circle_list,
-                   return_common_score = T)
+  
 }
 
 ############################################
@@ -164,30 +150,32 @@
 }
 
 .evaluate_radian <- function(percentage_val,
-                             basis_list, 
                              snn_union,
                              num_neigh,
                              score_1,
                              score_2,
                              svd_1, 
                              svd_2,
+                             basis_list,
                              circle_list,
-                             return_common_score){
+                             return_common_score,
+                             return_snn){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
     .compute_radian(percentage_val, 
-                    basis_list[[k]],
-                    circle_list[[k]])
+                    vec1 = basis_list[[k]]$rep1,
+                    vec2 = basis_list[[k]]$rep2,
+                    circle = circle_list[[k]])
   })
   
   common_representation <- sapply(1:r, function(k){
     .position_from_circle(circle_list[[k]], radian_vec[k])
   })
   
-  common_score <- t(sapply(1:r, function(k){
+  common_score <- sapply(1:r, function(k){
     basis_list[[k]]$basis_mat %*% common_representation[,k]
-  }))
+  })
   
   if(return_common_score){
     return(common_score)
@@ -200,7 +188,12 @@
                                              svd_2)
   
   # compute nn's
-  snn_common <- .form_snn(common_mat, num_neigh = num_neigh)
+  snn_common <- .form_snn(common_mat, 
+                          num_neigh = num_neigh,
+                          bool_intersect = T)
+  if(return_snn){
+    return(snn_common)
+  }
   
   # compute intersection
   .computer_overlap(snn_target = snn_union,
@@ -220,7 +213,7 @@
   percentage_grid_all <- vec1[idx]
   value_vec_all <- vec2[idx]
   
-  idx <- duplicated(percentage_grid_all)
+  idx <- which(duplicated(percentage_grid_all))
   if(length(idx) > 0){
     percentage_grid_all <- percentage_grid_all[-idx]
     value_vec_all <- value_vec_all[-idx]
@@ -233,14 +226,15 @@
 ############################################
 
 .compute_radian <- function(percentage_val, 
-                            basis,
+                            vec1,
+                            vec2,
                             circle){
   stopifnot(percentage_val >= 0, percentage_val <= 1,
-            is.list(basis), is.list(circle),
-            all(sort(names(basis)) == sort(c("rep1", "rep2", "basis_mat"))),
-            all(sort(names(circle)) == sort(c("center", "radius"))))
+            is.list(circle),
+            all(sort(names(circle)) == sort(c("center", "radius"))),
+            abs(.l2norm(circle$center - vec1) - circle$radius) <= 1e-6,
+            abs(.l2norm(circle$center - vec2) - circle$radius) <= 1e-6)
   
-  vec1 <- basis$rep1; vec2 <- basis$rep2
   rad1 <- .find_radian(circle, vec1)
   rad2 <- .find_radian(circle, vec2)
   stopifnot(rad1 < 0 & rad2 > 0) # must be true based on how we constructed vec1 and vec2

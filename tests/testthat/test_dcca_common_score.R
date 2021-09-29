@@ -264,3 +264,18 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
   
   expect_true(all(bool_vec))
 })
+
+######################
+
+## .form_snn is correct
+
+test_that(".form_snn works", {
+  set.seed(10)
+  n <- 1000
+  mat <- MASS::mvrnorm(n, mu = c(0,0), Sigma = diag(2))
+  res <- .form_snn(mat, num_neigh = 30)
+  
+  expect_true(inherits(res, "dgCMatrix"))
+  expect_true(all(dim(res) == n))
+  expect_true(all(res@x == 1))
+})

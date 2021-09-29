@@ -95,7 +95,7 @@
 
 ###################
 
-.form_snn <- function(mat, num_neigh){
+.form_snn <- function(mat, num_neigh, bool_intersect){
   stopifnot(num_neigh > 1)
   n <- nrow(mat)
   nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
@@ -110,6 +110,13 @@
                                     j = j_vec,
                                     x = rep(1, length(i_vec)),
                                     repr = "C")
-  sparseMat <- sparseMat * Matrix::t(sparseMat)
+  
+  if(bool_intersect){
+    sparseMat <- sparseMat * Matrix::t(sparseMat)
+  } else {
+    sparseMat <- sparseMat + Matrix::t(sparseMat)
+    sparseMat@x <- rep(1, length(sparseMat@x))
+  }
+  
   sparseMat
 }
