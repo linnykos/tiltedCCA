@@ -107,36 +107,44 @@
 
 ###################
 
+# apply one Markov step to additionally smooth the matrix
 .compute_frnn_union <- function(svd_1,
                                 svd_2,
                                 num_neigh,
                                 radius_quantile){
   rescaling_factor <- max(c(svd_1$d, svd_2$d))
   dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d/svd_1$d[1]*rescaling_factor)
-  rad_1 <- .compute_radius(dimred_1, 
-                           nn = num_neigh, 
-                           radius_quantile = radius_quantile)
   frnn_1 <- .nnlist_to_matrix(
     .construct_frnn(dimred_1, 
-                    radius = rad_1, 
+                    radius = NA, 
                     nn = num_neigh, 
                     frnn_approx = 0, 
+                    resolve_isolated_nodes = F,
+                    radius_quantile = radius_quantile, 
                     verbose = F), set_to_one = T)
-  
+  diag(frnn_1) <- 1
+  frnn_1b <- frnn_1 %*% frnn_1
+  frnn_1 <- frnn_1b + frnn_1
+
   dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d/svd_2$d[1]*rescaling_factor)
-  rad_2 <- .compute_radius(dimred_2, 
-                           nn = num_neigh, 
-                           radius_quantile = radius_quantile)
   frnn_2 <- .nnlist_to_matrix(
     .construct_frnn(dimred_2, 
-                    radius = rad_2, 
+                    radius = NA, 
                     nn = num_neigh, 
                     frnn_approx = 0, 
+                    resolve_isolated_nodes = F,
+                    radius_quantile = radius_quantile, 
                     verbose = F), set_to_one = T)
-  
-  print(sum(frnn_1@x))
-  print(sum(frnn_2@x))
+  diag(frnn_2) <- 1
+  frnn_2b <- frnn_2 %*% frnn_2
+  frnn_2 <- frnn_2b + frnn_2
+
+  # binarize the matrix
   frnn_union <- frnn_1 + frnn_2
+  diag(frnn_union) <- 0
+  frnn_union@x <- rep(1, length(frnn_union@x))
+  
+  frnn_union
 }
 
 # .form_snn <- function(mat, num_neigh, bool_intersect){

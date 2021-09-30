@@ -75,7 +75,10 @@ construct_frnn <- function(obj,
   list_g <- lapply(1:3, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- ", vec_print[i]))
     .construct_frnn(embedding[[i]], radius = vec_rad[i], nn = nn, 
-                    frnn_approx = frnn_approx, verbose = verbose)
+                    frnn_approx = frnn_approx, 
+                    resolve_isolated_nodes = T,
+                    radius_quantile = NA,
+                    verbose = verbose)
   }) 
   
   for(i in 1:3){
@@ -320,23 +323,37 @@ combine_frnn <- function(dcca_obj,
   as.numeric(stats::quantile(res$nn.dists[,nn], probs = radius_quantile))[1]
 }
 
-.construct_frnn <- function(mat, radius, nn, frnn_approx, verbose = F){
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing frNN"))
+.construct_frnn <- function(mat, 
+                            radius, 
+                            nn, 
+                            frnn_approx, 
+                            resolve_isolated_nodes,
+                            radius_quantile, 
+                            verbose = F){
+  if(is.na(radius)){
+    radius <- .compute_radius(mat, 
+                              nn = nn, 
+                              radius_quantile = radius_quantile)
+  }
+  
+  if(verbose) print(paste0(Sys.time(),": Computing frNN"))
   res <- dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)
   
-  idx <- which(sapply(res$id, length) < nn)
-  if(verbose) print(paste0(Sys.time(),": cLISI: ", length(idx), " cells with too few neighbors"))
-  if(length(idx) > 0){
-    res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1, eps = frnn_approx)
-    
-    if(verbose) print(paste0(Sys.time(),": cLISI: Plugging in kNN neighbors"))
-    for(i in 1:length(idx)){
-      tmp_id <- c(res$id[[idx[i]]], res2$nn.idx[i,-1])
-      tmp_dist <- c(res$dist[[idx[i]]], res2$nn.dists[i,-1])
-      duplicates <- !duplicated(tmp_id)
+  if(resolve_isolated_nodes){
+    idx <- which(sapply(res$id, length) < nn)
+    if(verbose) print(paste0(Sys.time(),": ", length(idx), " cells with too few neighbors"))
+    if(length(idx) > 0){
+      res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1, eps = frnn_approx)
       
-      res$id[[idx[i]]] <- tmp_id[duplicates]
-      res$dist[[idx[i]]] <- tmp_dist[duplicates]
+      if(verbose) print(paste0(Sys.time(),": Plugging in kNN neighbors"))
+      for(i in 1:length(idx)){
+        tmp_id <- c(res$id[[idx[i]]], res2$nn.idx[i,-1])
+        tmp_dist <- c(res$dist[[idx[i]]], res2$nn.dists[i,-1])
+        duplicates <- !duplicated(tmp_id)
+        
+        res$id[[idx[i]]] <- tmp_id[duplicates]
+        res$dist[[idx[i]]] <- tmp_dist[duplicates]
+      }
     }
   }
   

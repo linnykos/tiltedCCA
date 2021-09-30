@@ -296,3 +296,19 @@ test_that(".position_from_circle works", {
   res <- .position_from_circle(circle, radian = pi/4)
   expect_true(sum(abs(res - rep(sqrt(2),2))) <= 1e-6)
 })
+
+#################################
+
+## .picking_maximizing_value is correct
+
+test_that(".picking_maximizing_value works", {
+  x_val <- c(0, 0.1, 0.2, 0.5, 0.9, 1)
+  y_val <- c(2, 2.1, 2.2, 2, 1.9, 2)
+  res <- .picking_maximizing_value(x_val, y_val, 
+                                   favor_start = T)
+  expect_true(res == 0.2)
+  
+  res <- .picking_maximizing_value(x_val, y_val, 
+                                   favor_start = F)
+  expect_true(res == 1)
+})

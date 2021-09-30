@@ -25,7 +25,7 @@
   if(fix_distinct_perc){
     distinct_perc <- 0.5
   } else {
-    distinct_perc <- .search_distinct_perc(
+    tmp <- .search_distinct_perc(
       score_1 = score_1,
       score_2 = score_2,
       frnn_union = frnn_union,
@@ -33,6 +33,8 @@
       iterations = iterations,
       basis_list = basis_list
     )
+    distinct_perc <- tmp$percentage
+    df_percentage <- tmp$df
   }
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
@@ -59,18 +61,33 @@
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
-  list(common_score = common_score, distinct_perc_2 = distinct_perc_2)
+  list(common_score = common_score, 
+       distinct_perc = distinct_perc,
+       df_percentage = df_percentage)
 }
 
 #####################
 
-.search_distinct_perc <- function(score_1,
+# here, a distinct_perc of 0 means that the common space is
+# aligned with modality 2, meaning there is no distinct information
+# in modality 2. 
+# Hence, favor_modality_1 is boolean that corresponds to
+# "favor_start" -- you want to find the maximizing overlap
+# with as close to distinct_perc 0 as possible.
+.search_distinct_perc <- function(num_neigh,
+                                  score_1,
                                   score_2,
+                                  svd_1,
+                                  svd_2,
+                                  radius_quantile,
                                   frnn_union,
                                   discretization_gridsize,
                                   iterations,
                                   basis_list,
+                                  favor_modality_1,
                                   tol = 1e-3){
+  stopifnot(is.logical(favor_modality_1))
+  
   r <- length(basis_list)
   
   # handle corner case
@@ -84,20 +101,20 @@
     vec2 <- basis_list[[k]]$rep2
     .construct_circle(vec1, vec2)
   })
-  percentage_grid_all <- seq(0, 1, length.out = discretization_gridsize)
+  percentage_grid_all <- numeric(0)
   value_vec_all <- numeric(0)
   
   iter <- 1
   
-  while(iter < iterations){
+  while(iter <= iterations){
     if(iter == 1){
-      percentage_grid <- percentage_grid_all
-      value_vec <- rep(NA, length(discretization_gridsize))
+      percentage_grid <- seq(0, 1, length.out = discretization_gridsize)
+      value_vec <- rep(NA, discretization_gridsize)
     } else {
       # determine grid and grab old values
-      percentage_grid <- seq(percentage_grid_all[idx1],
-                             percentage_grid_all[idx2],
-                             length.out = length(discretization_gridsize))
+      percentage_grid <- seq(percentage_grid_all[idx_1],
+                             percentage_grid_all[idx_2],
+                             length.out = discretization_gridsize)
       value_vec <- .grab_previous_values(percentage_grid,
                                          percentage_grid_all,
                                          value_vec_all)
@@ -113,8 +130,10 @@
                                        score_2 = score_2,
                                        svd_1 = svd_1, 
                                        svd_2 = svd_2,
+                                       radius_quantile = radius_quantile,
                                        circle_list = circle_list,
-                                       return_common_score = F)
+                                       return_common_score = F,
+                                       return_frnn = F)
     }
     
     # update_values
@@ -122,14 +141,19 @@
                           value_vec, value_vec_all)
     percentage_grid_all <- tmp$percentage_grid_all
     value_vec_all <- tmp$value_vec_all
-    idx_max <- which.max(percentage_grid_all)
+    perc_max <- .picking_maximizing_value(x_val = percentage_grid_all,
+                                          y_val = value_vec_all,
+                                          favor_start = favor_modality_1)
+    idx_max <- which(percentage_grid_all == perc_max)
     idx_1 <- max(idx_max - 1, 1)
     idx_2 <- min(idx_max + 1, length(percentage_grid_all))
-    
+  
     iter <- iter + 1
   }
   
-  
+  df <- data.frame(percentage = percentage_grid_all,
+                   overlap = value_vec_all)
+  list(df = df, percentage = percentage_grid_all[idx_max])
 }
 
 ############################################
@@ -190,15 +214,16 @@
                                              svd_1, 
                                              svd_2)
   
+ 
+  
   # compute nn's
-  radius <- .compute_radius(common_mat, 
-                           nn = num_neigh, 
-                           radius_quantile = radius_quantile)
   frnn_common <- .nnlist_to_matrix(
     .construct_frnn(common_mat, 
-                    radius = radius, 
+                    radius = NA,
                     nn = num_neigh, 
                     frnn_approx = 0, 
+                    resolve_isolated_nodes = T,
+                    radius_quantile = 0.5,
                     verbose = F), set_to_one = T)
   
   if(return_frnn){
@@ -231,6 +256,23 @@
   
   list(percentage_grid_all = percentage_grid_all,
        value_vec_all = value_vec_all)
+}
+
+.picking_maximizing_value <- function(x_val, y_val, 
+                                      favor_start){
+  stopifnot(is.logical(favor_start), 
+            length(x_val) == length(y_val))
+  
+  if(!favor_start){
+    x_val <- rev(x_val); y_val <- rev(y_val)
+  }
+  
+  diff_vec <- diff(y_val)
+  idx <- which(diff_vec < 0)
+  if(length(idx) == 0){
+    return(x_val[length(x_val)])
+  }
+  return(x_val[idx[1]])
 }
 
 ############################################
