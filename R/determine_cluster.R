@@ -1,5 +1,5 @@
 .determine_cluster <- function(mat,
-                               trials = 100){
+                               trials = 20){
   n <- nrow(mat)
   
   num_clusters <- sapply(1:trials, function(trial){
