@@ -171,7 +171,7 @@ test_that(".search_tilt_perc works", {
                                score_2 = score_2,
                                svd_1 = svd_1,
                                svd_2 = svd_2,
-                               trials = 100)
+                               trials = 20)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("df", "percentage"))))
@@ -194,7 +194,7 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
                                score_2 = score_2,
                                svd_1 = svd_1,
                                svd_2 = svd_2,
-                               trials = 100)
+                               trials = 20)
   expect_true(res$percentage <= 0.25)
   
   set.seed(10)
@@ -209,8 +209,8 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
                                score_2 = score_2,
                                svd_1 = svd_1,
                                svd_2 = svd_2,
-                               trials = 100)
-  expect_true(res$percentage <= 0.25)
+                               trials = 20)
+  expect_true(res$percentage < 0.5)
   
   set.seed(10)
   tmp <- compute_search_tilt_perc_ingredients(setting = 4)
@@ -224,7 +224,7 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
                                score_2 = score_2,
                                svd_1 = svd_1,
                                svd_2 = svd_2,
-                               trials = 100)
+                               trials = 20)
   expect_true(res$percentage >= 0.25)
   expect_true(res$percentage <= 0.75)
 })

@@ -1,13 +1,22 @@
+#' Title
+#'
+#' @param mat matrix
+#' @param trials numeric
+#'
+#' @return numeric
+#' @import mclust
 .determine_cluster <- function(mat,
                                trials = 20){
   n <- nrow(mat)
   
   num_clusters <- sapply(1:trials, function(trial){
-    vec <- matrix(.random_binary_projection(mat), ncol = 1)
+    vec <- .random_binary_projection(mat)
     
-    cluster_res <- dbscan::hdbscan(matrix(vec, ncol = 1), 
-                                   minPts = max(round(n/10), 5))
-    max(cluster_res$cluster)
+    cluster_res <- mclust::Mclust(vec, 
+                                  G = 1:9,
+                                  modelNames = "V",
+                                  verbose = F)
+    cluster_res$G
   })
   
   mean(num_clusters)

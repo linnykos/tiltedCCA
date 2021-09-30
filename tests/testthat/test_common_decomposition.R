@@ -271,7 +271,6 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
   trials <- 10
   
   bool_vec <- sapply(1:trials, function(x){
-    print(x)
     set.seed(x)
     n_clust <- 100
     B_mat1 <- matrix(c(0.9, 0, 0, 
@@ -312,7 +311,7 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
                                  score_2 = score_2,
                                  svd_1 = svd_1, 
                                  svd_2 = svd_2,
-                                 trials = 50)
+                                 trials = 20)
     
     res$tilt_perc <= 0.5
   })

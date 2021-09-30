@@ -204,7 +204,7 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      score_2 = score_2,
                      svd_1 = svd_1, 
                      svd_2 = svd_2,
-                     trials = 100)
+                     trials = 20)
   })
   expect_true(length(res) == 9)
   expect_true(all(res >= 0))
@@ -224,7 +224,7 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      score_2 = score_2,
                      svd_1 = svd_1, 
                      svd_2 = svd_2,
-                     trials = 100)
+                     trials = 20)
   })
   expect_true(min(res[1:4]) <= min(res[5:9]))
   
@@ -242,7 +242,7 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      score_2 = score_2,
                      svd_1 = svd_1, 
                      svd_2 = svd_2,
-                     trials = 100)
+                     trials = 20)
   })
   expect_true(min(res[4:6]) <= min(res[1:3]))
   expect_true(min(res[4:6]) <= min(res[7:9]))
