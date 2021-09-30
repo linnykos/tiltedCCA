@@ -1,6 +1,6 @@
 Package: multiomicCCA
 Title: Kevin Lin
-Version: 0.0.0.0051
+Version: 0.0.0.0052
 Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
 Description: Multiomic CCA method. Currently under development.
 Depends:
@@ -24,7 +24,8 @@ Imports:
     RColorBrewer,
     ggplot2,
     ggrepel,
-    rlang
+    rlang,
+    Ckmeans.1d.dp
 Suggests:
     testthat
 RoxygenNote: 7.1.1

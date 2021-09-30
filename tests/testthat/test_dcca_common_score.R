@@ -264,37 +264,3 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals with meta-cel
   
   expect_true(all(bool_vec))
 })
-
-######################
-
-## .compute_frnn_union is correct
-
-test_that(".compute_frnn_union works", {
-  set.seed(10)
-  n <- 1000
-  n_clust <- 100
-  high <- 0.9; low <- 0.05
-  B_mat1 <- matrix(c(0.9, 0.1, 0.1,
-                     0.1, 0.9, 0.1,
-                     0.1, 0.1, 0.9), 3, 3, byrow = T)
-  K <- ncol(B_mat1)
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec); true_membership_vec <- membership_vec
-  svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)[,1:2]
-  svd_u_2 <- multiomicCCA::generate_random_orthogonal(n, 2, centered = T)
-  
-  p_1 <- 20; p_2 <- 40
-  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-  svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
-  svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, 2)
-  
-  mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1)
-  mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
-  
-  svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
-  res <- .compute_frnn_union(svd_1, svd_2, num_neigh = 30, radius_quantile = 0.5)
-  
-  expect_true(inherits(res, "dgCMatrix"))
-  expect_true(all(dim(res) == n))
-  expect_true(all(res@x == 1))
-})

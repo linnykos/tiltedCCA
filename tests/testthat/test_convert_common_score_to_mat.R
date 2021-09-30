@@ -89,11 +89,11 @@ compute_common_score_ingredients <- function(){
 test_that(".convert_common_score_to_mat returns reasonable values", {
   set.seed(10)
   tmp <- compute_common_score_ingredients()
-  common_score <- common_score
-  score_1 <- score_1
-  score_2 <- score_2
-  svd_1 <- svd_1
-  svd_2 <- svd_2
+  common_score <- tmp$common_score
+  score_1 <- tmp$score_1
+  score_2 <- tmp$score_2
+  svd_1 <- tmp$svd_1
+  svd_2 <- tmp$svd_2
   n <- nrow(score_1)
   
   res <- .convert_common_score_to_mat(common_score,
@@ -127,25 +127,3 @@ test_that(".convert_common_score_to_mat returns reasonable values", {
   expect_true(sum(abs(res[,3:4] - target)) <= 1e-6)
   expect_true(abs(max(svd(dimred_2)$d) - max(svd(target)$d)) <= 1e-6)
 })
-
-#########################
-
-## .computer_overlap is correct
-test_that(".computer_overlap works", {
-  set.seed(10)
-  n <- 1000
-  mat <- MASS::mvrnorm(n, mu = c(0,0), Sigma = diag(2))
-  snn_target <- .form_snn(mat, num_neigh = 30)
-  
-  mat <- MASS::mvrnorm(n, mu = c(0,0), Sigma = diag(2))
-  snn_query <- .form_snn(mat, num_neigh = 30)
-  
-  res <- .computer_overlap(snn_target, snn_query)
-  expect_true(res >= 0)
-  expect_true(is.numeric(res))
-  expect_true(length(res) == 1)
-})
-
-
-
-

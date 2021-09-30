@@ -3,9 +3,10 @@
   n <- nrow(mat)
   
   num_clusters <- sapply(1:trials, function(trial){
-    vec <- .random_binary_projection(mat)
-
-    cluster_res <- Ckmeans.1d.dp::Ckmeans.1d.dp(vec)
+    vec <- matrix(.random_binary_projection(mat), ncol = 1)
+    
+    cluster_res <- dbscan::hdbscan(matrix(vec, ncol = 1), 
+                                   minPts = max(round(n/10), 5))
     max(cluster_res$cluster)
   })
   
@@ -14,9 +15,10 @@
 
 .random_binary_projection <- function(mat){
   n <- nrow(mat); p <- ncol(mat)
-  sign_vec <- sample(c(-2,-1,0,1,2), size = p, replace = T)
+  sign_vec <- sample(c(-2,-1,0,1,2), size = p, replace = T,
+                     prob = c(1/6, 1/6, 1/3, 1/6, 1/6))
   if(all(sign_vec == 0)){
-    sign_vec <- sample(c(-1,1), size = p, replace = T)
+    sign_vec <- sample(c(-2,-1,1,2), size = p, replace = T)
   }
   
   idx <- which(sign_vec == 2)
