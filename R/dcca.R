@@ -11,7 +11,6 @@
 #' @param scale_1 boolean, on whether or not to rescale \code{mat_1} prior to SVD
 #' @param scale_2 boolean, on whether or not to rescale \code{mat_2} prior to SVD
 #' @param meta_clustering optional clustering
-#' @param num_neigh number of neighbors to consider to computed the common percentage
 #' @param cell_max number of cells used to compute the distinct percentaage
 #' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
@@ -25,13 +24,14 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                         center_1 = T, center_2 = T,
                         scale_1 = T, scale_2 = T,
                         meta_clustering = NA,
-                        num_neigh = 30,
                         cell_max = nrow(mat_1),
-                        fix_distinct_perc = F, verbose = T){
+                        fix_tilt_perc = F, 
+                        discretization_gridsize = 9,
+                        trials = 20, 
+                        verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
-            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)), 
-            num_neigh <= min(nrow(mat_1), nrow(mat_2)))
+            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
   
   n <- nrow(mat_1)
   
@@ -89,10 +89,14 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   }
   
-  res <- .dcca_common_score(svd_1, svd_2, cca_res, num_neigh = num_neigh,
-                            fix_distinct_perc = fix_distinct_perc,
+  res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = cell_max,
-                            check_alignment = all(!is.na(meta_clustering)),
+                            check_alignment = all(!is.na(meta_clustering)), 
+                            discretization_gridsize = discretization_gridsize,
+                            fix_tilt_perc = fix_tilt_perc, 
+                            svd_1 = svd_1, 
+                            svd_2 = svd_2, 
+                            trials = trials,
                             verbose = verbose, msg = msg)
   
   class(res) <- "dcca"

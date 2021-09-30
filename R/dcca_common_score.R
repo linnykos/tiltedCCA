@@ -9,7 +9,7 @@
 #' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
 #' @param cca_res returned object from \code{.cca}
 #' @param num_neigh number of neighbors to consider to computed the common percentage
-#' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
+#' @param fix_tilt_perc boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
 #' If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
 #' \code{.common_decomposition} function.
@@ -25,7 +25,7 @@
                                cell_max,
                                check_alignment, 
                                discretization_gridsize,
-                               fix_distinct_perc, 
+                               fix_tilt_perc, 
                                svd_1, 
                                svd_2, 
                                trials,
@@ -53,9 +53,9 @@
   }
   
   # compute the common scores
-  if(fix_distinct_perc){
+  if(fix_tilt_perc){
     tmp <- .common_decomposition(discretization_gridsize = NA,
-                                 fix_distinct_perc = T,
+                                 fix_tilt_perc = T,
                                  score_1 = score_1,
                                  score_2 = score_2,
                                  svd_1 = svd_1, 
@@ -71,7 +71,7 @@
     }
 
     tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
-                                 fix_distinct_perc = F,
+                                 fix_tilt_perc = F,
                                  score_1 = score_1,
                                  score_2 = score_2,
                                  svd_1 = svd_1, 
@@ -79,7 +79,9 @@
                                  trials = trials)
   }
   
-  common_score <- tmp$common_score; distinct_perc_2 <- tmp$distinct_perc_2
+  common_score <- tmp$common_score
+  tilt_perc <- tmp$tilt_perc
+  df_percentage <- tmp$df_percentage
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
@@ -90,5 +92,6 @@
        distinct_score_2 = distinct_score_2,
        score_1 = score_1, score_2 = score_2, 
        svd_1 = svd_1, svd_2 = svd_2, 
-       cca_obj = obj_vec, distinct_perc_2 = distinct_perc_2)
+       cca_obj = obj_vec, tilt_perc = tilt_perc,
+       df_percentage = df_percentage)
 }

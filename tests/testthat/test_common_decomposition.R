@@ -195,7 +195,7 @@ test_that("(Basic) .common_decomposition works", {
   expect_true(length(res$tilt_perc) == 1)
 })
 
-test_that("(Test) .common_decomposition is correct when fix_tilt_perc = T", {
+test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){
@@ -236,7 +236,8 @@ test_that("(Test) .common_decomposition is correct when fix_tilt_perc = T", {
                                   score_1 = score_1,
                                   score_2 = score_2,
                                   svd_1 = svd_1, 
-                                  svd_2 = svd_2)
+                                  svd_2 = svd_2,
+                                  trials = NA)
     res2 <- test_compute_common_score(score_1, score_2, obj_vec = cca_res$obj_vec)
     
     sum(abs(res1$common_score - res2)) <= 1e-6
@@ -259,7 +260,7 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
                                score_2 = score_2,
                                svd_1 = svd_1, 
                                svd_2 = svd_2,
-                               trials = 100)
+                               trials = 20)
   expect_true(all(dim(res$common_score) == dim(score_1)))
   expect_true(length(rownames(res$common_score)) > 1)
   expect_true(all(rownames(res$common_score) == rownames(score_1)))
