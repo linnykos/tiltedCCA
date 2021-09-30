@@ -268,9 +268,10 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
 })
 
 test_that("(Math) .common_decomposition gives sensible numbers in asymmetric information settings", {
-  trials <- 25
+  trials <- 10
   
   bool_vec <- sapply(1:trials, function(x){
+    print(x)
     set.seed(x)
     n_clust <- 100
     B_mat1 <- matrix(c(0.9, 0, 0, 
@@ -311,10 +312,9 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
                                  score_2 = score_2,
                                  svd_1 = svd_1, 
                                  svd_2 = svd_2,
-                                 trials = 100)
+                                 trials = 50)
     
-    bool1 <- all(res$distinct_perc_2 <= 0.5)
-    bool1 
+    res$tilt_perc <= 0.5
   })
   
   expect_true(all(bool_vec))
