@@ -24,9 +24,7 @@
   })
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing distinct percentage"))
-  if(fix_tilt_perc){
-    tilt_perc <- 0.5; df_percentage <- NA
-  } else {
+  if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
       basis_list = basis_list,
       circle_list = circle_list,
@@ -39,6 +37,14 @@
     )
     tilt_perc <- tmp$percentage
     df_percentage <- tmp$df
+  } else {
+    if(is.logical(fix_tilt_perc) && fix_tilt_perc){
+      tilt_perc <- 0.5; df_percentage <- NA
+    } else if(is.numeric(fix_tilt_perc) & fix_tilt_perc >= 0 & fix_tilt_perc <= 1){
+      tilt_perc <- fix_tilt_perc; df_percentage <- NA
+    } else {
+      stop("Invalid value of tilt_perc")
+    }
   }
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
