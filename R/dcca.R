@@ -23,11 +23,13 @@
 dcca_factor <- function(mat_1, mat_2, dims_1, dims_2, 
                         center_1 = T, center_2 = T,
                         scale_1 = T, scale_2 = T,
-                        meta_clustering = NA,
                         cell_max = nrow(mat_1),
+                        clustering_resolution = 1,
+                        discretization_gridsize = 9, 
                         fix_tilt_perc = F, 
-                        discretization_gridsize = 9,
-                        trials = 20, 
+                        form_meta_matrix = F,
+                        meta_clustering = NA,
+                        num_neigh = min(30, round(nrow(mat_1)/20)),
                         verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
@@ -44,45 +46,28 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
   
-  # [[note to self: can probably refactor this all out]]
-  if(all(!is.na(meta_clustering))){
+  if(all(is.na(meta_clustering))){
+    meta_clustering <- form_metacells(svd_1, svd_2, 
+                                      clustering_resolution = clustering_resolution,
+                                      dims_1 = NA, dims_2 = NA,
+                                      center_1 = T, center_2 = T,
+                                      scale_1 = T, scale_2 = T,
+                                      verbose = verbose)
+  }
+  
+  if(form_meta_matrix){
     # apply D-CCA to meta-cells
     msg <- " (meta-cells)"
-    
-    stopifnot(is.factor(meta_clustering),
-              length(meta_clustering) == nrow(mat_1))
-    num_meta <- length(levels(meta_clustering))
-    
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 1"))
-    mat_1_meta <- t(sapply(1:num_meta, function(x){
-      if(verbose && num_meta > 10 && x %% floor(num_meta/10) == 0) cat('*')
-      idx <- which(meta_clustering == levels(meta_clustering)[x])
-      
-      if(inherits(mat_1, "dgCMatrix")){
-        sparseMatrixStats::colMeans2(mat_1[idx,,drop = F])
-      } else {
-        matrixStats::colMeans2(mat_1[idx,,drop = F])
-      }
-    }))
+    mat_1_meta <- .compute_metamatrix(mat_1, meta_clustering, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 2"))
-    mat_2_meta <- t(sapply(1:num_meta, function(x){
-      if(verbose && num_meta > 10 && x %% floor(num_meta/10) == 0) cat('*')
-      idx <- which(meta_clustering == levels(meta_clustering)[x])
-      
-      if(inherits(mat_2, "dgCMatrix")){
-        sparseMatrixStats::colMeans2(mat_2[idx,,drop = F])
-      } else {
-        matrixStats::colMeans2(mat_2[idx,,drop = F])
-      }
-    }))
+    mat_2_meta <- .compute_metamatrix(mat_2, meta_clustering, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
-    # note, since we're already doing averaging, we don't further shrink the spectrum
     cca_res <- .cca(mat_1_meta, mat_2_meta, dims_1 = dims_1, dims_2 = dims_2,
                     return_scores = F)
   } else {
-    
     # alternatively, apply D-CCA to all cells
     msg <- " (all cells)"
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
@@ -94,9 +79,10 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             check_alignment = all(!is.na(meta_clustering)), 
                             discretization_gridsize = discretization_gridsize,
                             fix_tilt_perc = fix_tilt_perc, 
+                            metacell_clustering = metacell_clustering,
+                            num_neigh = num_neigh,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
-                            trials = trials,
                             verbose = verbose, msg = msg)
   
   class(res) <- "dcca"
@@ -146,8 +132,6 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
 
 
 #################################
-
-
 
 #' Compute the distinct scores
 #' 

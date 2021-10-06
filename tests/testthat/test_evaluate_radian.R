@@ -147,6 +147,7 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
   })
   
   list(basis_list = basis_list, 
+       metacell_clustering = as.factor(true_membership_vec),
        score_1 = score_1,
        score_2 = score_2,
        svd_1 = svd_1, 
@@ -162,29 +163,32 @@ test_that(".evaluate_radian works", {
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
+  metacell_clustering <- tmp$metacell_clustering
   
   res <- .evaluate_radian(basis_list = basis_list, 
                           circle_list = circle_list,
+                          metacell_clustering = metacell_clustering,
+                          num_neigh = 30,
                           percentage = 0.5,
                           return_common_score = F,
                           score_1 = score_1,
                           score_2 = score_2,
                           svd_1 = svd_1, 
-                          svd_2 = svd_2,
-                          trials = 100)
+                          svd_2 = svd_2)
   expect_true(is.numeric(res))
   expect_true(length(res) == 1)
   expect_true(res > 0)
   
   res <- .evaluate_radian(basis_list = basis_list, 
                           circle_list = circle_list,
+                          metacell_clustering = metacell_clustering,
+                          num_neigh = 30,
                           percentage = 0.5,
                           return_common_score = T,
                           score_1 = score_1,
                           score_2 = score_2,
                           svd_1 = svd_1, 
-                          svd_2 = svd_2,
-                          trials = 100)
+                          svd_2 = svd_2)
   expect_true(is.matrix(res))
   expect_true(all(dim(res) == c(nrow(score_1), 2)))
 })
@@ -195,16 +199,18 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
+  metacell_clustering <- tmp$metacell_clustering
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
+                     metacell_clustering = metacell_clustering,
+                     num_neigh = 30,
                      percentage = percentage,
                      return_common_score = F,
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
-                     svd_2 = svd_2,
-                     trials = 20)
+                     svd_2 = svd_2)
   })
   expect_true(length(res) == 9)
   expect_true(all(res >= 0))
@@ -215,16 +221,18 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
+  metacell_clustering <- tmp$metacell_clustering
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
+                     metacell_clustering = metacell_clustering,
+                     num_neigh = 30,
                      percentage = percentage,
                      return_common_score = F,
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
-                     svd_2 = svd_2,
-                     trials = 20)
+                     svd_2 = svd_2)
   })
   expect_true(min(res[1:4]) <= min(res[5:9]))
   
@@ -233,16 +241,18 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
+  metacell_clustering <- tmp$metacell_clustering
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
+                     metacell_clustering = metacell_clustering,
+                     num_neigh = 30,
                      percentage = percentage,
                      return_common_score = F,
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
-                     svd_2 = svd_2,
-                     trials = 20)
+                     svd_2 = svd_2)
   })
   expect_true(min(res[4:6]) <= min(res[1:3]))
   expect_true(min(res[4:6]) <= min(res[7:9]))

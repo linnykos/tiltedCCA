@@ -85,6 +85,9 @@
        distinct_score_2 = distinct_score_2,
        score_1 = score_1, score_2 = score_2, 
        svd_1 = svd_1, svd_2 = svd_2, 
-       cca_obj = obj_vec, tilt_perc = tilt_perc,
-       df_percentage = df_percentage)
+       cca_obj = obj_vec, 
+       df_percentage = df_percentage,
+       metacell_clustering = metacell_clustering,
+       tilt_perc = tilt_perc
+       )
 }
