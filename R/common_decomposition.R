@@ -2,11 +2,12 @@
 # is in modality 1, not modality 2
 .common_decomposition <- function(discretization_gridsize,
                                   fix_tilt_perc,
+                                  metacell_clustering,
+                                  num_neigh,
                                   score_1,
                                   score_2,
                                   svd_1, 
                                   svd_2,
-                                  trials,
                                   tol = 1e-6, verbose = F){
   rank_c <- min(ncol(score_1), ncol(score_2))
   stopifnot(all(sapply(1:rank_c, function(k){
@@ -29,11 +30,12 @@
       basis_list = basis_list,
       circle_list = circle_list,
       discretization_gridsize = discretization_gridsize,
+      metacell_clustering = metacell_clustering,
+      num_neigh = num_neigh,
       score_1 = score_1,
       score_2 = score_2,
       svd_1 = svd_1,
-      svd_2 = svd_2,
-      trials = trials
+      svd_2 = svd_2
     )
     tilt_perc <- tmp$percentage
     df_percentage <- tmp$df
@@ -52,13 +54,14 @@
   common_score <- .evaluate_radian(
     basis_list = basis_list, 
     circle_list = circle_list,
+    metacell_clustering = metacell_clustering,
+    num_neigh = num_neigh,
     percentage = tilt_perc,
     return_common_score = T,
     score_1 = score_1,
     score_2 = score_2,
     svd_1 = svd_1, 
-    svd_2 = svd_2,
-    trials = NA
+    svd_2 = svd_2
   )
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
@@ -73,11 +76,12 @@
 .search_tilt_perc <- function(basis_list,
                               circle_list,
                               discretization_gridsize,
+                              metacell_clustering,
+                              num_neigh,
                               score_1,
                               score_2,
                               svd_1,
                               svd_2,
-                              trials,
                               tol = 1e-3){
   r <- length(basis_list)
   
@@ -93,13 +97,14 @@
   for(i in which(is.na(value_vec))){
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
+                                     metacell_clustering = metacell_clustering,
+                                     num_neigh = num_neigh,
                                      percentage = percentage_grid[i],
                                      return_common_score = F,
                                      score_1 = score_1,
                                      score_2 = score_2,
                                      svd_1 = svd_1, 
-                                     svd_2 = svd_2,
-                                     trials = trials)
+                                     svd_2 = svd_2)
   }
   
   df <- data.frame(percentage = percentage_grid,
@@ -115,13 +120,14 @@
 
 .evaluate_radian <- function(basis_list, 
                              circle_list,
+                             metacell_clustering,
+                             num_neigh,
                              percentage,
                              return_common_score,
                              score_1,
                              score_2,
                              svd_1, 
-                             svd_2,
-                             trials){
+                             svd_2){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
@@ -146,7 +152,9 @@
                                              svd_1, 
                                              svd_2)
   
-  .determine_cluster(common_mat, trials = trials)
+  .determine_cluster(mat = common_mat, 
+                     metacell_clustering = metacell_clustering,
+                     num_neigh = num_neigh)
 }
 
 .select_minimum <- function(x_val, y_val){

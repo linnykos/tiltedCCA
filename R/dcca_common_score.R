@@ -26,9 +26,10 @@
                                check_alignment, 
                                discretization_gridsize,
                                fix_tilt_perc, 
+                               metacell_clustering,
+                               num_neigh,
                                svd_1, 
                                svd_2, 
-                               trials,
                                verbose = T, msg = ""){
   stopifnot(cell_max > 10)
   full_rank <- length(cca_res$obj_vec)
@@ -64,11 +65,12 @@
   # [[note to self: use these n_idx somehow]]
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
                                fix_tilt_perc = fix_tilt_perc,
+                               metacell_clustering = metacell_clustering,
+                               num_neigh = num_neigh,
                                score_1 = score_1,
                                score_2 = score_2,
                                svd_1 = svd_1, 
-                               svd_2 = svd_2,
-                               trials = trials)
+                               svd_2 = svd_2)
   
   common_score <- tmp$common_score
   tilt_perc <- tmp$tilt_perc
