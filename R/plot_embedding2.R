@@ -76,7 +76,7 @@ plot_embeddings2 <- function(dcca_obj,
                                  sampling_type = sampling_type, 
                                  keep_nn = keep_nn)
     rann_obj <- list(id = tmp$id, dist = tmp$dist)
-    mat <- .nnlist_to_matrix(rann_obj)
+    mat <- .nnlist_to_matrix(rann_obj, set_to_one = F)
     
     # symmetrize
     mat <- .symmetrize_sparse(mat, set_ones = F)
