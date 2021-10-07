@@ -3,6 +3,7 @@
 .common_decomposition <- function(discretization_gridsize,
                                   fix_tilt_perc,
                                   metacell_clustering,
+                                  n_idx,
                                   num_neigh,
                                   score_1,
                                   score_2,
@@ -24,13 +25,14 @@
     .construct_circle(vec1, vec2)
   })
   
-  if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing distinct percentage"))
+  if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
       basis_list = basis_list,
       circle_list = circle_list,
       discretization_gridsize = discretization_gridsize,
       metacell_clustering = metacell_clustering,
+      n_idx = n_idx,
       num_neigh = num_neigh,
       score_1 = score_1,
       score_2 = score_2,
@@ -78,6 +80,7 @@
                               circle_list,
                               discretization_gridsize,
                               metacell_clustering,
+                              n_idx,
                               num_neigh,
                               score_1,
                               score_2,
@@ -101,6 +104,7 @@
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
                                      metacell_clustering = metacell_clustering,
+                                     n_idx = n_idx,
                                      num_neigh = num_neigh,
                                      percentage = percentage_grid[i],
                                      return_common_score = F,
@@ -125,6 +129,7 @@
 .evaluate_radian <- function(basis_list, 
                              circle_list,
                              metacell_clustering,
+                             n_idx,
                              num_neigh,
                              percentage,
                              return_common_score,
@@ -158,6 +163,7 @@
   
   .determine_cluster(mat = common_mat, 
                      metacell_clustering = metacell_clustering,
+                     n_idx = n_idx,
                      num_neigh = num_neigh)
 }
 

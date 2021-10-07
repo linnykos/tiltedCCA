@@ -54,7 +54,6 @@
   }
   
   # compute the common scores
-  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing kNN"))
   n <- nrow(score_1)
   if(cell_max < n){
     n_idx <- sample(1:n, size = cell_max)
@@ -63,14 +62,17 @@
   }
   
   # [[note to self: use these n_idx somehow]]
+  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
                                fix_tilt_perc = fix_tilt_perc,
                                metacell_clustering = metacell_clustering,
+                               n_idx = n_idx,
                                num_neigh = num_neigh,
                                score_1 = score_1,
                                score_2 = score_2,
                                svd_1 = svd_1, 
-                               svd_2 = svd_2)
+                               svd_2 = svd_2,
+                               verbose = verbose)
   
   common_score <- tmp$common_score
   tilt_perc <- tmp$tilt_perc

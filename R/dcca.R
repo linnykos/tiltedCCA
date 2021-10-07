@@ -48,12 +48,16 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   
   if(all(is.na(metacell_clustering))){
     if(verbose) print(paste0(Sys.time(),": D-CCA: Constructing meta-cells"))
-    metacell_clustering <- form_metacells(svd_1, svd_2, 
-                                      clustering_resolution = clustering_resolution,
-                                      dims_1 = NA, dims_2 = NA,
-                                      center_1 = center_1, center_2 = center_2,
-                                      scale_1 = scale_1, scale_2 = scale_2,
-                                      verbose = verbose)
+    tmp <- form_metacells(svd_1, svd_2, 
+                          clustering_resolution = clustering_resolution,
+                          dims_1 = NA, dims_2 = NA,
+                          center_1 = center_1, center_2 = center_2,
+                          scale_1 = scale_1, scale_2 = scale_2,
+                          verbose = verbose)
+    metacell_clustering <- tmp$metacell_clustering
+    consensus_pca_mat <- tmp$matrix_used
+  } else {
+    consensus_pca_mat <- NA
   }
   
   if(form_meta_matrix){
@@ -79,7 +83,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             cell_max = cell_max,
                             check_alignment = all(!is.na(metacell_clustering)), 
                             discretization_gridsize = discretization_gridsize,
-                            fix_tilt_perc = fix_tilt_perc, 
+                            ofix_tilt_perc = fix_tilt_perc, 
                             metacell_clustering = metacell_clustering,
                             num_neigh = num_neigh,
                             svd_1 = svd_1, 
@@ -87,6 +91,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             verbose = verbose, msg = msg)
   
   class(res) <- "dcca"
+  res$consensus_pca_mat <- consensus_pca_mat
   res
 }
 

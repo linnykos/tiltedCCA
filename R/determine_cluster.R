@@ -1,8 +1,14 @@
 .determine_cluster <- function(mat,
                                metacell_clustering,
+                               n_idx,
                                num_neigh,
                                tol = 1e-3){
-  stopifnot(is.factor(metacell_clustering))
+  stopifnot(is.factor(metacell_clustering), length(metacell_clustering) == nrow(mat))
+  
+  if(length(n_idx) < nrow(mat)){
+    mat <- mat[n_idx,,drop = F]
+    metacell_clustering <- as.factor(metacell_clustering[metacell_clustering])
+  }
   
   n <- nrow(mat)
   snn_mat <- .form_snn_mat(bool_intersect = T,

@@ -9,7 +9,7 @@ form_metacells <- function(mat_1, mat_2 = NA,
                            dims_1 = dims_1, dims_2 = dims_2,
                            center_1 = center_1, center_2 = center_2,
                            scale_1 = scale_1, scale_2 = scale_2)
-  }
+  } 
   
   if(length(rownames(mat_1)) == 0) rownames(mat_1) <- paste0("n", 1:nrow(mat_1))
   if(length(colnames(mat_1)) == 0) colnames(mat_1) <- paste0("p", 1:ncol(mat_1))
@@ -26,7 +26,8 @@ form_metacells <- function(mat_1, mat_2 = NA,
                                      resolution = clustering_resolution,
                                      verbose = verbose)
   
-  as.factor(seurat_obj@meta.data[,"seurat_clusters"])
+  list(metacell_clustering = as.factor(seurat_obj@meta.data[,"seurat_clusters"]),
+       matrix_used = mat_1)
 }
 
 ##################3
