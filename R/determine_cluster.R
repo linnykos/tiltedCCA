@@ -17,21 +17,14 @@
   density_mat <- .compute_density_matrix(as.matrix(snn_mat),
                                          metacell_clustering = metacell_clustering)
   K <- length(levels(metacell_clustering))
-  
-  print(density_mat)
-  
+
   quality_vec <- sapply(1:K, function(k){
     offdiag_mean <- mean(density_mat[k,-k])
     offdiag_sd <- sd(density_mat[k,-k])
-    # print(paste0(k, ": ", round(density_mat[k,k],2)))
-    # print(paste0(k, ": ", round(offdiag_mean+offdiag_sd,2)))
-    
+ 
     density_mat[k,k]/max(c(offdiag_mean-offdiag_sd, tol))
   })
-  
-  print(quality_vec)
-  print("===")
-  
+
   mean(quality_vec) * sum(snn_mat)/n
 }
 

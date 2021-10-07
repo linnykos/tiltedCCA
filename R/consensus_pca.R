@@ -26,10 +26,14 @@ consensus_pca <- function(input_1, input_2,
   mat_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
   
   if(consensus_cosine_normalization){
-    l2_vec_1 <- apply(mat_1, 1, .l2norm)
-    l2_vec_2 <- apply(mat_2, 1, .l2norm)
-    mat_1 <- .mult_vec_mat(pmin(1/l2_vec_1, 0), mat_1)
-    mat_2 <- .mult_vec_mat(pmin(1/l2_vec_2, 0), mat_2)
+    l2_vec_1 <- 1/apply(mat_1, 1, .l2norm)
+    l2_vec_2 <- 1/apply(mat_2, 1, .l2norm)
+    
+    l2_vec_1[is.infinite(l2_vec_1)] <- 0
+    l2_vec_2[is.infinite(l2_vec_2)] <- 0
+    
+    mat_1 <- .mult_vec_mat(l2_vec_1, mat_1)
+    mat_2 <- .mult_vec_mat(l2_vec_2, mat_2)
   }
   
   pca_mat <- cbind(mat_1, mat_2)
