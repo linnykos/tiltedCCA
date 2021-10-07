@@ -24,8 +24,7 @@ Imports:
     RColorBrewer,
     ggplot2,
     ggrepel,
-    rlang,
-    Ckmeans.1d.dp
+    rlang
 Suggests:
     testthat
 RoxygenNote: 7.1.1
