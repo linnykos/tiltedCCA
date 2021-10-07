@@ -145,7 +145,8 @@ compute_search_tilt_perc_ingredients <- function(setting = 1){
     .construct_circle(vec1, vec2)
   })
   
-  list(score_1 = score_1,
+  list(metacell_clustering = as.factor(true_membership_vec),
+       score_1 = score_1,
        score_2 = score_2,
        svd_1 = svd_1,
        svd_2 = svd_2,
@@ -162,20 +163,21 @@ test_that(".search_tilt_perc works", {
   basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2
+  metacell_clustering <- tmp$metacell_clustering
   
-  discretization_gridsize <- 9
   res <- .search_tilt_perc(basis_list = basis_list,
-                               circle_list = circle_list,
-                               discretization_gridsize = discretization_gridsize,
-                               score_1 = score_1,
-                               score_2 = score_2,
-                               svd_1 = svd_1,
-                               svd_2 = svd_2,
-                               trials = 20)
+                           circle_list = circle_list,
+                           discretization_gridsize = 9,
+                           metacell_clustering = metacell_clustering,
+                           num_neigh = 30,
+                           score_1 = score_1,
+                           score_2 = score_2,
+                           svd_1 = svd_1,
+                           svd_2 = svd_2)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("df", "percentage"))))
-  expect_true(all(colnames(res$df) == c("percentage", "num_clusters")))
+  expect_true(all(colnames(res$df) == c("percentage", "ratio_val")))
   expect_true(nrow(res$df) == discretization_gridsize)
   expect_true(length(res$percentage) == 1)
   expect_true(is.numeric(res$percentage))
@@ -187,14 +189,16 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   circle_list <- tmp$circle_list; basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
+  metacell_clustering <- tmp$metacell_clustering
   res <- .search_tilt_perc(basis_list = basis_list,
-                               circle_list = circle_list,
-                               discretization_gridsize = 9,
-                               score_1 = score_1,
-                               score_2 = score_2,
-                               svd_1 = svd_1,
-                               svd_2 = svd_2,
-                               trials = 20)
+                           circle_list = circle_list,
+                           discretization_gridsize = 9,
+                           metacell_clustering = metacell_clustering,
+                           num_neigh = 30,
+                           score_1 = score_1,
+                           score_2 = score_2,
+                           svd_1 = svd_1,
+                           svd_2 = svd_2)
   expect_true(res$percentage <= 0.25)
   
   set.seed(10)
@@ -202,14 +206,16 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   circle_list <- tmp$circle_list; basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
+  metacell_clustering <- tmp$metacell_clustering
   res <- .search_tilt_perc(basis_list = basis_list,
-                               circle_list = circle_list,
-                               discretization_gridsize = 9,
-                               score_1 = score_1,
-                               score_2 = score_2,
-                               svd_1 = svd_1,
-                               svd_2 = svd_2,
-                               trials = 20)
+                           circle_list = circle_list,
+                           discretization_gridsize = 9,
+                           metacell_clustering = metacell_clustering,
+                           num_neigh = 30,
+                           score_1 = score_1,
+                           score_2 = score_2,
+                           svd_1 = svd_1,
+                           svd_2 = svd_2)
   expect_true(res$percentage < 0.5)
   
   set.seed(10)
@@ -217,14 +223,16 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   circle_list <- tmp$circle_list; basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
+  metacell_clustering <- tmp$metacell_clustering
   res <- .search_tilt_perc(basis_list = basis_list,
-                               circle_list = circle_list,
-                               discretization_gridsize = 9,
-                               score_1 = score_1,
-                               score_2 = score_2,
-                               svd_1 = svd_1,
-                               svd_2 = svd_2,
-                               trials = 20)
+                           circle_list = circle_list,
+                           discretization_gridsize = 9,
+                           metacell_clustering = metacell_clustering,
+                           num_neigh = 30,
+                           score_1 = score_1,
+                           score_2 = score_2,
+                           svd_1 = svd_1,
+                           svd_2 = svd_2)
   expect_true(res$percentage >= 0.25)
   expect_true(res$percentage <= 0.75)
 })

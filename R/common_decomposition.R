@@ -108,7 +108,7 @@
   }
   
   df <- data.frame(percentage = percentage_grid,
-                   num_clusters = value_vec)
+                   ratio_val = value_vec)
   
   idx_min <- .select_minimum(x_val = percentage_grid,
                              y_val = value_vec)

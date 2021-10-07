@@ -135,7 +135,8 @@ compute_common_decomposition_ingredients <- function(setting = 1){
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   
-  list(score_1 = score_1,
+  list(metacell_clustering = as.factor(true_membership_vec),
+       score_1 = score_1,
        score_2 = score_2,
        svd_1 = svd_1, 
        svd_2 = svd_2)
@@ -179,14 +180,16 @@ test_that("(Basic) .common_decomposition works", {
   cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  metacell_clustering <- factor(sample(1:3, replace = T, size = nrow(mat_1)))
   
   res <- suppressWarnings(.common_decomposition(discretization_gridsize = 9,
                                                 fix_tilt_perc = F,
+                                                metacell_clustering = metacell_clustering,
+                                                num_neigh = 30,
                                                 score_1 = score_1,
                                                 score_2 = score_2,
                                                 svd_1 = svd_1, 
-                                                svd_2 = svd_2,
-                                                trials = 100))
+                                                svd_2 = svd_2))
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_score", "tilt_perc", "df_percentage"))))
@@ -230,14 +233,16 @@ test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    metacell_clustering <- factor(membership_vec)
     
     res1 <- .common_decomposition(discretization_gridsize = NA,
                                   fix_tilt_perc = T,
+                                  metacell_clustering = metacell_clustering,
+                                  num_neigh = 30,
                                   score_1 = score_1,
                                   score_2 = score_2,
                                   svd_1 = svd_1, 
-                                  svd_2 = svd_2,
-                                  trials = NA)
+                                  svd_2 = svd_2)
     res2 <- test_compute_common_score(score_1, score_2, obj_vec = cca_res$obj_vec)
     
     sum(abs(res1$common_score - res2)) <= 1e-6
@@ -251,16 +256,19 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
   tmp <- compute_common_decomposition_ingredients(setting = 1)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
+  n <- nrow(tmp$score_1)
   rownames(score_1) <- paste0("a", 1:n)
   rownames(score_2) <- paste0("a", 1:n)
+  metacell_clustering <- tmp$metacell_clustering
   
   res <- .common_decomposition(discretization_gridsize = 9,
                                fix_tilt_perc = F,
+                               metacell_clustering = metacell_clustering,
+                               num_neigh = 30,
                                score_1 = score_1,
                                score_2 = score_2,
                                svd_1 = svd_1, 
-                               svd_2 = svd_2,
-                               trials = 20)
+                               svd_2 = svd_2)
   expect_true(all(dim(res$common_score) == dim(score_1)))
   expect_true(length(rownames(res$common_score)) > 1)
   expect_true(all(rownames(res$common_score) == rownames(score_1)))
@@ -305,14 +313,16 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
+    metacell_clustering <- as.factor(membership_vec)
     
     res <- .common_decomposition(discretization_gridsize = 9,
                                  fix_tilt_perc = F,
+                                 metacell_clustering = metacell_clustering,
+                                 num_neigh = 30,
                                  score_1 = score_1,
                                  score_2 = score_2,
                                  svd_1 = svd_1, 
-                                 svd_2 = svd_2,
-                                 trials = 20)
+                                 svd_2 = svd_2)
     
     res$tilt_perc <= 0.5
   })
