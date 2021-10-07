@@ -32,15 +32,15 @@ form_metacells <- function(mat_1, mat_2 = NA,
 ##################3
 
 .compute_metamatrix <- function(mat, 
-                                meta_clustering,
+                                metacell_clustering,
                                 verbose){
-  stopifnot(is.factor(meta_clustering),
-            length(meta_clustering) == nrow(mat))
-  num_meta <- length(levels(meta_clustering))
+  stopifnot(is.factor(metacell_clustering),
+            length(metacell_clustering) == nrow(mat))
+  num_meta <- length(levels(metacell_clustering))
   
   mat_meta <- t(sapply(1:num_meta, function(x){
     if(verbose && num_meta > 10 && x %% floor(num_meta/10) == 0) cat('*')
-    idx <- which(meta_clustering == levels(meta_clustering)[x])
+    idx <- which(metacell_clustering == levels(metacell_clustering)[x])
     
     if(inherits(mat, "dgCMatrix")){
       sparseMatrixStats::colMeans2(mat[idx,,drop = F])
