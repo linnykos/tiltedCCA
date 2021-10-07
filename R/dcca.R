@@ -47,6 +47,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   svd_2 <- .check_svd(svd_2, dims = dims_2)
   
   if(all(is.na(metacell_clustering))){
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells"))
     metacell_clustering <- form_metacells(svd_1, svd_2, 
                                       clustering_resolution = clustering_resolution,
                                       dims_1 = NA, dims_2 = NA,
@@ -58,10 +59,10 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   if(form_meta_matrix){
     # apply D-CCA to meta-cells
     msg <- " (meta-cells)"
-    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 1"))
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells matrix 1"))
     mat_1_meta <- .compute_metamatrix(mat_1, metacell_clustering, verbose)
     
-    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 2"))
+    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells matrix 2"))
     mat_2_meta <- .compute_metamatrix(mat_2, metacell_clustering, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))

@@ -35,7 +35,8 @@
       score_1 = score_1,
       score_2 = score_2,
       svd_1 = svd_1,
-      svd_2 = svd_2
+      svd_2 = svd_2, 
+      verbose = verbose
     )
     tilt_perc <- tmp$percentage
     df_percentage <- tmp$df
@@ -82,7 +83,8 @@
                               score_2,
                               svd_1,
                               svd_2,
-                              tol = 1e-3){
+                              tol = 1e-3,
+                              verbose = F){
   r <- length(basis_list)
   
   # handle corner case
@@ -95,6 +97,7 @@
   value_vec <- rep(NA, discretization_gridsize)
   
   for(i in which(is.na(value_vec))){
+    if(verbose) print(paste0(Sys.time(),": D-CCA : Evaluating percentage ", percentage_grid[i]))
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
                                      metacell_clustering = metacell_clustering,
@@ -112,6 +115,7 @@
   
   idx_min <- .select_minimum(x_val = percentage_grid,
                              y_val = value_vec)
+  if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
   
   list(df = df, percentage = percentage_grid[idx_min])
 }
