@@ -1,7 +1,8 @@
 consensus_pca <- function(input_1, input_2,
                           dims_1 = NA, dims_2 = NA,
                           center_1 = T, center_2 = T,
-                          scale_1 = T, scale_2 = T){
+                          scale_1 = T, scale_2 = T,
+                          consensus_cosine_normalization = T){
   if(!is.list(input_1) & !is.list(input_2)){
     stopifnot(all(!is.na(dims_1)) & all(!is.na(dims_2)))
     
@@ -21,8 +22,17 @@ consensus_pca <- function(input_1, input_2,
   svd_1$d <- svd_1$d/svd_1$d[1]*sqrt(n)
   svd_2$d <- svd_2$d/svd_2$d[1]*sqrt(n)
   
-  pca_mat <- cbind(.mult_mat_vec(svd_1$u, svd_1$d),
-                   .mult_mat_vec(svd_2$u, svd_2$d))
+  mat_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+  mat_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
+  
+  if(consensus_cosine_normalization){
+    l2_vec_1 <- apply(mat_1, 1, .l2norm)
+    l2_vec_2 <- apply(mat_2, 1, .l2norm)
+    mat_1 <- .mult_vec_mat(pmin(1/l2_vec_1, 0), mat_1)
+    mat_2 <- .mult_vec_mat(pmin(1/l2_vec_2, 0), mat_2)
+  }
+  
+  pca_mat <- cbind(mat_1, mat_2)
   
   if(length(rownames(svd_1$u)) != 0) rownames(pca_mat) <- rownames(svd_1$u)
   

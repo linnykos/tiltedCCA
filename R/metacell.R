@@ -1,5 +1,6 @@
 form_metacells <- function(mat_1, mat_2 = NA,
                            clustering_resolution = 1,
+                           consensus_cosine_normalization = T,
                            dims_1 = NA, dims_2 = NA,
                            center_1 = T, center_2 = T,
                            scale_1 = T, scale_2 = T,
@@ -8,7 +9,8 @@ form_metacells <- function(mat_1, mat_2 = NA,
     mat_1 <- consensus_pca(mat_1, mat_2,
                            dims_1 = dims_1, dims_2 = dims_2,
                            center_1 = center_1, center_2 = center_2,
-                           scale_1 = scale_1, scale_2 = scale_2)
+                           scale_1 = scale_1, scale_2 = scale_2,
+                           consensus_cosine_normalization = consensus_cosine_normalization)
   } 
   
   if(length(rownames(mat_1)) == 0) rownames(mat_1) <- paste0("n", 1:nrow(mat_1))
