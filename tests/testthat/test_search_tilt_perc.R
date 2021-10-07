@@ -165,9 +165,10 @@ test_that(".search_tilt_perc works", {
   svd_2 <- tmp$svd_2
   metacell_clustering <- tmp$metacell_clustering
   
+  discretization_gridsize <- 9
   res <- .search_tilt_perc(basis_list = basis_list,
                            circle_list = circle_list,
-                           discretization_gridsize = 9,
+                           discretization_gridsize = discretization_gridsize,
                            metacell_clustering = metacell_clustering,
                            num_neigh = 30,
                            score_1 = score_1,
@@ -236,3 +237,4 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   expect_true(res$percentage >= 0.25)
   expect_true(res$percentage <= 0.75)
 })
+

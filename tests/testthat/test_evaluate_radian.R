@@ -257,3 +257,4 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   expect_true(min(res[4:6]) <= min(res[1:3]))
   expect_true(min(res[4:6]) <= min(res[7:9]))
 })
+

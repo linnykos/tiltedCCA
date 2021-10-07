@@ -10,7 +10,7 @@
 #' @param center_2 boolean, on whether or not to center \code{mat_2} prior to SVD
 #' @param scale_1 boolean, on whether or not to rescale \code{mat_1} prior to SVD
 #' @param scale_2 boolean, on whether or not to rescale \code{mat_2} prior to SVD
-#' @param meta_clustering optional clustering
+#' @param metacell_clustering optional clustering
 #' @param cell_max number of cells used to compute the distinct percentaage
 #' @param fix_distinct_perc boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 #' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
@@ -28,7 +28,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                         discretization_gridsize = 9, 
                         fix_tilt_perc = F, 
                         form_meta_matrix = F,
-                        meta_clustering = NA,
+                        metacell_clustering = NA,
                         num_neigh = min(30, round(nrow(mat_1)/20)),
                         verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
@@ -46,8 +46,8 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
   
-  if(all(is.na(meta_clustering))){
-    meta_clustering <- form_metacells(svd_1, svd_2, 
+  if(all(is.na(metacell_clustering))){
+    metacell_clustering <- form_metacells(svd_1, svd_2, 
                                       clustering_resolution = clustering_resolution,
                                       dims_1 = NA, dims_2 = NA,
                                       center_1 = T, center_2 = T,
@@ -59,10 +59,10 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
     # apply D-CCA to meta-cells
     msg <- " (meta-cells)"
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 1"))
-    mat_1_meta <- .compute_metamatrix(mat_1, meta_clustering, verbose)
+    mat_1_meta <- .compute_metamatrix(mat_1, metacell_clustering, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells for matrix 2"))
-    mat_2_meta <- .compute_metamatrix(mat_2, meta_clustering, verbose)
+    mat_2_meta <- .compute_metamatrix(mat_2, metacell_clustering, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
     cca_res <- .cca(mat_1_meta, mat_2_meta, dims_1 = dims_1, dims_2 = dims_2,
@@ -76,7 +76,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = cell_max,
-                            check_alignment = all(!is.na(meta_clustering)), 
+                            check_alignment = all(!is.na(metacell_clustering)), 
                             discretization_gridsize = discretization_gridsize,
                             fix_tilt_perc = fix_tilt_perc, 
                             metacell_clustering = metacell_clustering,

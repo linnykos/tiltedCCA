@@ -132,6 +132,7 @@ test_that("(Basic) dcca_factor works", {
   tmp <- compute_dcca_factor_ingredients()
   mat_1 <- tmp$mat_1
   mat_2 <- tmp$mat_2
+  K <- 2
   
   res <- dcca_factor(mat_1, mat_2, 
                      dims_1 = 1:K, dims_2 = 1:K, 
@@ -143,6 +144,7 @@ test_that("(Basic) dcca_factor works", {
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "tilt_perc",
+                                             "metacell_clustering",
                                              "df_percentage"))))
   expect_true(all(dim(res$common_score) == c(nrow(mat_1), 2)))
 })
@@ -185,7 +187,7 @@ test_that("(Basic) dcca_factor works with variable dimensions", {
   mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
   mat_2 <- mat_2 + matrix(rnorm(prod(dim(mat_2))), nrow = nrow(mat_2), ncol = ncol(mat_2))
   
-  res <- suppressWarnings(dcca_factor(mat_1, mat_2, dims_1 = 1:4, dims_2 = 2:3, verbose = F))
+  res <- dcca_factor(mat_1, mat_2, dims_1 = 1:4, dims_2 = 2:3, verbose = F)
   
   n <- nrow(mat_1)
   expect_true(is.list(res))
@@ -194,6 +196,7 @@ test_that("(Basic) dcca_factor works with variable dimensions", {
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "tilt_perc",
+                                             "metacell_clustering",
                                              "df_percentage"))))
   expect_true(all(dim(res$common_score) == c(n,2)))
   expect_true(all(dim(res$distinct_score_1) == c(n,4)))
@@ -229,6 +232,7 @@ test_that("(Coding) dcca_factor preserves rownames and colnames", {
   rownames(mat_1) <- paste0("a", 1:n); rownames(mat_2) <- paste0("a", 1:n)
   colnames(mat_1) <- paste0("b", 1:p1)
   colnames(mat_2) <- paste0("c", 1:p2)
+  K <- 2
   
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   
@@ -258,14 +262,27 @@ test_that("(Mat) dcca_factor is symmetric if the arguments are flipped", {
   tmp <- compute_dcca_factor_ingredients()
   mat_1 <- tmp$mat_1
   mat_2 <- tmp$mat_2
+  K <- 2
    
   set.seed(10)
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   set.seed(10)
-  res2 <- dcca_factor(mat_2, mat_1, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
+  res2 <- dcca_factor(mat_2, mat_1, dims_1 = 1:K, dims_2 = 1:K, verbose = F,
+                      metacell_clustering = res$metacell_clustering)
   
   expect_true(abs(res$tilt_perc - (1-res2$tilt_perc)) <= 1e-6)
-  expect_true(sum(abs(res$common_score - res2$common_score)) <= 1e-6)
+  
+  tmp1 <- res$common_score
+  tmp2 <- res2$common_score
+  for(j in 1:ncol(tmp1)){
+    if(sign(sum(tmp1[1:10,j])) != sign(sum(tmp2[1:10,j]))) {
+      tmp1[,j] <- -tmp1[,j]
+      res$distinct_score_1[,j] <- -res$distinct_score_1[,j]
+      res$distinct_score_2[,j] <- -res$distinct_score_2[,j]
+    }
+  }
+  
+  expect_true(sum(abs(tmp1 - tmp2)) <= 1e-6)
   expect_true(sum(abs(res$distinct_score_1 - res2$distinct_score_2)) <= 1e-6)
   expect_true(sum(abs(res$distinct_score_2 - res2$distinct_score_1)) <= 1e-6)
 })
