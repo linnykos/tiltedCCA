@@ -50,8 +50,8 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
     metacell_clustering <- form_metacells(svd_1, svd_2, 
                                       clustering_resolution = clustering_resolution,
                                       dims_1 = NA, dims_2 = NA,
-                                      center_1 = T, center_2 = T,
-                                      scale_1 = T, scale_2 = T,
+                                      center_1 = center_1, center_2 = center_2,
+                                      scale_1 = scale_1, scale_2 = scale_2,
                                       verbose = verbose)
   }
   

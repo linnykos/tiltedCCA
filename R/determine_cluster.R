@@ -5,7 +5,9 @@
   stopifnot(is.factor(metacell_clustering))
   
   n <- nrow(mat)
-  snn_mat <- .form_snn_mat(mat, num_neigh = num_neigh)
+  snn_mat <- .form_snn_mat(bool_intersect = T,
+                           mat = mat, 
+                           num_neigh = num_neigh)
   density_mat <- .compute_density_matrix(as.matrix(snn_mat),
                                          metacell_clustering = metacell_clustering)
   K <- length(levels(metacell_clustering))
@@ -22,7 +24,7 @@
   mean(quality_vec) * sum(snn_mat)/n
 }
 
-.form_snn_mat <- function(mat, num_neigh){
+.form_snn_mat <- function(bool_intersect, mat, num_neigh){
   stopifnot(num_neigh > 1)
   n <- nrow(mat)
   nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
@@ -37,7 +39,8 @@
                                     j = j_vec,
                                     x = rep(1, length(i_vec)),
                                     repr = "C")
-  sparse_mat <- sparse_mat * Matrix::t(sparse_mat)
+  
+  if(bool_intersect) sparse_mat <- sparse_mat * Matrix::t(sparse_mat)
   sparse_mat
 }
 
