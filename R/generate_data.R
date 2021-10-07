@@ -1,3 +1,23 @@
+# WARNING: currently requires the latent dimension to be same, ie: ncol(score_1) == ncol(score_2)
+#' Generate data
+#'
+#' @param svd_u_1 \code{n} by \code{rank_1} orthogonal matrix
+#' @param svd_u_2 \code{n} by \code{rank_2} orthogonal matrix
+#' @param svd_d_1 vector of length \code{rank_1}
+#' @param svd_d_2 vector of length \code{rank_2}
+#' @param svd_v_1 \code{p1} by \code{rank_1} orthogonal matrix
+#' @param svd_v_2 \code{p2} by \code{rank_2} orthogonal matrix
+#' @param num_neigh number of neighbors to consider to computed the common percentage 
+#' @param noise_val numeric for scalar of centered Gaussian noise
+#'
+#' @return list of outputs
+#' @export
+generate_data <- function(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2,
+                          num_neigh = max(round(nrow(svd_u_1)/20), 40), 
+                          noise_val = 1){
+  invisible()
+}
+
 form_seurat_obj <- function(mat_1, mat_2){
   stopifnot(nrow(mat_1) == nrow(mat_2))
   
