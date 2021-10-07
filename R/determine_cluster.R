@@ -18,6 +18,8 @@
                                          metacell_clustering = metacell_clustering)
   K <- length(levels(metacell_clustering))
   
+  print(density_mat)
+  
   quality_vec <- sapply(1:K, function(k){
     offdiag_mean <- mean(density_mat[k,-k])
     offdiag_sd <- sd(density_mat[k,-k])
@@ -26,6 +28,9 @@
     
     density_mat[k,k]/max(c(offdiag_mean-offdiag_sd, tol))
   })
+  
+  print(quality_vec)
+  print("===")
   
   mean(quality_vec) * sum(snn_mat)/n
 }

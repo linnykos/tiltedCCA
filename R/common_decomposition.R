@@ -99,6 +99,9 @@
   percentage_grid <- seq(0, 1, length.out = discretization_gridsize)
   value_vec <- rep(NA, discretization_gridsize)
   
+  print(table(metacell_clustering))
+  print(length(n_idx))
+  
   for(i in which(is.na(value_vec))){
     if(verbose) print(paste0(Sys.time(),": D-CCA : Evaluating percentage ", percentage_grid[i]))
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
@@ -159,6 +162,8 @@
                                              score_2,
                                              svd_1, 
                                              svd_2)
+  
+  print(head(common_mat))
   
   .determine_cluster(mat = common_mat, 
                      metacell_clustering = metacell_clustering,
