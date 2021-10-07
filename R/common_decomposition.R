@@ -114,10 +114,8 @@
                                      svd_2 = svd_2)
   }
   
-  print(value_vec)
   df <- data.frame(percentage = percentage_grid,
                    ratio_val = value_vec)
-  print(df)
   idx_min <- .select_minimum(x_val = percentage_grid,
                              y_val = value_vec)
   if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
@@ -170,9 +168,6 @@
 
 .select_minimum <- function(x_val, y_val){
   stopifnot(length(x_val) == length(y_val))
-  
-  print(x_val)
-  print(y_val)
   
   min_val <- min(y_val)
   min_idx <- which(y_val == min_val)

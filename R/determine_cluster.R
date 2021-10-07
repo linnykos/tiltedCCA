@@ -7,7 +7,7 @@
   
   if(length(n_idx) < nrow(mat)){
     mat <- mat[n_idx,,drop = F]
-    metacell_clustering <- as.factor(metacell_clustering[metacell_clustering])
+    metacell_clustering <- as.factor(metacell_clustering[n_idx])
   }
   
   n <- nrow(mat)
