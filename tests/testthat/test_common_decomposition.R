@@ -185,6 +185,7 @@ test_that("(Basic) .common_decomposition works", {
   res <- suppressWarnings(.common_decomposition(discretization_gridsize = 9,
                                                 fix_tilt_perc = F,
                                                 metacell_clustering = metacell_clustering,
+                                                n_idx = 1:nrow(score_1),
                                                 num_neigh = 30,
                                                 score_1 = score_1,
                                                 score_2 = score_2,
@@ -238,6 +239,7 @@ test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
     res1 <- .common_decomposition(discretization_gridsize = NA,
                                   fix_tilt_perc = T,
                                   metacell_clustering = metacell_clustering,
+                                  n_idx = 1:nrow(score_1),
                                   num_neigh = 30,
                                   score_1 = score_1,
                                   score_2 = score_2,
@@ -264,6 +266,7 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
   res <- .common_decomposition(discretization_gridsize = 9,
                                fix_tilt_perc = F,
                                metacell_clustering = metacell_clustering,
+                               n_idx = 1:nrow(score_1),
                                num_neigh = 30,
                                score_1 = score_1,
                                score_2 = score_2,
@@ -318,6 +321,7 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
     res <- .common_decomposition(discretization_gridsize = 9,
                                  fix_tilt_perc = F,
                                  metacell_clustering = metacell_clustering,
+                                 n_idx = 1:nrow(score_1),
                                  num_neigh = 30,
                                  score_1 = score_1,
                                  score_2 = score_2,
@@ -340,34 +344,74 @@ test_that(".compute_radian works", {
   circle <- .construct_circle(vec1, vec2)
   
   res <- .compute_radian(percentage_val = 0,
-                         vec1, vec2,
-                         circle)
+                         enforce_boundary = F,
+                         vec1 = vec1, vec2 = vec2,
+                         circle = circle)
   x_coord <- circle$center[1] + circle$radius*cos(res)
   y_coord <- circle$center[2] + circle$radius*sin(res)
   expect_true(sum(abs(vec2 - c(x_coord, y_coord))) <= 1e-6)
   
   res <- .compute_radian(percentage_val = 1,
-                         vec1, vec2,
-                         circle)
+                         enforce_boundary = F,
+                         vec1 = vec1, vec2 = vec2,
+                         circle = circle)
   x_coord <- circle$center[1] + circle$radius*cos(res)
   y_coord <- circle$center[2] + circle$radius*sin(res)
   expect_true(sum(abs(vec1 - c(x_coord, y_coord))) <= 1e-6)
   
   res <- .compute_radian(percentage_val = 0.5,
-                         vec1, vec2,
-                         circle)
+                         enforce_boundary = F,
+                         vec1 = vec1, vec2 = vec2,
+                         circle = circle)
   x_coord <- circle$center[1] + circle$radius*cos(res)
   y_coord <- circle$center[2] + circle$radius*sin(res)
   vec <- c(x_coord, y_coord)
   expect_true(abs(.l2norm(vec1 - vec) - .l2norm(vec2 - vec)) <= 1e-6)
   
   res <- .compute_radian(percentage_val = 0.3,
-                         vec1, vec2,
-                         circle)
+                         enforce_boundary = F,
+                         vec1 = vec1, vec2 = vec2,
+                         circle = circle)
   x_coord <- circle$center[1] + circle$radius*cos(res)
   y_coord <- circle$center[2] + circle$radius*sin(res)
   vec <- c(x_coord, y_coord)
   expect_true(.l2norm(vec1 - vec) > .l2norm(vec2 - vec))
+})
+
+test_that(".compute_radian always the same value for enforce_boundary = T if vec1 and vec2 are orthogonal", {
+  vec1 <- c(1, 0)
+  vec2 <- c(0,1)
+  circle <- .construct_circle(vec1, vec2)
+  
+  percentage_vec <- seq(0, 1, length.out = 5)
+  vec <- sapply(percentage_vec, function(percentage){
+    .compute_radian(percentage_val = percentage,
+                    enforce_boundary = T,
+                    vec1 = vec1, vec2 = vec2,
+                    circle = circle)
+  })
+  
+  expect_true(abs(diff(range(vec))) <= 1e-6)
+})
+
+test_that(".compute_radian returns the correct radian when enforce_boundary = T", {
+  vec1 <- c(1, 0)
+  vec2 <- c(1/sqrt(2), 1/sqrt(2))
+  circle <- .construct_circle(vec1, vec2)
+  
+  res <- .compute_radian(percentage_val = 1,
+                         enforce_boundary = T,
+                         vec1 = vec1, vec2 = vec2,
+                         circle = circle)
+  vec <- .position_from_circle(circle, res)
+  expect_true(abs(t(vec) %*% vec1 / (.l2norm(vec) * .l2norm(vec1)) - 1) <= 1e-6)
+
+  res <- .compute_radian(percentage_val = 0,
+                         enforce_boundary = T,
+                         vec1 = vec1, vec2 = vec2,
+                         circle = circle)
+  vec <- .position_from_circle(circle, res)
+  expect_true(abs(t(vec) %*% vec2 / (.l2norm(vec) * .l2norm(vec2)) - 1) <= 1e-6)
 })
 
 #####################

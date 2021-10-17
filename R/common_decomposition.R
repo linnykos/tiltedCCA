@@ -139,10 +139,11 @@
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
-    .compute_radian(percentage, 
+    .compute_radian(circle = circle_list[[k]],
+                    enforce_boundary = T,
+                    percentage_val = percentage, 
                     vec1 = basis_list[[k]]$rep1,
-                    vec2 = basis_list[[k]]$rep2,
-                    circle = circle_list[[k]])
+                    vec2 = basis_list[[k]]$rep2)
   })
   
   common_representation <- sapply(1:r, function(k){
@@ -191,22 +192,42 @@
 
 ############################################
 
-.compute_radian <- function(percentage_val, 
+.compute_radian <- function(circle,
+                            enforce_boundary,
+                            percentage_val, 
                             vec1,
-                            vec2,
-                            circle){
+                            vec2){
   stopifnot(percentage_val >= 0, percentage_val <= 1,
             is.list(circle),
             all(sort(names(circle)) == sort(c("center", "radius"))),
             abs(.l2norm(circle$center - vec1) - circle$radius) <= 1e-6,
             abs(.l2norm(circle$center - vec2) - circle$radius) <= 1e-6)
   
-  rad1 <- .find_radian(circle, vec1)
-  rad2 <- .find_radian(circle, vec2)
-  stopifnot(rad1 < 0 & rad2 > 0) # must be true based on how we constructed vec1 and vec2
+  if(!enforce_boundary){
+    rad1 <- .find_radian(circle, vec1)
+    rad2 <- .find_radian(circle, vec2)
+    stopifnot(rad1 < 0 & rad2 > 0) # must be true based on how we constructed vec1 and vec2
+    rad1 <- rad1 + 2*pi # to ensure rad1 is larger than rad2
+  } else {
+    stopifnot(abs(vec1[2]) <= 1e-6,
+              circle$radius >= circle$center[2] - 1e-6) # must be true based on how we constructed vec1
+    position1 <- circle$center[1] - sqrt(circle$radius^2 - circle$center[2]^2) 
+    rad1 <- .find_radian(circle, c(position1, 0))
+    if(rad1 < 0) rad1 <- rad1 + 2*pi
+    
+    inner_rad <- atan(circle$center[1]/circle$center[2])
+    if(inner_rad < 0) inner_rad <- inner_rad + 2*pi
+    radmid <- 3*pi/2 - inner_rad
+    if(abs(rad1 - radmid) <= 1e-6) return(rad1)
+    
+    stopifnot(rad1 >= radmid)
+    rad2 <- radmid - (rad1 - radmid)
+    
+    stopifnot(rad1 >= rad2)
+  }
   
-  rad1 <- rad1 + 2*pi # to ensure rad1 is larger than rad2
-  rad2 + (rad1 - rad2)*percentage_val
+  tmp <- rad2 + (rad1 - rad2)*percentage_val
+  tmp
 }
 
 .convert_common_score_to_mat <- function(common_score,
