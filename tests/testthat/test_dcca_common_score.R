@@ -136,7 +136,8 @@ compute_dcca_common_score_ingredients <- function(setting = 1){
        svd_1 = svd_1, 
        svd_2 = svd_2,
        mat_1 = mat_1,
-       mat_2 = mat_2)
+       mat_2 = mat_2,
+       metacell_clustering = as.factor(true_membership_vec))
 }
 
 
@@ -147,23 +148,25 @@ test_that("(Basic) .dcca_common_score works", {
   tmp <- compute_dcca_common_score_ingredients()
   cca_res <- tmp$cca_res; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; mat_1 <- tmp$mat_1
-  mat_2 <- tmp$mat_2
+  mat_2 <- tmp$mat_2; metacell_clustering <- tmp$metacell_clustering
   
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = nrow(mat_1),
                             check_alignment = T, 
                             discretization_gridsize = 9,
                             fix_tilt_perc = F, 
+                            metacell_clustering = metacell_clustering,
+                            num_neigh = 30,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
-                            trials = 20,
                             verbose = F)
   
   expect_true(is.list(res))
   expect_true(all(sort(names(res)) == sort(c("common_score", "svd_1", "svd_2", 
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
-                                             "distinct_score_2", "distinct_perc_2"))))
+                                             "distinct_score_2", "df_percentage",
+                                             "metacell_clustering", "tilt_perc"))))
   expect_true(all(dim(res$common_score) == c(nrow(mat_1), 2)))
 })
 
@@ -190,9 +193,10 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
                             check_alignment = T, 
                             discretization_gridsize = 9,
                             fix_tilt_perc = F, 
+                            metacell_clustering = metacell_clustering,
+                            num_neigh = 30,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
-                            trials = 20,
                             verbose = F)
   
   expect_true(all(rownames(mat_1) == rownames(res$common_score)))
@@ -215,9 +219,10 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
                               check_alignment = T, 
                               discretization_gridsize = 9,
                               fix_tilt_perc = F, 
+                              metacell_clustering = metacell_clustering,
+                              num_neigh = 30,
                               svd_1 = svd_1, 
                               svd_2 = svd_2, 
-                              trials = 20,
                               verbose = F)
     
     prod_mat <- t(res$distinct_score_1) %*% res$distinct_score_2

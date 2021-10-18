@@ -145,7 +145,8 @@ test_that("(Basic) dcca_factor works", {
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "tilt_perc",
                                              "metacell_clustering",
-                                             "df_percentage"))))
+                                             "df_percentage",
+                                             "consensus_pca_mat"))))
   expect_true(all(dim(res$common_score) == c(nrow(mat_1), 2)))
 })
 
@@ -197,6 +198,7 @@ test_that("(Basic) dcca_factor works with variable dimensions", {
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "tilt_perc",
                                              "metacell_clustering",
+                                             "consensus_pca_mat",
                                              "df_percentage"))))
   expect_true(all(dim(res$common_score) == c(n,2)))
   expect_true(all(dim(res$distinct_score_1) == c(n,4)))
