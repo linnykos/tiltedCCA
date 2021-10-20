@@ -1,31 +1,32 @@
 .determine_cluster <- function(mat,
-                               metacell_clustering,
+                               metacell_clustering_1,
+                               metacell_clustering_2,
                                n_idx,
                                num_neigh,
                                tol = 1e-3){
-  stopifnot(is.factor(metacell_clustering), length(metacell_clustering) == nrow(mat))
+  stopifnot(is.list(metacell_clustering_1), 
+            is.list(metacell_clustering_2), 
+            length(metacell_clustering_1) == nrow(mat),
+            length(metacell_clustering_2) == nrow(mat))
   
   if(length(n_idx) < nrow(mat)){
     mat <- mat[n_idx,,drop = F]
-    metacell_clustering <- as.factor(metacell_clustering[n_idx])
+    metacell_clustering_1 <- metacell_clustering_1[n_idx]
+    metacell_clustering_2 <- metacell_clustering_2[n_idx]
   }
   
   n <- nrow(mat)
   snn_mat <- .form_snn_mat(bool_intersect = T,
                            mat = mat, 
                            num_neigh = num_neigh)
-  density_mat <- .compute_density_matrix(as.matrix(snn_mat),
-                                         metacell_clustering = metacell_clustering)
-  K <- length(levels(metacell_clustering))
-
-  quality_vec <- sapply(1:K, function(k){
-    offdiag_mean <- mean(density_mat[k,-k])
-    offdiag_sd <- sd(density_mat[k,-k])
- 
-    density_mat[k,k]/max(c(offdiag_mean-offdiag_sd, tol))
+  nn_idx_list <- lapply(1:nrow(snn_mat), function(i){
+    .nonzero_col(snn_mat, col_idx = i, bool_value = F)
   })
-
-  mean(quality_vec) * sum(snn_mat)/n
+  overlap_1 <- .compute_set_inclusion(list_1 = metacell_clustering_1,
+                                      list_2 = nn_idx_list)
+  overlap_2 <- .compute_set_inclusion(list_1 = metacell_clustering_2,
+                                      list_2 = nn_idx_list)
+  min(overlap_1, overlap_2)
 }
 
 .form_snn_mat <- function(bool_intersect, mat, num_neigh){
@@ -48,28 +49,13 @@
   sparse_mat
 }
 
-.compute_density_matrix <- function(mat, 
-                                    metacell_clustering){
-  diag(mat) <- 0
-  level_vec <- levels(metacell_clustering)
-  idx_list <- lapply(level_vec, function(clust){
-    which(metacell_clustering == clust)
+.compute_set_inclusion <- function(list_1, list_2){
+  stopifnot(is.list(list_1), is.list(list_2), length(list_1) == length(list_2))
+  
+  n <- length(list_1)
+  overlap_vec <- sapply(1:n, function(i){
+    length(intersect(list_1[[i]], list_2[[i]]))/length(unique(c(list_1[[i]], list_2[[i]])))
   })
   
-  col_sum_mat <- sapply(1:length(level_vec), function(k){
-    matrixStats::rowSums2(mat[,idx_list[[k]],drop = F])
-  })
-  
-  sum_mat <- sapply(1:length(level_vec), function(k){
-    matrixStats::colSums2(col_sum_mat[idx_list[[k]],,drop = F])
-  })
-  
-  len_vec <- sapply(idx_list, length)
-  len_mat <- tcrossprod(len_vec)
-  
-  density_mat <- sum_mat/len_mat
-  
-  rownames(density_mat) <- level_vec
-  colnames(density_mat) <- level_vec
-  density_mat
+  mean(overlap_vec)
 }

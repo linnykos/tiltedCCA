@@ -2,7 +2,8 @@
 # is in modality 1, not modality 2
 .common_decomposition <- function(discretization_gridsize,
                                   fix_tilt_perc,
-                                  metacell_clustering,
+                                  metacell_clustering_1,
+                                  metacell_clustering_2,
                                   n_idx,
                                   num_neigh,
                                   score_1,
@@ -25,13 +26,16 @@
     .construct_circle(vec1, vec2)
   })
   
+  # [[TODO: Format metacell_clustering_1 and metacell_clustering_2 from factor to list]]
+  
   if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
       basis_list = basis_list,
       circle_list = circle_list,
       discretization_gridsize = discretization_gridsize,
-      metacell_clustering = metacell_clustering,
+      metacell_clustering_1 = metacell_clustering_1,
+      metacell_clustering_2 = metacell_clustering_2,
       n_idx = n_idx,
       num_neigh = num_neigh,
       score_1 = score_1,
@@ -57,7 +61,8 @@
   common_score <- .evaluate_radian(
     basis_list = basis_list, 
     circle_list = circle_list,
-    metacell_clustering = metacell_clustering,
+    metacell_clustering_1 = metacell_clustering_1,
+    metacell_clustering_2 = metacell_clustering_2,
     num_neigh = num_neigh,
     percentage = tilt_perc,
     return_common_score = T,
@@ -79,7 +84,8 @@
 .search_tilt_perc <- function(basis_list,
                               circle_list,
                               discretization_gridsize,
-                              metacell_clustering,
+                              metacell_clustering_1,
+                              metacell_clustering_2,
                               n_idx,
                               num_neigh,
                               score_1,
@@ -103,7 +109,8 @@
     if(verbose) print(paste0(Sys.time(),": D-CCA : Evaluating percentage ", percentage_grid[i]))
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
-                                     metacell_clustering = metacell_clustering,
+                                     metacell_clustering_1 = metacell_clustering_1,
+                                     metacell_clustering_2 = metacell_clustering_2,
                                      n_idx = n_idx,
                                      num_neigh = num_neigh,
                                      percentage = percentage_grid[i],
@@ -116,7 +123,8 @@
   
   df <- data.frame(percentage = percentage_grid,
                    ratio_val = value_vec)
-  idx_min <- .select_minimum(x_val = percentage_grid,
+  idx_min <- .select_minimum(minimum = T,
+                             x_val = percentage_grid,
                              y_val = value_vec)
   if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
   
@@ -127,7 +135,8 @@
 
 .evaluate_radian <- function(basis_list, 
                              circle_list,
-                             metacell_clustering,
+                             metacell_clustering_1,
+                             metacell_clustering_2,
                              n_idx,
                              num_neigh,
                              percentage,
@@ -162,13 +171,16 @@
                                              svd_2)
 
   .determine_cluster(mat = common_mat, 
-                     metacell_clustering = metacell_clustering,
+                     metacell_clustering_1 = metacell_clustering_1,
+                     metacell_clustering_2 = metacell_clustering_2,
                      n_idx = n_idx,
                      num_neigh = num_neigh)
 }
 
-.select_minimum <- function(x_val, y_val){
+.select_minimum <- function(minimum, x_val, y_val){
   stopifnot(length(x_val) == length(y_val))
+  
+  if(!minimum) y_val <- -y_val
   
   min_val <- min(y_val)
   min_idx <- which(y_val == min_val)

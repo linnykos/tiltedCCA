@@ -29,7 +29,8 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                         discretization_gridsize = 9, 
                         fix_tilt_perc = F, 
                         form_meta_matrix = F,
-                        metacell_clustering = NA,
+                        metacell_clustering_1 = NA,
+                        metacell_clustering_2 = NA,
                         num_neigh = min(30, round(nrow(mat_1)/20)),
                         verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
@@ -47,29 +48,19 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
   
-  if(all(is.na(metacell_clustering))){
-    if(verbose) print(paste0(Sys.time(),": D-CCA: Constructing meta-cells"))
-    tmp <- form_metacells(svd_1, svd_2, 
-                          clustering_resolution = clustering_resolution,
-                          consensus_cosine_normalization = consensus_cosine_normalization,
-                          dims_1 = NA, dims_2 = NA,
-                          center_1 = center_1, center_2 = center_2,
-                          scale_1 = scale_1, scale_2 = scale_2,
-                          verbose = verbose)
-    metacell_clustering <- tmp$metacell_clustering
-    consensus_pca_mat <- tmp$matrix_used
-  } else {
-    consensus_pca_mat <- NA
-  }
+  stopifnot(is.factor(metacell_clustering_1) | is.list(metacell_clustering_1),
+            is.factor(metacell_clustering_2) | is.list(metacell_clustering_2),
+            length(metacell_clustering_1) == nrow(mat_1),
+            length(metacell_clustering_2) == nrow(mat_2))
   
-  if(form_meta_matrix){
+  if(form_meta_matrix & is.factor(metacell_clustering_1) & is.factor(metacell_clustering_2)){
     # apply D-CCA to meta-cells
     msg <- " (meta-cells)"
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells matrix 1"))
-    mat_1_meta <- .compute_metamatrix(mat_1, metacell_clustering, verbose)
+    mat_1_meta <- .compute_metamatrix(mat_1, metacell_clustering_1, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells matrix 2"))
-    mat_2_meta <- .compute_metamatrix(mat_2, metacell_clustering, verbose)
+    mat_2_meta <- .compute_metamatrix(mat_2, metacell_clustering_2, verbose)
     
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
     cca_res <- .cca(mat_1_meta, mat_2_meta, dims_1 = dims_1, dims_2 = dims_2,
@@ -86,7 +77,8 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             check_alignment = all(!is.na(metacell_clustering)), 
                             discretization_gridsize = discretization_gridsize,
                             fix_tilt_perc = fix_tilt_perc, 
-                            metacell_clustering = metacell_clustering,
+                            metacell_clustering_1 = metacell_clustering_1,
+                            metacell_clustering_2 = metacell_clustering_2,
                             num_neigh = num_neigh,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 

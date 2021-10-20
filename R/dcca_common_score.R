@@ -26,7 +26,8 @@
                                check_alignment, 
                                discretization_gridsize,
                                fix_tilt_perc, 
-                               metacell_clustering,
+                               metacell_clustering_1,
+                               metacell_clustering_2,
                                num_neigh,
                                svd_1, 
                                svd_2, 
@@ -65,7 +66,8 @@
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
                                fix_tilt_perc = fix_tilt_perc,
-                               metacell_clustering = metacell_clustering,
+                               metacell_clustering_1 = metacell_clustering_1,
+                               metacell_clustering_2 = metacell_clustering_2,
                                n_idx = n_idx,
                                num_neigh = num_neigh,
                                score_1 = score_1,
@@ -89,7 +91,8 @@
        svd_1 = svd_1, svd_2 = svd_2, 
        cca_obj = obj_vec, 
        df_percentage = df_percentage,
-       metacell_clustering = metacell_clustering,
+       metacell_clustering_1 = metacell_clustering_1,
+       metacell_clustering_2 = metacell_clustering_2,
        tilt_perc = tilt_perc
        )
 }
