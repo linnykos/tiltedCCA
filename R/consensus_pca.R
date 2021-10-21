@@ -4,7 +4,7 @@ consensus_pca <- function(input_1, input_2,
                           scale_1 = T, scale_2 = T,
                           consensus_cosine_normalization = T,
                           weight_1 = 0.5, 
-                          verbose = T){
+                          verbose = F){
   stopifnot(weight_1 == FALSE || weight_1 >= 0, weight_1 <= 1)
   
   if(!is.list(input_1) & !is.list(input_2)){
@@ -30,8 +30,8 @@ consensus_pca <- function(input_1, input_2,
   }
   
   if(weight_1 != FALSE){
-    svd_1$d <- svd_1$d/svd_1$d[1]*sqrt(n)*weight_1
-    svd_2$d <- svd_2$d/svd_2$d[1]*sqrt(n)*(1-weight_1)
+    svd_1$d <- svd_1$d/svd_1$d[1]*sqrt(n)
+    svd_2$d <- svd_2$d/svd_2$d[1]*sqrt(n)
   }
 
   mat_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
@@ -48,7 +48,12 @@ consensus_pca <- function(input_1, input_2,
     mat_2 <- .mult_vec_mat(l2_vec_2, mat_2)
   }
   
-  pca_mat <- cbind(mat_1, mat_2)
+  if(weight_1 != FALSE){
+    pca_mat <- cbind(mat_1*weight_1, mat_2*(1-weight_1))
+  } else{
+    pca_mat <- cbind(mat_1, mat_2)
+  }
+ 
   
   if(length(rownames(svd_1$u)) != 0) rownames(pca_mat) <- rownames(svd_1$u)
   
