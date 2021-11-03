@@ -43,6 +43,7 @@
   sparse_mat <- Matrix::sparseMatrix(i = i_vec,
                                     j = j_vec,
                                     x = rep(1, length(i_vec)),
+                                    dims = c(n,n),
                                     repr = "C")
   
   if(bool_intersect) sparse_mat <- sparse_mat * Matrix::t(sparse_mat)
@@ -54,6 +55,9 @@
   
   n <- length(list_1)
   overlap_vec <- sapply(1:n, function(i){
+    # [[note to self: add a test for this corner case]]
+    if(length(list_1[[i]]) == 0 && length(list_2[[i]]) == 0) return(0)
+    
     length(intersect(list_1[[i]], list_2[[i]]))/length(unique(c(list_1[[i]], list_2[[i]])))
   })
   

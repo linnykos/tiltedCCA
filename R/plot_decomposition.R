@@ -1,6 +1,10 @@
 plot_decomposition_2d <- function(vec1, vec2, common_vec, 
                                   gridsize = 100, col_levels = 21, 
-                                  renormalize = T, ...){
+                                  plot_bg = T,
+                                  renormalize = T, 
+                                  xlim = range(c(0, 1.1*c(vec1, vec2, common_vec))),
+                                  ylim = range(c(0, 1.1*c(vec1, vec2, common_vec))), 
+                                  ...){
   if(renormalize){
     scalar <- .l2norm(vec1);
     vec1 <- vec1/scalar; vec2 <- vec2/scalar; common_vec <- common_vec/scalar
@@ -14,7 +18,11 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
   
   .plot_decomposition_2d_inner(rep_vec1, rep_vec2, rep_common,
                                gridsize = gridsize,
-                               col_levels = col_levels, ...)
+                               col_levels = col_levels, 
+                               plot_bg = plot_bg, 
+                               xlim = xlim,
+                               ylim = ylim,
+                               ...)
 }
 
 #################3
@@ -23,7 +31,8 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
 .plot_decomposition_2d_inner <- function(vec1, vec2, common_vec,
                                   xlim = range(c(0, 1.1*c(vec1, vec2, common_vec))),
                                   ylim = range(c(0, 1.1*c(vec1, vec2, common_vec))), 
-                                  gridsize = 100, col_levels = 21, ...){
+                                  gridsize = 100, col_levels = 21,
+                                  plot_bg = T, ...){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
   
@@ -47,9 +56,11 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
                rev(grDevices::hcl.colors(side_length, palette = "OrRd")))
   graphics::plot(NA, xlim = range(x_seq), ylim = range(y_seq), 
                  asp = T, ...)
-  graphics::.filled.contour(x = x_seq, y = y_seq,
-                            z = mat, levels = c(rev(seq(0, -max_val, length.out = side_length+2)[-1]), seq(0, max_val, length.out = side_length+2)[-1]),
-                            col = col_vec)
+  if(plot_bg){
+    graphics::.filled.contour(x = x_seq, y = y_seq,
+                              z = mat, levels = c(rev(seq(0, -max_val, length.out = side_length+2)[-1]), seq(0, max_val, length.out = side_length+2)[-1]),
+                              col = col_vec)
+  }
   graphics::arrows(x0 = 0, y0 = 0, x1 = common_vec[1], y1 = common_vec[2], length = 0.1, col = "white", lwd = 3)
   graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec1[1], y1 = vec1[2], length = 0.1, col = "white", lwd = 3)
   graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec2[1], y1 = vec2[2], length = 0.1, col = "white", lwd = 3)

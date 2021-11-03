@@ -58,6 +58,7 @@
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
   
+  # [[note to self: Can .search_tilt_perc return the common score so I don't need to recompute it?]]
   common_score <- .evaluate_radian(
     basis_list = basis_list, 
     circle_list = circle_list,
@@ -123,7 +124,7 @@
   
   df <- data.frame(percentage = percentage_grid,
                    ratio_val = value_vec)
-  idx_min <- .select_minimum(minimum = T,
+  idx_min <- .select_minimum(minimum = F,
                              x_val = percentage_grid,
                              y_val = value_vec)
   if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
@@ -179,7 +180,6 @@
 
 .select_minimum <- function(minimum, x_val, y_val){
   stopifnot(length(x_val) == length(y_val))
-  
   if(!minimum) y_val <- -y_val
   
   min_val <- min(y_val)

@@ -24,7 +24,6 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                         center_1 = T, center_2 = T,
                         scale_1 = T, scale_2 = T,
                         cell_max = nrow(mat_1),
-                        clustering_resolution = 1,
                         consensus_cosine_normalization = T,
                         discretization_gridsize = 9, 
                         fix_tilt_perc = F, 
@@ -74,7 +73,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = cell_max,
-                            check_alignment = all(!is.na(metacell_clustering)), 
+                            check_alignment = all(!is.na(metacell_clustering_1)), 
                             discretization_gridsize = discretization_gridsize,
                             fix_tilt_perc = fix_tilt_perc, 
                             metacell_clustering_1 = metacell_clustering_1,
@@ -84,8 +83,17 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             svd_2 = svd_2, 
                             verbose = verbose, msg = msg)
   
+  param_list <- list(center_1 = center_1, center_2 = center_2,
+                     scale_1 = scale_1, scale_2 = scale_2,
+                     cell_max = cell_max,
+                     consensus_cosine_normalization = consensus_cosine_normalization,
+                     discretization_gridsize = discretization_gridsize, 
+                     fix_tilt_perc = fix_tilt_perc, 
+                     form_meta_matrix = form_meta_matrix,
+                     num_neigh = num_neigh)
+  res$param_list <- param_list
+  
   class(res) <- "dcca"
-  res$consensus_pca_mat <- consensus_pca_mat
   res
 }
 
