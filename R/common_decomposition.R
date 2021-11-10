@@ -1,6 +1,7 @@
 # a tilt_perc near-0 means that most of the distinct information
 # is in modality 1, not modality 2
 .common_decomposition <- function(discretization_gridsize,
+                                  enforce_boundary,
                                   fix_tilt_perc,
                                   metacell_clustering_1,
                                   metacell_clustering_2,
@@ -33,6 +34,7 @@
     tmp <- .search_tilt_perc(
       basis_list = basis_list,
       circle_list = circle_list,
+      enforce_boundary = enforce_boundary,
       discretization_gridsize = discretization_gridsize,
       metacell_clustering_1 = metacell_clustering_1,
       metacell_clustering_2 = metacell_clustering_2,
@@ -62,6 +64,7 @@
   common_score <- .evaluate_radian(
     basis_list = basis_list, 
     circle_list = circle_list,
+    enforce_boundary = enforce_boundary,
     metacell_clustering_1 = metacell_clustering_1,
     metacell_clustering_2 = metacell_clustering_2,
     num_neigh = num_neigh,
@@ -150,7 +153,7 @@
   
   radian_vec <- sapply(1:r, function(k){
     .compute_radian(circle = circle_list[[k]],
-                    enforce_boundary = T,
+                    enforce_boundary = enforce_boundary,
                     percentage_val = percentage, 
                     vec1 = basis_list[[k]]$rep1,
                     vec2 = basis_list[[k]]$rep2)

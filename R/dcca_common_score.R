@@ -25,6 +25,7 @@
                                cell_max,
                                check_alignment, 
                                discretization_gridsize,
+                               enforce_boundary,
                                fix_tilt_perc, 
                                metacell_clustering_1,
                                metacell_clustering_2,
@@ -65,6 +66,7 @@
   # [[note to self: use these n_idx somehow]]
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
+                               enforce_boundary = enforce_boundary,
                                fix_tilt_perc = fix_tilt_perc,
                                metacell_clustering_1 = metacell_clustering_1,
                                metacell_clustering_2 = metacell_clustering_2,

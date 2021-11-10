@@ -96,6 +96,7 @@ plot_embeddings2 <- function(dcca_obj,
   }
   
   # run Seurat::RunUMAP.Default on the everything
+  #[[note to self: If I'm using something like signac, shouldn't there be a normalization here?]]
   list_output[[3]] <- Seurat::RunUMAP(everything_embedding, 
                                       metric = metric, 
                                       verbose = verbose, 
