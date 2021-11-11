@@ -144,9 +144,9 @@ test_that("(Basic) dcca_factor works", {
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "tilt_perc",
-                                             "metacell_clustering",
-                                             "df_percentage",
-                                             "consensus_pca_mat"))))
+                                             "metacell_clustering_1",
+                                             "metacell_clustering_2", "param_list",
+                                             "df_percentage"))))
   expect_true(all(dim(res$common_score) == c(nrow(mat_1), 2)))
 })
 
@@ -197,8 +197,8 @@ test_that("(Basic) dcca_factor works with variable dimensions", {
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "tilt_perc",
-                                             "metacell_clustering",
-                                             "consensus_pca_mat",
+                                             "metacell_clustering_1",
+                                             "metacell_clustering_2", "param_list",
                                              "df_percentage"))))
   expect_true(all(dim(res$common_score) == c(n,2)))
   expect_true(all(dim(res$distinct_score_1) == c(n,4)))
@@ -211,6 +211,7 @@ test_that("(Basic) dcca_factor works with a sparse matrix", {
   mat_1 <- tmp$mat_1
   mat_2 <- tmp$mat_2
   
+  n <- nrow(mat_1)
   mat_1[sample(1:prod(dim(mat_1)),1300)] <- 0
   mat_1 <- Matrix::Matrix(mat_1, sparse = T)
   mat_2[sample(1:prod(dim(mat_2)),1300)] <- 0
@@ -259,7 +260,7 @@ test_that("(Coding) dcca_factor preserves rownames and colnames", {
   expect_true(all(colnames(mat_2) == rownames(res$svd_2$v)))
 })
 
-test_that("(Mat) dcca_factor is symmetric if the arguments are flipped", {
+test_that("(Math) dcca_factor is symmetric if the arguments are flipped", {
   set.seed(5)
   tmp <- compute_dcca_factor_ingredients()
   mat_1 <- tmp$mat_1
@@ -269,8 +270,7 @@ test_that("(Mat) dcca_factor is symmetric if the arguments are flipped", {
   set.seed(10)
   res <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   set.seed(10)
-  res2 <- dcca_factor(mat_2, mat_1, dims_1 = 1:K, dims_2 = 1:K, verbose = F,
-                      metacell_clustering = res$metacell_clustering)
+  res2 <- dcca_factor(mat_2, mat_1, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
   
   expect_true(abs(res$tilt_perc - (1-res2$tilt_perc)) <= 1e-6)
   
