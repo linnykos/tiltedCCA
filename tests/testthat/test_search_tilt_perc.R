@@ -21,6 +21,10 @@ compute_search_tilt_perc_ingredients <- function(setting = 1){
     
     mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1)
     mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
+    
+    metacell_clustering_1 <- factor(membership_vec)
+    metacell_clustering_2 <- factor(rep("A", n))
+    
   } else if(setting == 2){
     # setting 2 is where both modalities are the same
     n_each <- 100
@@ -56,6 +60,9 @@ compute_search_tilt_perc_ingredients <- function(setting = 1){
     
     mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
     mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
+    
+    metacell_clustering_1 <- factor(true_membership_vec)
+    metacell_clustering_2 <- factor(true_membership_vec)
   } else if(setting == 3){
     # setting 3 is where modality 2 has information, but not as much
     n_each <- 100
@@ -87,6 +94,9 @@ compute_search_tilt_perc_ingredients <- function(setting = 1){
     
     mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
     mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
+    
+    metacell_clustering_1 <- factor(c(rep("A", 2*n_each), rep("B", n_each)))
+    metacell_clustering_2 <- factor(c(rep("A", n_each), rep("B", n_each), rep("A", n_each)))
   } else {
     # setting 4 is two modalities with high distinct information
     n_each <- 100
@@ -118,6 +128,10 @@ compute_search_tilt_perc_ingredients <- function(setting = 1){
     
     mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
     mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
+    
+    metacell_clustering_1 <- factor(c(rep("A", 2*n_each), rep("B", 2*n_each)))
+    metacell_clustering_2 <- factor(c(rep("A", n_each), rep("B", n_each), 
+                                      rep("A", n_each), rep("B", n_each)))
   }
   
   svd_1 <- .svd_truncated(mat_1, K = 2, symmetric = F, rescale = F, 
@@ -145,7 +159,8 @@ compute_search_tilt_perc_ingredients <- function(setting = 1){
     .construct_circle(vec1, vec2)
   })
   
-  list(metacell_clustering = as.factor(true_membership_vec),
+  list(metacell_clustering_1 = metacell_clustering_1,
+       metacell_clustering_2 = metacell_clustering_2,
        score_1 = score_1,
        score_2 = score_2,
        svd_1 = svd_1,
@@ -163,13 +178,16 @@ test_that(".search_tilt_perc works", {
   basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   
   discretization_gridsize <- 9
   res <- .search_tilt_perc(basis_list = basis_list,
                            circle_list = circle_list,
                            discretization_gridsize = discretization_gridsize,
-                           metacell_clustering = metacell_clustering,
+                           enforce_boundary = T,
+                           metacell_clustering_1 = metacell_clustering_1,
+                           metacell_clustering_2 = metacell_clustering_2,
                            n_idx = 1:nrow(score_1),
                            num_neigh = 30,
                            score_1 = score_1,
@@ -191,11 +209,14 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   circle_list <- tmp$circle_list; basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   res <- .search_tilt_perc(basis_list = basis_list,
                            circle_list = circle_list,
                            discretization_gridsize = 9,
-                           metacell_clustering = metacell_clustering,
+                           enforce_boundary = T,
+                           metacell_clustering_1 = metacell_clustering_1,
+                           metacell_clustering_2 = metacell_clustering_2,
                            n_idx = 1:nrow(score_1),
                            num_neigh = 30,
                            score_1 = score_1,
@@ -209,11 +230,14 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   circle_list <- tmp$circle_list; basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   res <- .search_tilt_perc(basis_list = basis_list,
                            circle_list = circle_list,
                            discretization_gridsize = 9,
-                           metacell_clustering = metacell_clustering,
+                           enforce_boundary = T,
+                           metacell_clustering_1 = metacell_clustering_1,
+                           metacell_clustering_2 = metacell_clustering_2,
                            n_idx = 1:nrow(score_1),
                            num_neigh = 30,
                            score_1 = score_1,
@@ -227,11 +251,14 @@ test_that(".search_tilt_perc gives reasonable values across different settings",
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   circle_list <- tmp$circle_list; basis_list <- tmp$basis_list
   svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   res <- .search_tilt_perc(basis_list = basis_list,
                            circle_list = circle_list,
                            discretization_gridsize = 9,
-                           metacell_clustering = metacell_clustering,
+                           enforce_boundary = T,
+                           metacell_clustering_1 = metacell_clustering_1,
+                           metacell_clustering_2 = metacell_clustering_2,
                            n_idx = 1:nrow(score_1),
                            num_neigh = 30,
                            score_1 = score_1,

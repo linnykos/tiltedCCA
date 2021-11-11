@@ -14,6 +14,9 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
     svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)[,1:2]
     svd_u_2 <- multiomicCCA::generate_random_orthogonal(n, 2, centered = T)
     
+    metacell_clustering_1 <- factor(membership_vec)
+    metacell_clustering_2 <- factor(rep("A", n))
+    
     p_1 <- 20; p_2 <- 40
     svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
     svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
@@ -21,6 +24,7 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
     
     mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1)
     mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
+    
   } else if(setting == 2){
     # setting 2 is where both modalities are the same
     n_each <- 100
@@ -44,6 +48,9 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
         MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
       }
     }))
+    
+    metacell_clustering_1 <- factor(true_membership_vec)
+    metacell_clustering_2 <- factor(true_membership_vec)
     
     mat_1 <- scale(mat_1, center = T, scale = F)
     mat_2 <- scale(mat_2, center = T, scale = F)
@@ -76,6 +83,9 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
       }
     }))
     
+    metacell_clustering_1 <- factor(c(rep("A", 2*n_each), rep("B", n_each)))
+    metacell_clustering_2 <- factor(c(rep("A", n_each), rep("B", n_each), rep("A", n_each)))
+    
     mat_1 <- scale(mat_1, center = T, scale = F)
     mat_2 <- scale(mat_2, center = T, scale = F)
     svd_1 <- svd(mat_1)
@@ -106,6 +116,11 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
         MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
       }
     }))
+    
+    metacell_clustering_1 <- factor(c(rep("A", 2*n_each), rep("B", 2*n_each)))
+    metacell_clustering_2 <- factor(c(rep("A", n_each), rep("B", n_each), 
+                                      rep("A", n_each), rep("B", n_each)))
+    
     
     mat_1 <- scale(mat_1, center = T, scale = F)
     mat_2 <- scale(mat_2, center = T, scale = F)
@@ -147,9 +162,10 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
   })
   
   list(basis_list = basis_list, 
-       metacell_clustering = as.factor(true_membership_vec),
        score_1 = score_1,
        score_2 = score_2,
+       metacell_clustering_1 = metacell_clustering_1,
+       metacell_clustering_2 = metacell_clustering_2,
        svd_1 = svd_1, 
        svd_2 = svd_2,
        circle_list = circle_list)
@@ -163,11 +179,14 @@ test_that(".evaluate_radian works", {
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   
   res <- .evaluate_radian(basis_list = basis_list, 
                           circle_list = circle_list,
-                          metacell_clustering = metacell_clustering,
+                          enforce_boundary = T,
+                          metacell_clustering_1 = metacell_clustering_1,
+                          metacell_clustering_2 = metacell_clustering_2,
                           n_idx = 1:nrow(score_1),
                           num_neigh = 30,
                           percentage = 0.5,
@@ -178,11 +197,12 @@ test_that(".evaluate_radian works", {
                           svd_2 = svd_2)
   expect_true(is.numeric(res))
   expect_true(length(res) == 1)
-  expect_true(res > 0)
   
   res <- .evaluate_radian(basis_list = basis_list, 
                           circle_list = circle_list,
-                          metacell_clustering = metacell_clustering,
+                          enforce_boundary = T,
+                          metacell_clustering_1 = metacell_clustering_1,
+                          metacell_clustering_2 = metacell_clustering_2,
                           n_idx = 1:nrow(score_1),
                           num_neigh = 30,
                           percentage = 0.5,
@@ -201,11 +221,14 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
-                     metacell_clustering = metacell_clustering,
+                     enforce_boundary = T,
+                     metacell_clustering_1 = metacell_clustering_1,
+                     metacell_clustering_2 = metacell_clustering_2,
                      n_idx = 1:nrow(score_1),
                      num_neigh = 30,
                      percentage = percentage,
@@ -216,19 +239,21 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      svd_2 = svd_2)
   })
   expect_true(length(res) == 9)
-  expect_true(all(res >= 0))
-  expect_true(res[1] <= min(res[5:9]))
+  expect_true(res[1] >= max(res[5:9]))
   
   set.seed(10)
   tmp <- compute_evaluate_radian_ingredients(setting = 3)
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
-                     metacell_clustering = metacell_clustering,
+                     enforce_boundary = T,
+                     metacell_clustering_1 = metacell_clustering_1,
+                     metacell_clustering_2 = metacell_clustering_2,
                      n_idx = 1:nrow(score_1),
                      num_neigh = 30,
                      percentage = percentage,
@@ -238,18 +263,21 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      svd_1 = svd_1, 
                      svd_2 = svd_2)
   })
-  expect_true(min(res[1:4]) <= min(res[5:9]))
+  expect_true(max(res[1:4]) >= max(res[5:9]))
   
   set.seed(10)
   tmp <- compute_evaluate_radian_ingredients(setting = 4)
   basis_list <- tmp$basis_list; score_1 <- tmp$score_1
   score_2 <- tmp$score_2; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
-  metacell_clustering <- tmp$metacell_clustering
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
-                     metacell_clustering = metacell_clustering,
+                     enforce_boundary = T,
+                     metacell_clustering_1 = metacell_clustering_1,
+                     metacell_clustering_2 = metacell_clustering_2,
                      n_idx = 1:nrow(score_1),
                      num_neigh = 30,
                      percentage = percentage,
@@ -259,7 +287,7 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      svd_1 = svd_1, 
                      svd_2 = svd_2)
   })
-  expect_true(min(res[4:6]) <= min(res[1:3]))
-  expect_true(min(res[4:6]) <= min(res[7:9]))
+  expect_true(max(res[4:6]) >= max(res[1:3]))
+  expect_true(max(res[4:6]) >= max(res[7:9]))
 })
 

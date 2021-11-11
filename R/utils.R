@@ -23,6 +23,18 @@ construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
   sort(unlist(res))
 }
 
+
+form_seurat_obj <- function(mat_1, mat_2){
+  stopifnot(nrow(mat_1) == nrow(mat_2))
+  
+  n <- nrow(mat_1); p_1 <- ncol(mat_1); p_2 <- ncol(mat_2)
+  
+  obj <- Seurat::CreateSeuratObject(counts = t(mat_1), assay = "mode1")
+  obj[["mode2"]] <- Seurat::CreateAssayObject(counts = t(mat_2))
+  
+  obj
+}
+
 .l2norm <- function(x){sqrt(sum(x^2))}
 
 ##############

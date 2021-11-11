@@ -63,12 +63,12 @@ compute_common_score_ingredients <- function(){
   })
   
   radian_vec <- sapply(1:r, function(k){
-    .compute_radian(percentage_val = 0.5, 
+    .compute_radian(percentage_val = 0.5,
+                    enforce_boundary = T,
                     vec1 = basis_list[[k]]$rep1,
                     vec2 = basis_list[[k]]$rep2,
                     circle = circle_list[[k]])
   })
-  
   
   common_representation <- sapply(1:r, function(k){
     .position_from_circle(circle_list[[k]], radian_vec[k])

@@ -91,7 +91,7 @@ test_that("(Math) .compute_distinct_score generates orthogonal distinct matrices
   expect_true(all(bool_vec))
 })
 
-test_that("(Math) .compute_distinct_score generates equal-lengthed matrices when fix_distinct_perc = T", {
+test_that("(Math) .compute_distinct_score generates equal-lengthed matrices when fix_tilt_perc = T", {
   trials <- 20
   
   bool_vec <- sapply(1:trials, function(x){

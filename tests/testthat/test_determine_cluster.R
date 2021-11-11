@@ -62,7 +62,7 @@ test_that(".compute_factor_diversity works", {
   val3 <- .compute_factor_diversity(factor_anchor = factor_anchor,
                                    factor_other = factor_other,
                                    list_nn = list_nn)
-  expect_true(abs(val) <= 1e-3)
+  expect_true(abs(val3) <= 1e-3)
   val4 <- .compute_factor_diversity(factor_anchor = factor_other,
                                    factor_other = factor_anchor,
                                    list_nn = list_nn)

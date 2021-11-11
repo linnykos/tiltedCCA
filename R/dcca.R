@@ -82,7 +82,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
 
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = cell_max,
-                            check_alignment = all(!is.na(metacell_clustering_1)), 
+                            check_alignment = form_meta_matrix, 
                             discretization_gridsize = discretization_gridsize,
                             enforce_boundary = enforce_boundary,
                             fix_tilt_perc = fix_tilt_perc, 

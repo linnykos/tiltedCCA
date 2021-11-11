@@ -1,5 +1,31 @@
 context("Test frNN")
 
+compute_dcca_factor_ingredients <- function(setting = 1){
+  # setting 1 has modality 2 having no distinct information
+  n_clust <- 100
+  high <- 0.9; low <- 0.05
+  B_mat1 <- matrix(c(0.9, 0.1, 0.1,
+                     0.1, 0.9, 0.1,
+                     0.1, 0.1, 0.9), 3, 3, byrow = T)
+  K <- ncol(B_mat1)
+  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
+  n <- length(membership_vec); true_membership_vec <- membership_vec
+  svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)[,1:2]
+  svd_u_2 <- multiomicCCA::generate_random_orthogonal(n, 2, centered = T)
+  
+  p_1 <- 20; p_2 <- 40
+  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
+  svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
+  svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, 2)
+  
+  mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1)
+  mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
+  
+  list(mat_1 = mat_1,
+       mat_2 = mat_2)
+}
+
+
 ## .compute_radius is correct
 
 test_that(".compute_radius works", {
@@ -74,20 +100,13 @@ test_that(".construct_frnn works in the presence of outliers", {
 
 test_that("construct_frnn works", {
   set.seed(5)
-  n <- 100; K <- 2
-  common_space1 <- MASS::mvrnorm(n = n/2, mu = rep(0,K), Sigma = diag(K))
-  common_space2 <- MASS::mvrnorm(n = n/2, mu = rep(0,K), Sigma = diag(K))+20
-  common_space <- rbind(common_space1, common_space2)
+  tmp <- compute_dcca_factor_ingredients()
+  mat_1 <- tmp$mat_1; mat_2 <- tmp$mat_2
   
-  p1 <- 5; p2 <- 10
-  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
+  dcca_obj <- dcca_factor(mat_1, mat_2, dims_1 = 1:2, dims_2 = 1:2, 
+                          verbose = F)
   
-  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
-  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
-  
-  dcca_obj <- dcca_factor(mat_1, mat_2, dims_1 = 1:K, dims_2 = 1:K, verbose = F)
-  
+  n <- nrow(mat_1)
   membership_vec1 <- as.factor(rep(c("a","b"), each = n/2))
   res <- construct_frnn(dcca_obj, nn = 25, membership_vec = membership_vec1, 
                         verbose = F, bool_matrix = T)
@@ -113,40 +132,24 @@ test_that("construct_frnn works", {
 ## combine_frnn is correct
 
 test_that("combine_frnn works", {
-  set.seed(10)
-  n_clust <- 100
-  B_mat <- matrix(c(0.9, 0.2, 0.1, 
-                    0.2, 0.9, 0.1,
-                    0.1, 0.1, 0.5), 3, 3, byrow = T)
-  K <- ncol(B_mat); rho <- 1
-  membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-  n <- length(membership_vec); true_membership_vec <- membership_vec
-  svd_u_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
-  svd_u_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
+  set.seed(5)
+  tmp <- compute_dcca_factor_ingredients()
+  mat_1 <- tmp$mat_1; mat_2 <- tmp$mat_2
   
-  set.seed(10)
-  p_1 <- 20; p_2 <- 40
-  svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-  svd_v_1 <- generate_random_orthogonal(p_1, K-1)
-  svd_v_2 <- generate_random_orthogonal(p_2, K-1)
-  
-  set.seed(10)
-  dat <- generate_data(svd_u_1, svd_u_2, svd_d_1, svd_d_2, svd_v_1, svd_v_2)
-  dcca_obj <- dcca_factor(dat$mat_1, dat$mat_2, dims_1 = 1:(K-1), dims_2 = 1:(K-1), 
+  dcca_obj <- dcca_factor(mat_1, mat_2, dims_1 = 1:2, dims_2 = 1:2, 
                           verbose = F)
-  membership_vec <- as.factor(membership_vec)
   set.seed(10)
-  list_g_1 <- construct_frnn(dcca_obj, nn = 5, membership_vec = membership_vec, 
+  list_g_1 <- construct_frnn(dcca_obj, nn = 5, membership_vec = NA, 
                            data_1 = T, data_2 = F,
                            verbose = F, bool_matrix = T)
   set.seed(10)
-  list_g_2 <- construct_frnn(dcca_obj, nn = 5, membership_vec = membership_vec, 
+  list_g_2 <- construct_frnn(dcca_obj, nn = 5, membership_vec = NA, 
                              data_1 = T, data_2 = F,
                              verbose = F, bool_matrix = T)
   
   set.seed(10)
   res <- combine_frnn(dcca_obj, list_g_1$c_g, list_g_2$c_g, nn = 5)
   
-  expect_true(all(dim(res) == n))
+  expect_true(all(dim(res) == nrow(mat_1)))
   expect_true(inherits(res, "dgCMatrix"))
 })
