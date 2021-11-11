@@ -102,9 +102,6 @@
 }
 
 .kl_divergence <- function(query_dist, reference_dist, tol = 1e-3){
-  print(query_dist)
-  print(reference_dist)
-  print("====")
   stopifnot(abs(sum(query_dist) - 1) <= tol,
             abs(sum(reference_dist) - 1) <= tol,
             all(query_dist >= 0),
