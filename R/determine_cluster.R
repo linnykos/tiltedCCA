@@ -87,6 +87,7 @@
         
       cells <- factor_other[list_nn[[i]]]
       cells <- cells[!is.na(cells)]
+      if(length(cells) == 0) return(NA)
       vec <- table(cells)
       vec <- vec/sum(vec)
       
@@ -110,7 +111,7 @@
             all(reference_dist >= 0), length(query_dist) == length(reference_dist))
   
   idx <- intersect(which(reference_dist > tol), which(query_dist > tol))
-  if(length(idx) == 0) return(0)
+  if(length(idx) == 0) return(NA)
   sum(sapply(idx, function(i){
     query_dist[i]*log(query_dist[i]/reference_dist[i])
   }))
