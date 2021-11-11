@@ -9,10 +9,10 @@ plot_embeddings(
   membership_vec = NA,
   data_1 = T,
   data_2 = F,
-  add_noise = T,
   col_vec = (scales::hue_pal())(length(levels(membership_vec))),
   pca = F,
   only_embedding = F,
+  metric = "cosine",
   main_addition = "",
   verbose = F
 )
@@ -26,15 +26,15 @@ plot_embeddings(
 
 \item{data_2}{boolean}
 
-\item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
-distinct "on the same scale" by adding appropriately-scaled Gaussian noise}
-
 \item{col_vec}{vector of colors}
 
 \item{pca}{boolean. If \code{TRUE}, plot the PCA embedding with the leading 2 components. 
 If \code{FALSE}, plot the UMAP embedding.}
 
 \item{only_embedding}{boolean}
+
+\item{metric}{character for the distance metric used in \code{Seurat::RunUMAP},
+typically \code{"cosine"} or \code{"euclidean"}}
 
 \item{main_addition}{additional string to append to main of each plot}
 

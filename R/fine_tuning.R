@@ -30,7 +30,7 @@ fine_tuning <- function(dcca_res,
   common_score_prev <- common_score
   n <- nrow(dcca_res$common_score)
   if(dcca_res$param_list$cell_max < n){
-    n_idx <- sample(1:n, size = cell_max)
+    n_idx <- sample(1:n, size = dcca_res$param_list$cell_max)
   } else {
     n_idx <- 1:n
   }

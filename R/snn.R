@@ -1,16 +1,16 @@
 .form_snns <- function(num_neigh,
                        svd_1,
                        svd_2){
-  tmp_1 <- multiomicCCA:::.mult_mat_vec(svd_1$u, svd_1$d)
-  snn_mat_1 <- multiomicCCA:::.form_snn_mat(bool_intersect = T,
+  tmp_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+  snn_mat_1 <- .form_snn_mat(bool_intersect = T,
                                             mat = tmp_1, 
                                             num_neigh = num_neigh)
   metacell_clustering_1 <- lapply(1:nrow(snn_mat_1), function(i){
     .nonzero_col(snn_mat_1, i, bool_value = F)
   })
   
-  tmp_2 <- multiomicCCA:::.mult_mat_vec(svd_2$u, svd_2$d)
-  snn_mat_2 <- multiomicCCA:::.form_snn_mat(bool_intersect = T,
+  tmp_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
+  snn_mat_2 <- .form_snn_mat(bool_intersect = T,
                                             mat = tmp_2, 
                                             num_neigh = num_neigh)
   metacell_clustering_2 <- lapply(1:nrow(snn_mat_2), function(i){

@@ -13,10 +13,14 @@ dcca_factor(
   center_2 = T,
   scale_1 = T,
   scale_2 = T,
-  meta_clustering = NA,
-  num_neigh = 30,
   cell_max = nrow(mat_1),
-  fix_distinct_perc = F,
+  discretization_gridsize = 9,
+  enforce_boundary = is.factor(metacell_clustering_1),
+  fix_tilt_perc = F,
+  form_meta_matrix = F,
+  metacell_clustering_1 = NA,
+  metacell_clustering_2 = NA,
+  num_neigh = min(30, round(nrow(mat_1)/20)),
   verbose = T
 )
 }
@@ -37,18 +41,16 @@ dcca_factor(
 
 \item{scale_2}{boolean, on whether or not to rescale \code{mat_2} prior to SVD}
 
-\item{meta_clustering}{optional clustering}
-
-\item{num_neigh}{number of neighbors to consider to computed the common percentage}
-
 \item{cell_max}{number of cells used to compute the distinct percentaage}
+
+\item{verbose}{boolean}
+
+\item{metacell_clustering}{optional clustering}
 
 \item{fix_distinct_perc}{boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
 meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
 If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
 \code{.common_decomposition} function.}
-
-\item{verbose}{boolean}
 }
 \value{
 list of class \code{dcca}

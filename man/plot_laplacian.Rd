@@ -45,6 +45,15 @@ from the \code{dcca_decomposition} function}
 \item{d_res}{result applying \code{d_vec} to \code{compute_smooth_signal}}
 
 \item{sig_digits}{integer}
+
+\item{reducition_1}{character, for the assay in \code{seurat_obj} to pull the
+everything embedding from}
+
+\item{reducition_2}{character, for the assay in \code{seurat_obj} to pull the
+common embedding from}
+
+\item{reducition_3}{character, for the assay in \code{seurat_obj} to pull the
+distinct embedding from}
 }
 \value{
 list of 6 \code{gg} objects

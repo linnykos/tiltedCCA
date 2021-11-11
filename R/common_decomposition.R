@@ -202,7 +202,7 @@
   min_pos <- which(extreme_pos == min(extreme_pos))
   if(length(min_pos) > 1){
     warning("Unable to determine best tilt. Returning the median.")
-    mid <- median(range(x_val))
+    mid <- stats::median(range(x_val))
     return(which.min(abs(x_val - mid)))
   } else {
     return(min_idx[min_pos])

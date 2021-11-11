@@ -40,6 +40,8 @@ represent the entries to be labeled via \code{ggrepel::geom_text_repel},
 
 \item{baseline_col}{color for the horizontal line}
 
+\item{text_cex}{numeric}
+
 \item{...}{extra parameters for \code{ggrepel::geom_text_repel}}
 }
 \value{

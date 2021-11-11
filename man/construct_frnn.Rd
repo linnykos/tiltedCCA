@@ -6,10 +6,11 @@
 \usage{
 construct_frnn(
   obj,
-  membership_vec,
+  membership_vec = NA,
   nn = 30,
   data_1 = T,
   data_2 = F,
+  normalization_type = "none",
   max_subsample_frnn = nrow(obj$common_score),
   frnn_approx = 0,
   radius_quantile = 0.5,
@@ -31,6 +32,10 @@ for the frNN graph}
 \item{data_1}{boolean}
 
 \item{data_2}{boolean}
+
+\item{normalization_type}{character among \code{"cosine_itself"},
+\code{"cosine_everything"}, \code{"signac_itself"}, \code{"signac_everything"},
+and \code{"none"}}
 
 \item{max_subsample_frnn}{positive integer, used for determining number of cells to 
 compute cLISI for}

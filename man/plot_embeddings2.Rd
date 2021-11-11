@@ -17,6 +17,7 @@ plot_embeddings2(
   main_addition = "",
   sampling_type = "adaptive_gaussian",
   keep_nn = T,
+  metric = "cosine",
   verbose = T,
   ...
 )
@@ -48,6 +49,9 @@ representing the distinct embedding, where the non-zero entries represent distan
 \item{sampling_type}{string}
 
 \item{keep_nn}{boolean}
+
+\item{metric}{character for the distance metric used in \code{Seurat::RunUMAP.Graph},
+typically \code{"cosine"} or \code{"euclidean"}}
 
 \item{verbose}{boolean}
 

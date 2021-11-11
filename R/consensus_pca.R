@@ -9,6 +9,7 @@ consensus_pca <- function(input_1, input_2,
   
   if(!is.list(input_1) & !is.list(input_2)){
     stopifnot(all(!is.na(dims_1)) & all(!is.na(dims_2)))
+    rank_1 <- max(dims_1); rank_2 <- max(dims_2)
     
     svd_1 <- .svd_truncated(input_1, K = rank_1, symmetric = F, rescale = F, 
                             mean_vec = center_1, sd_vec = scale_1, K_full_rank = F)

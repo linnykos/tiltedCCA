@@ -61,24 +61,9 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
             length(metacell_clustering_1) == nrow(mat_1),
             length(metacell_clustering_2) == nrow(mat_2))
   
-  if(form_meta_matrix & is.factor(metacell_clustering_1) & is.factor(metacell_clustering_2)){
-    # apply D-CCA to meta-cells
-    msg <- " (meta-cells)"
-    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells matrix 1"))
-    mat_1_meta <- .compute_metamatrix(mat_1, metacell_clustering_1, verbose)
-    
-    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Constructing meta-cells matrix 2"))
-    mat_2_meta <- .compute_metamatrix(mat_2, metacell_clustering_2, verbose)
-    
-    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
-    cca_res <- .cca(mat_1_meta, mat_2_meta, dims_1 = dims_1, dims_2 = dims_2,
-                    return_scores = F)
-  } else {
-    # alternatively, apply D-CCA to all cells
-    msg <- " (all cells)"
-    if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
-    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
-  }
+  msg <- " (all cells)"
+  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
 
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = cell_max,

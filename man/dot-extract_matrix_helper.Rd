@@ -10,7 +10,6 @@
   svd_e,
   common_bool,
   distinct_bool,
-  add_noise,
   center,
   renormalize
 )
@@ -25,10 +24,6 @@
 \item{common_bool}{boolean}
 
 \item{distinct_bool}{boolean}
-
-\item{add_noise}{boolean, intended (if \code{TRUE}) to put the common and 
-distinct scores "on the same scale" by adding appropriately-scaled Gaussian noise.
-Which matrices get the added noise depends on \code{common_bool} or \code{distinct_bool})}
 
 \item{center}{boolean. If \code{TRUE}, center each canonical variable (i.e., column)
 where the centering is based on \code{common_score+distinct_score}}

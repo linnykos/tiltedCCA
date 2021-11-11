@@ -4,12 +4,20 @@
 \alias{.extract_umap_embedding}
 \title{Extract UMAP embedding}
 \usage{
-.extract_umap_embedding(embedding, only_embedding, reduction_key = "UMAP")
+.extract_umap_embedding(
+  embedding,
+  only_embedding,
+  metric,
+  reduction_key = "UMAP"
+)
 }
 \arguments{
 \item{embedding}{return object from \code{.prepare_embeddings}}
 
 \item{only_embedding}{boolean}
+
+\item{metric}{character for the distance metric used in \code{Seurat::RunUMAP},
+typically \code{"cosine"} or \code{"euclidean"}}
 
 \item{reduction_key}{string for \code{Seurat::RunUMAP}}
 }
