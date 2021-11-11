@@ -12,6 +12,7 @@
                                   svd_1, 
                                   svd_2,
                                   tol = 1e-6, verbose = F){
+  
   rank_c <- min(ncol(score_1), ncol(score_2))
   stopifnot(all(sapply(1:rank_c, function(k){
     val <- score_1[,k] %*% score_2[,k]; val >= 0 
@@ -88,6 +89,7 @@
 .search_tilt_perc <- function(basis_list,
                               circle_list,
                               discretization_gridsize,
+                              enforce_boundary,
                               metacell_clustering_1,
                               metacell_clustering_2,
                               n_idx,
@@ -113,6 +115,7 @@
     if(verbose) print(paste0(Sys.time(),": D-CCA : Evaluating percentage ", percentage_grid[i]))
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
+                                     enforce_boundary = enforce_boundary,
                                      metacell_clustering_1 = metacell_clustering_1,
                                      metacell_clustering_2 = metacell_clustering_2,
                                      n_idx = n_idx,
@@ -139,6 +142,7 @@
 
 .evaluate_radian <- function(basis_list, 
                              circle_list,
+                             enforce_boundary,
                              metacell_clustering_1,
                              metacell_clustering_2,
                              n_idx,

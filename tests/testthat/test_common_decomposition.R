@@ -180,11 +180,16 @@ test_that("(Basic) .common_decomposition works", {
   cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  metacell_clustering <- factor(sample(1:3, replace = T, size = nrow(mat_1)))
   
+  tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
+
   res <- suppressWarnings(.common_decomposition(discretization_gridsize = 9,
+                                                enforce_boundary = T,
                                                 fix_tilt_perc = F,
-                                                metacell_clustering = metacell_clustering,
+                                                metacell_clustering_1 = metacell_clustering_1,
+                                                metacell_clustering_2 = metacell_clustering_2,
                                                 n_idx = 1:nrow(score_1),
                                                 num_neigh = 30,
                                                 score_1 = score_1,
@@ -234,11 +239,16 @@ test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    metacell_clustering <- factor(membership_vec)
+
+    tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
+    metacell_clustering_1 <- tmp$metacell_clustering_1
+    metacell_clustering_2 <- tmp$metacell_clustering_2
     
     res1 <- .common_decomposition(discretization_gridsize = NA,
+                                  enforce_boundary = T,
                                   fix_tilt_perc = T,
-                                  metacell_clustering = metacell_clustering,
+                                  metacell_clustering_1 = metacell_clustering_1,
+                                  metacell_clustering_2 = metacell_clustering_2,
                                   n_idx = 1:nrow(score_1),
                                   num_neigh = 30,
                                   score_1 = score_1,
@@ -261,11 +271,16 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
   n <- nrow(tmp$score_1)
   rownames(score_1) <- paste0("a", 1:n)
   rownames(score_2) <- paste0("a", 1:n)
-  metacell_clustering <- tmp$metacell_clustering
+  
+  tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   
   res <- .common_decomposition(discretization_gridsize = 9,
+                               enforce_boundary = T,
                                fix_tilt_perc = F,
-                               metacell_clustering = metacell_clustering,
+                               metacell_clustering_1 = metacell_clustering_1,
+                               metacell_clustering_2 = metacell_clustering_2,
                                n_idx = 1:nrow(score_1),
                                num_neigh = 30,
                                score_1 = score_1,
@@ -316,11 +331,15 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
     score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    metacell_clustering <- as.factor(membership_vec)
+   
+    metacell_clustering_1 <- factor(c(rep("A", n_clust), rep("B", n_clust), rep("C", n_clust)))
+    metacell_clustering_2 <- factor(c(rep("AB", 2*n_clust), rep("C", n_clust)))
     
     res <- .common_decomposition(discretization_gridsize = 9,
+                                 enforce_boundary = T,
                                  fix_tilt_perc = F,
-                                 metacell_clustering = metacell_clustering,
+                                 metacell_clustering_1 = metacell_clustering_1,
+                                 metacell_clustering_2 = metacell_clustering_2,
                                  n_idx = 1:nrow(score_1),
                                  num_neigh = 30,
                                  score_1 = score_1,
@@ -437,7 +456,7 @@ test_that(".position_from_circle works", {
 test_that(".select_minimum works", {
   x_val <- c(0, 0.25, 0.5, 0.75, 1)
   y_val <- 1:5
-  res <- .select_minimum(x_val, y_val)
+  res <- .select_minimum(minimum = T, x_val, y_val)
   
   expect_true(res == 1)
 })
@@ -445,16 +464,16 @@ test_that(".select_minimum works", {
 test_that(".select_minimum works when there are multiple similar values", {
   x_val <- c(0, 0.25, 0.5, 0.75, 1)
   y_val <- c(3,3,1,1,1)
-  res <- .select_minimum(x_val, y_val)
+  res <- .select_minimum(minimum = T, x_val, y_val)
   expect_true(res == 5)
   
   y_val <- c(3,1,1,1,1)
-  res <- .select_minimum(x_val, y_val)
+  res <- .select_minimum(minimum = T, x_val, y_val)
   expect_true(res == 5)
   
   y_val <- c(3,2,1,1,2)
-  res <- .select_minimum(x_val, y_val)
+  res <- .select_minimum(minimum = T, x_val, y_val)
   expect_true(res == 4)
   
-  expect_warning(.select_minimum(x_val, c(3,1,1,1,3)))
+  expect_warning(.select_minimum(minimum = T, x_val, c(3,1,1,1,3)))
 })

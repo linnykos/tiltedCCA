@@ -32,8 +32,9 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                         metacell_clustering_2 = NA,
                         num_neigh = min(30, round(nrow(mat_1)/20)),
                         verbose = T){
-  stopifnot((is.list(metacell_clustering_1) & is.list(metacell_clustering_2)) ||
-               (is.factor(metacell_clustering_1) & is.factor(metacell_clustering_2)))
+  stopifnot((all(is.na(metacell_clustering_1)) & all(is.na(metacell_clustering_2))) ||
+              (is.list(metacell_clustering_1) & is.list(metacell_clustering_2)) ||
+              (is.factor(metacell_clustering_1) & is.factor(metacell_clustering_2)))
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
@@ -48,6 +49,12 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
+  
+  if(all(is.na(metacell_clustering_1)) & all(is.na(metacell_clustering_2))){
+    tmp <- .form_snns(num_neigh = num_neigh, svd_1 = svd_1, svd_2 = svd_2)
+    metacell_clustering_1 <- tmp$metacell_clustering_1
+    metacell_clustering_2 <- tmp$metacell_clustering_2
+  }
   
   stopifnot(is.factor(metacell_clustering_1) | is.list(metacell_clustering_1),
             is.factor(metacell_clustering_2) | is.list(metacell_clustering_2),
@@ -72,7 +79,7 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
     if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   }
-  
+
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = cell_max,
                             check_alignment = all(!is.na(metacell_clustering_1)), 

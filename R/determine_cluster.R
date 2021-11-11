@@ -42,27 +42,6 @@
   min(val_1, val_2)
 }
 
-.form_snn_mat <- function(bool_intersect, mat, num_neigh){
-  stopifnot(num_neigh > 1)
-  n <- nrow(mat)
-  nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
-  if(all(nn_mat[,1] == 1:n)){
-    nn_mat <- nn_mat[,-1,drop = F]
-  }
-  
-  i_vec <- rep(1:n, times = ncol(nn_mat))
-  j_vec <- as.numeric(nn_mat)
-  
-  sparse_mat <- Matrix::sparseMatrix(i = i_vec,
-                                    j = j_vec,
-                                    x = rep(1, length(i_vec)),
-                                    dims = c(n,n),
-                                    repr = "C")
-  
-  if(bool_intersect) sparse_mat <- sparse_mat * Matrix::t(sparse_mat)
-  sparse_mat
-}
-
 .compute_set_inclusion <- function(list_1, list_2){
   stopifnot(is.list(list_1), is.list(list_2), length(list_1) == length(list_2))
   
@@ -102,7 +81,10 @@
   avg_anchor_vec <- sapply(level_anchor_vec, function(level_val){
     idx <- which(factor_anchor == level_val)
     kl_vec <- sapply(idx, function(i){
+      if(length(list_nn[[i]]) == 0) return(NA)
+        
       cells <- factor_other[list_nn[[i]]]
+      cells <- cells[!is.na(cells)]
       vec <- table(cells)
       vec <- vec/sum(vec)
       
@@ -110,7 +92,7 @@
                       reference_dist = tabulate_mat[,level_val])
     })
     
-    mean(kl_vec)
+    mean(kl_vec, na.rm = T)
   })
   
   mean(avg_anchor_vec)
