@@ -294,7 +294,7 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
   # [[note to self: observe that if rownames(score_1) != rownames(score_2), the names would still be rownames(score_1)]]
 })
 
-test_that("(Math) .common_decomposition gives sensible numbers in asymmetric information settings", {
+test_that("(Math) .common_decomposition gives sensible numbers in asymmetric information settings and strong clusters", {
   trials <- 10
   
   bool_vec <- sapply(1:trials, function(x){

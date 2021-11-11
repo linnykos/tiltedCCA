@@ -136,8 +136,7 @@ compute_dcca_common_score_ingredients <- function(setting = 1){
        svd_1 = svd_1, 
        svd_2 = svd_2,
        mat_1 = mat_1,
-       mat_2 = mat_2,
-       metacell_clustering = as.factor(true_membership_vec))
+       mat_2 = mat_2)
 }
 
 
@@ -148,14 +147,20 @@ test_that("(Basic) .dcca_common_score works", {
   tmp <- compute_dcca_common_score_ingredients()
   cca_res <- tmp$cca_res; svd_1 <- tmp$svd_1
   svd_2 <- tmp$svd_2; mat_1 <- tmp$mat_1
-  mat_2 <- tmp$mat_2; metacell_clustering <- tmp$metacell_clustering
+  mat_2 <- tmp$mat_2
+  
+  tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
   
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = nrow(mat_1),
                             check_alignment = T, 
                             discretization_gridsize = 9,
+                            enforce_boundary = T,
                             fix_tilt_perc = F, 
-                            metacell_clustering = metacell_clustering,
+                            metacell_clustering_1 = metacell_clustering_1,
+                            metacell_clustering_2 = metacell_clustering_2,
                             num_neigh = 30,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
@@ -166,7 +171,9 @@ test_that("(Basic) .dcca_common_score works", {
                                              "score_1", "score_2", 
                                              "cca_obj", "distinct_score_1", 
                                              "distinct_score_2", "df_percentage",
-                                             "metacell_clustering", "tilt_perc"))))
+                                             "metacell_clustering_1", 
+                                             "metacell_clustering_2", 
+                                             "tilt_perc"))))
   expect_true(all(dim(res$common_score) == c(nrow(mat_1), 2)))
 })
 
@@ -188,12 +195,18 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   rownames(svd_1$v) <- colnames(mat_1)
   rownames(svd_2$v) <- colnames(mat_2)
   
+  tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
+  metacell_clustering_1 <- tmp$metacell_clustering_1
+  metacell_clustering_2 <- tmp$metacell_clustering_2
+  
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = nrow(mat_1),
                             check_alignment = T, 
                             discretization_gridsize = 9,
+                            enforce_boundary = T,
                             fix_tilt_perc = F, 
-                            metacell_clustering = metacell_clustering,
+                            metacell_clustering_1 = metacell_clustering_1,
+                            metacell_clustering_2 = metacell_clustering_2,
                             num_neigh = 30,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
@@ -214,12 +227,18 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
     svd_2 <- tmp$svd_2; mat_1 <- tmp$mat_1
     mat_2 <- tmp$mat_2
     
+    tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
+    metacell_clustering_1 <- tmp$metacell_clustering_1
+    metacell_clustering_2 <- tmp$metacell_clustering_2
+    
     res <- .dcca_common_score(cca_res = cca_res, 
                               cell_max = nrow(mat_1),
                               check_alignment = T, 
                               discretization_gridsize = 9,
+                              enforce_boundary = T,
                               fix_tilt_perc = F, 
-                              metacell_clustering = metacell_clustering,
+                              metacell_clustering_1 = metacell_clustering_1,
+                              metacell_clustering_2 = metacell_clustering_2,
                               num_neigh = 30,
                               svd_1 = svd_1, 
                               svd_2 = svd_2, 
