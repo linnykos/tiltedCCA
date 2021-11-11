@@ -68,7 +68,9 @@
   level_other_vec <- levels(factor_other)
   tabulate_mat <- sapply(level_anchor_vec, function(level_val){
     idx <- which(factor_anchor == level_val)
-    vec <- table(factor_other[idx])
+    cells <- factor_other[idx]
+    cells <- cells[!is.na(cells)]
+    vec <- table(cells)
     vec/sum(vec)
   })
   if(!is.matrix(tabulate_mat)) tabulate_mat <- matrix(tabulate_mat, nrow = 1, ncol = length(tabulate_mat))
@@ -98,11 +100,14 @@
   mean(avg_anchor_vec)
 }
 
-.kl_divergence <- function(query_dist, reference_dist, tol = 1e-6){
+.kl_divergence <- function(query_dist, reference_dist, tol = 1e-3){
+  print(query_dist)
+  print(reference_dist)
+  print("====")
   stopifnot(abs(sum(query_dist) - 1) <= tol,
             abs(sum(reference_dist) - 1) <= tol,
             all(query_dist >= 0),
-            all(reference_dist >= 0))
+            all(reference_dist >= 0), length(query_dist) == length(reference_dist))
   
   idx <- intersect(which(reference_dist > tol), which(query_dist > tol))
   if(length(idx) == 0) return(0)
