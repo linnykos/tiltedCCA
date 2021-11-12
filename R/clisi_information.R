@@ -53,7 +53,7 @@ clisi_information <- function(c_g, d_g, membership_vec,
   rownames(clisi_mat) <- levels(membership_vec)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
-  res <- sapply(levels(membership_vec), function(celltype){
+  res <- lapply(levels(membership_vec), function(celltype){
     idx <- which(membership_vec[cell_subidx] == celltype)
     tmp_mat <- clisi_mat[,idx,drop = F]
     mean_vec <- matrixStats::rowMedians(tmp_mat)
@@ -61,14 +61,18 @@ clisi_information <- function(c_g, d_g, membership_vec,
     
     mean_val <- mean_vec[which(levels(membership_vec) == celltype)]
       
-    c(mean_vec = mean_vec, 
-      mean_val = mean_val)
+    c(vec = mean_vec, 
+      value = mean_val)
   })
+  names(res) <- levels(membership_vec)
   
-  res <- as.data.frame(t(res))
-  res <- cbind(celltype = levels(membership_vec), res)
+  # reorganize values
+  df <- data.frame(celltype = levels(membership_vec), value = sapply(res, function(x){x$value}))
+  mat <- sapply(res, function(x){x$vec})
+  colnames(mat) <- paste0("from_", levels(membership_vec))
+  rownames(mat) <- paste0("to_", levels(membership_vec))
   
-  list(cell_info = clisi_info, membership_info = res)
+  list(df = df, clisi_mat = mat)
 }
 
 .clisi_cell <- function(g, membership_vec, position, tol = 1e-3){
