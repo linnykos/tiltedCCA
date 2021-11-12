@@ -13,7 +13,7 @@
 #'
 #' @return three lists
 #' @export
-clisi_information <- function(c_g, d_g, e_g, membership_vec, 
+clisi_information <- function(c_g, d_g, membership_vec, 
                               max_subsample_clisi = min(1000, nrow(c_g)),
                               verbose = T){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(c_g),
@@ -24,7 +24,6 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   if(verbose) print(paste0(Sys.time(),": cLISI: Symmetrizing matrices"))
   c_g <- .symmetrize_sparse(c_g, set_ones = T)
   d_g <- .symmetrize_sparse(d_g, set_ones = T)
-  e_g <- .symmetrize_sparse(e_g, set_ones = T)
   
   # compute clisi scores
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
@@ -32,47 +31,38 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   c_score <- .clisi(c_g, membership_vec, cell_subidx, verbose = verbose)
   if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct"))
   d_score <- .clisi(d_g, membership_vec, cell_subidx, verbose = verbose)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- everything"))
-  e_score <- .clisi(e_g, membership_vec, cell_subidx, verbose = verbose)
   
-  structure(list(common_clisi = c_score, distinct_clisi = d_score,
-       everything_clisi = e_score), class = "clisi")
+  structure(list(common_clisi = c_score, distinct_clisi = d_score), class = "clisi")
 }
 
 ############
 
 .clisi <- function(g, membership_vec, cell_subidx, tol = 1e-3, verbose = F){
-  stopifnot(is.factor(membership_vec))
-  stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), length(cell_subidx) == length(unique(cell_subidx)))
+  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(g))
+  stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), 
+            length(cell_subidx) == length(unique(cell_subidx)),
+            length(cell_subidx) <= length(membership_vec))
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
   
-  clisi_info <- sapply(1:length(cell_subidx), function(i){
+  clisi_mat <- sapply(1:length(cell_subidx), function(i){
     if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
-    target_mem <- membership_vec[cell_subidx[i]]
-    idx <- which(membership_vec == target_mem)
-    .clisi_cell(g, idx, position = which(idx == i), tol = tol)
+    .clisi_cell(g, membership_vec, position = i, tol = tol)
   })
-  
-  clisi_info <- as.data.frame(t(clisi_info))
-  clisi_info <- cbind(idx = cell_subidx, celltype = membership_vec[cell_subidx], 
-                      clisi_info)
+  rownames(clisi_mat) <- levels(membership_vec)
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
-  res <- sapply(levels(membership_vec), function(x){
-    idx <- which(clisi_info$celltype == x)
-    mean_vec <- apply(clisi_info[idx,c("len", "in_ratio", "clisi_score")], 2, stats::median)
-    sd_vec <- apply(clisi_info[idx,c("len", "in_ratio", "clisi_score")], 2, function(x){
-      diff(stats::quantile(x, probs = c(0.25, 0.75)))
-    })
+  res <- sapply(levels(membership_vec), function(celltype){
+    idx <- which(membership_vec[cell_subidx] == celltype)
+    tmp_mat <- clisi_mat[,idx,drop = F]
+    mean_vec <- matrixStats::rowMedians(tmp_mat)
+    names(mean_vec) <- rownames(tmp_mat)
     
-    c(mean_len = as.numeric(mean_vec["len"]), 
-      mean_ratio = as.numeric(mean_vec["in_ratio"]),
-      mean_clisi = as.numeric(mean_vec["clisi_score"]),
-      sd_len = as.numeric(sd_vec["len"]), 
-      sd_ratio = as.numeric(sd_vec["in_ratio"]),
-      sd_clisi = as.numeric(sd_vec["clisi_score"]))
+    mean_val <- mean_vec[which(levels(membership_vec) == celltype)]
+      
+    c(mean_vec = mean_vec, 
+      mean_val = mean_val)
   })
   
   res <- as.data.frame(t(res))
@@ -81,18 +71,26 @@ clisi_information <- function(c_g, d_g, e_g, membership_vec,
   list(cell_info = clisi_info, membership_info = res)
 }
 
-.clisi_cell <- function(g, idx, position, tol = 1e-3){
-  stopifnot(position > 0, position <= length(idx), position %% 1 == 0)
+.clisi_cell <- function(g, membership_vec, position, tol = 1e-3){
+  stopifnot(position > 0, position <= nrow(g), position %% 1 == 0,
+            ncol(g) == nrow(g), is.factor(membership_vec), 
+            length(membership_vec) == nrow(g))
   
   n <- nrow(g)
-  target_bg <- length(idx)/n
-  neigh <- .nonzero_col(g, idx[position], bool_value = F)
+  celltype_vec <- levels(membership_vec)
+  k <- length(celltype_vec)
+  target_bg <- table(membership_vec)/n
+  neigh <- .nonzero_col(g, position, bool_value = F)
   len <- length(neigh)
   if(len == 0){
-    return(c(len = 0, in_ratio = 0, clisi_score = 0))
+    return(rep(0, k))
   }
-  in_len <- length(which(neigh %in% idx))
-  
-  clisi_score <- max((in_len/len - target_bg + tol)/(1-target_bg+tol), 0)
-  c(len = len, in_ratio = in_len/len, clisi_score = clisi_score)
+  in_len <- sapply(celltype_vec, function(celltype){
+    length(which(membership_vec[neigh] == celltype))
+  })
+    
+  clisi_vec <- pmax((in_len/len-target_bg+tol) / (1-target_bg+tol), 0)
+  names(clisi_vec) <- celltype_vec
+    
+  clisi_vec
 }
