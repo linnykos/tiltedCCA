@@ -1,23 +1,8 @@
-#' Compute cLISI information
-#'
-#' @param c_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
-#' representing the common embedding, where the non-zero entries represent distances
-#' @param d_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
-#' representing the distinct embedding, where the non-zero entries represent distances
-#' @param e_g sparse matrix of class \code{dgCMatrix} from \code{construct_frnn}
-#' representing the everything embedding, where the non-zero entries represent distances
-#' @param membership_vec factor vector
-#' @param max_subsample_clisi positive integer, used for determining number of cells to 
-#' compute cLISI for
-#' @param verbose boolean
-#'
-#' @return three lists
-#' @export
 clisi_information <- function(c_g, d_g, membership_vec, 
                               max_subsample_clisi = min(1000, nrow(c_g)),
                               verbose = T){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(c_g),
-            all(dim(c_g) == dim(d_g)), all(dim(c_g) == dim(e_g)))
+            all(dim(c_g) == dim(d_g)))
   n <- length(membership_vec)
   
   # remove all distance information and symmetrize
@@ -45,24 +30,25 @@ clisi_information <- function(c_g, d_g, membership_vec,
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
   
-  clisi_mat <- sapply(1:length(cell_subidx), function(i){
+  clisi_cell_mat <- sapply(1:length(cell_subidx), function(i){
     if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
-    .clisi_cell(g, membership_vec, position = i, tol = tol)
+    .clisi_cell(g, membership_vec, position = cell_subidx[i], tol = tol)
   })
-  rownames(clisi_mat) <- levels(membership_vec)
+  rownames(clisi_cell_mat) <- levels(membership_vec)
+  colnames(clisi_cell_mat) <- rownames(g)[cell_subidx] 
   
   if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
   res <- lapply(levels(membership_vec), function(celltype){
     idx <- which(membership_vec[cell_subidx] == celltype)
-    tmp_mat <- clisi_mat[,idx,drop = F]
-    mean_vec <- matrixStats::rowMedians(tmp_mat)
+    tmp_mat <- clisi_cell_mat[,idx,drop = F]
+    mean_vec <- matrixStats::rowMeans2(tmp_mat)
     names(mean_vec) <- rownames(tmp_mat)
     
     mean_val <- mean_vec[which(levels(membership_vec) == celltype)]
-      
-    c(vec = mean_vec, 
-      value = mean_val)
+    
+    list(vec = mean_vec, 
+         value = mean_val)
   })
   names(res) <- levels(membership_vec)
   
@@ -72,7 +58,7 @@ clisi_information <- function(c_g, d_g, membership_vec,
   colnames(mat) <- paste0("from_", levels(membership_vec))
   rownames(mat) <- paste0("to_", levels(membership_vec))
   
-  list(df = df, clisi_mat = mat)
+  list(df = df, clisi_mat = mat, clisi_cell_mat = clisi_cell_mat)
 }
 
 .clisi_cell <- function(g, membership_vec, position, tol = 1e-3){
@@ -92,9 +78,9 @@ clisi_information <- function(c_g, d_g, membership_vec,
   in_len <- sapply(celltype_vec, function(celltype){
     length(which(membership_vec[neigh] == celltype))
   })
-    
+  
   clisi_vec <- pmax((in_len/len-target_bg+tol) / (1-target_bg+tol), 0)
   names(clisi_vec) <- celltype_vec
-    
+  
   clisi_vec
 }
