@@ -62,17 +62,17 @@ construct_frnn <- function(obj,
   n <- nrow(embedding[[1]])
   
   # compute the radius
-  vec_print <- c("common", "distinct", "everything")
-  vec_rad <- sapply(1:3, function(i){
+  vec_print <- c("common", "distinct")
+  vec_rad <- sapply(1:2, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- ", vec_print[i]))
     .compute_radius(embedding[[i]], nn, radius_quantile)
   })
   vec_rad_org <- vec_rad
-  names(vec_rad_org) <- c("common", "distinct", "everything")
+  names(vec_rad_org) <- c("common", "distinct")
   vec_rad[1:2] <- max(vec_rad[1:2])
   
   # construct frnn
-  list_g <- lapply(1:3, function(i){
+  list_g <- lapply(1:2, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- ", vec_print[i]))
     .construct_frnn(embedding[[i]], radius = vec_rad[i], nn = nn, 
                     frnn_approx = frnn_approx, 
@@ -81,7 +81,7 @@ construct_frnn <- function(obj,
                     verbose = verbose)
   }) 
   
-  for(i in 1:3){
+  for(i in 1:2){
     list_g[[i]] <- .nnlist_to_matrix(list_g[[i]], set_to_one = F)
     if(symmetrize){
       list_g[[i]] <- .symmetrize_sparse(list_g[[i]], set_ones = F)
@@ -100,7 +100,7 @@ construct_frnn <- function(obj,
   }
   
   # [[note to self: I'm not sure if we need to output e_g]]
-  return(list(c_g = list_g[[1]], d_g = list_g[[2]], e_g = list_g[[3]], 
+  return(list(c_g = list_g[[1]], d_g = list_g[[2]],
               membership_vec = membership_vec,
               original_radius = vec_rad_org))
 }
