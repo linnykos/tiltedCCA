@@ -2,7 +2,6 @@
 
 export(.compute_prob_mat)
 export(.generate_adjaceny_mat)
-export(clisi_information)
 export(combine_frnn)
 export(compute_enrichment_scores)
 export(compute_laplacian)

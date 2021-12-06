@@ -82,6 +82,7 @@ construct_frnn <- function(obj,
   }) 
   
   for(i in 1:2){
+    if(verbose) print(paste0(Sys.time(),": cLISI: Converting into matrix -- ", vec_print[i]))
     list_g[[i]] <- .nnlist_to_matrix(list_g[[i]], set_to_one = F)
     if(symmetrize){
       list_g[[i]] <- .symmetrize_sparse(list_g[[i]], set_ones = F)
