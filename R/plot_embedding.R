@@ -227,7 +227,6 @@ plot_embeddings <- function(obj,
   common_score <- common_score/n^(1/4)
   distinct_score <- distinct_score/n^(1/4)
   
-  # [[note to self: if rank_c isn't rank_1 or rank_2, this would need to change.]]
   canonical_score <- .add_two_matrices(common_score, distinct_score)
   full_mat <- .mult_mat_vec(svd_e$u, svd_e$d/svd_e$d[1])
   tmp <- canonical_score %*% crossprod(canonical_score, full_mat) # reorient for consistency for the rest of the pipeline

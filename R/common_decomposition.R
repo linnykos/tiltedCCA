@@ -61,7 +61,6 @@
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
   
-  # [[note to self: Can .search_tilt_perc return the common score so I don't need to recompute it?]]
   common_score <- .evaluate_radian(
     basis_list = basis_list, 
     circle_list = circle_list,

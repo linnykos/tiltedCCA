@@ -95,12 +95,10 @@ construct_frnn <- function(obj,
         colnames(list_g[[i]]) <- rownames(obj$common_score)
       }
     } else {
-      # [[note to self: add a test to make sure this conversion is bijective]]
       list_g[[i]] <- .matrix_to_nnlist(list_g[[i]])
     }
   }
   
-  # [[note to self: I'm not sure if we need to output e_g]]
   return(list(c_g = list_g[[1]], d_g = list_g[[2]],
               membership_vec = membership_vec,
               original_radius = vec_rad_org))

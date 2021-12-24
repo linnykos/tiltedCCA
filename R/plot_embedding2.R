@@ -87,7 +87,6 @@ plot_embeddings2 <- function(dcca_obj,
     graph_obj <- SeuratObject::as.Graph(mat)
     
     # use Seurat
-    # [[note to self: I don't think the metric impacts anything here...]]
     list_output[[i]] <- Seurat::RunUMAP(graph_obj, 
                                         verbose = verbose, 
                                         assay = "RNA",
@@ -96,7 +95,6 @@ plot_embeddings2 <- function(dcca_obj,
   }
   
   # run Seurat::RunUMAP.Default on the everything
-  #[[note to self: If I'm using something like signac, shouldn't there be a normalization here?]]
   list_output[[3]] <- Seurat::RunUMAP(everything_embedding, 
                                       metric = metric, 
                                       verbose = verbose, 

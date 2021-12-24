@@ -17,7 +17,6 @@ dcca_factor(
   discretization_gridsize = 9,
   enforce_boundary = is.factor(metacell_clustering_1),
   fix_tilt_perc = F,
-  form_meta_matrix = F,
   metacell_clustering_1 = NA,
   metacell_clustering_2 = NA,
   num_neigh = min(30, round(nrow(mat_1)/20)),
@@ -29,9 +28,9 @@ dcca_factor(
 
 \item{mat_2}{data matrix 2}
 
-\item{dims_1}{desired latent dimensions of data matrix 1}
+\item{dims_1}{desired latent dimensions of data matrix 1 (increasing integer vector of length 2)}
 
-\item{dims_2}{desired latent dimensions of data matrix 2}
+\item{dims_2}{desired latent dimensions of data matrix 2 (increasing integer vector of length 2)}
 
 \item{center_1}{boolean, on whether or not to center \code{mat_1} prior to SVD}
 
@@ -41,16 +40,56 @@ dcca_factor(
 
 \item{scale_2}{boolean, on whether or not to rescale \code{mat_2} prior to SVD}
 
-\item{cell_max}{number of cells used to compute the distinct percentaage}
+\item{cell_max}{positive integer for how many cells to subsample (useful if
+\code{nrow(mat_1) is too large})}
 
-\item{verbose}{boolean}
+\item{discretization_gridsize}{positive integer for how many values between 0 and 1 (inclusive) to search the 
+appropriate amount of tilt over}
 
-\item{metacell_clustering}{optional clustering}
+\item{enforce_boundary}{boolean, on whether or not the tilt is required to stay between
+the two canonical score vectors}
 
-\item{fix_distinct_perc}{boolean. If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
-meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
-If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
-\code{.common_decomposition} function.}
+\item{fix_tilt_perc}{boolean or a numeric. If \code{FALSE}, then the tilt is adaptively
+determined, and if \code{TRUE}, then the tilt is set to be equal to 
+\code{0.5}. If numeric, the value should be between \code{0} and \code{1},
+which the tilt will be set to.}
+
+\item{metacell_clustering_1}{\code{NA} or factor vector of length \code{nrow(mat_1)} that 
+depicts the hard clustering structure of the cell
+(with possible \code{NA}'s for cells that don't
+conform to a hard clustering structure). See details.}
+
+\item{metacell_clustering_2}{\code{NA} or factor vector of length \code{nrow(mat_2)} that 
+depicts the hard clustering structure of the cell
+(with possible \code{NA}'s for cells that don't
+conform to a hard clustering structure). See details.}
+
+\item{num_neigh}{positive integer for how many NNs are used to construct the relevant
+NN graphs.}
+
+\item{verbose}{boolean
+                             
+The \code{cell_max} parameter is used specifically to limit the 
+number of cells involved in \code{.common_decomposition} (for 
+less cells to be involved in \code{.determine_cluster})
+
+For the tilt values (possibly set in \code{fix_tilt_perc}),
+values close to 0 or 1mean the common space resembles the canonical 
+scores of \code{mat_2} or \code{mat_1} respectively.
+
+\code{metacell_clustering_1} and \code{metacell_clustering_2} need to be
+both either \code{NA} or factor vectors. If the former (i.e.,
+\code{metacell_clustering_1=NA} and \code{metacell_clustering_2=NA}),
+then the appropriate amount of tilt is determined by Jaccard dissimilarity
+based on the NN structure. If the latter (i.e.,
+\code{is.factor(metacell_clustering_1)=TRUE} and \code{is.factor(metacell_clustering_2)=TRUE}),
+then the appropriate amount of tilt is determined by KL-divergences of
+each cell's NNs' factor proportions. These are all done in \code{.determine_cluster}.
+
+\code{num_neigh} is used to construct the Shared NN graphs (in \code{.form_snns})
+for \code{mat_1} and \code{mat_2}
+as well as in \code{.determine_cluster} (to call \code{.form_snns} to construct
+the analogous Shared NN graph for the common space).}
 }
 \value{
 list of class \code{dcca}

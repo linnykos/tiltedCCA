@@ -7,7 +7,6 @@
 .dcca_common_score(
   cca_res,
   cell_max,
-  check_alignment,
   discretization_gridsize,
   enforce_boundary,
   fix_tilt_perc,
@@ -23,18 +22,32 @@
 \arguments{
 \item{cca_res}{returned object from \code{.cca}}
 
-\item{cell_max}{number of cells used to compute the distinct percentaage}
+\item{cell_max}{positive integer for how many cells to subsample (useful if
+\code{nrow(mat_1) is too large})}
 
-\item{check_alignment}{boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
-after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution
-was not computed from exactly \code{svd_1} and \code{svd_2}}
+\item{discretization_gridsize}{positive integer for how many values between 0 and 1 (inclusive) to search the 
+appropriate amount of tilt over}
 
-\item{fix_tilt_perc}{boolean or numeric between 0 and 1 (inclusive). If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
-meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
-If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
-\code{.common_decomposition} function.}
+\item{enforce_boundary}{boolean, on whether or not the tilt is required to stay between
+the two canonical score vectors}
 
-\item{num_neigh}{number of neighbors to consider to computed the common percentage}
+\item{fix_tilt_perc}{boolean or a numeric. If \code{FALSE}, then the tilt is adaptively
+determined, and if \code{TRUE}, then the tilt is set to be equal to 
+\code{0.5}. If numeric, the value should be between \code{0} and \code{1},
+which the tilt will be set to.}
+
+\item{metacell_clustering_1}{\code{NA} or factor vector of length \code{nrow(mat_1)} that 
+depicts the hard clustering structure of the cell
+(with possible \code{NA}'s for cells that don't
+conform to a hard clustering structure).}
+
+\item{metacell_clustering_2}{\code{NA} or factor vector of length \code{nrow(mat_2)} that 
+depicts the hard clustering structure of the cell
+(with possible \code{NA}'s for cells that don't
+conform to a hard clustering structure).}
+
+\item{num_neigh}{number of neighbors to consider to computed the common percentage
+(when calling \code{.determine_cluster})}
 
 \item{svd_1}{SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}}
 
@@ -42,7 +55,7 @@ If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
 
 \item{verbose}{boolean}
 
-\item{msg}{character}
+\item{msg}{additional print character}
 }
 \value{
 list

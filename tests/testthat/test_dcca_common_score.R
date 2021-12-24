@@ -155,7 +155,6 @@ test_that("(Basic) .dcca_common_score works", {
   
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = nrow(mat_1),
-                            check_alignment = T, 
                             discretization_gridsize = 9,
                             enforce_boundary = T,
                             fix_tilt_perc = F, 
@@ -201,7 +200,6 @@ test_that("(Coding) .dcca_common_score preserves rownames and colnames", {
   
   res <- .dcca_common_score(cca_res = cca_res, 
                             cell_max = nrow(mat_1),
-                            check_alignment = T, 
                             discretization_gridsize = 9,
                             enforce_boundary = T,
                             fix_tilt_perc = F, 
@@ -233,7 +231,6 @@ test_that("(Math) .dcca_common_score yields uncorrelated residuals", {
     
     res <- .dcca_common_score(cca_res = cca_res, 
                               cell_max = nrow(mat_1),
-                              check_alignment = T, 
                               discretization_gridsize = 9,
                               enforce_boundary = T,
                               fix_tilt_perc = F, 

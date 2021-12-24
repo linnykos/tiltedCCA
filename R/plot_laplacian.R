@@ -14,11 +14,11 @@
 #' @param e_res result applying \code{e_vec} to \code{compute_smooth_signal}
 #' @param c_res result applying \code{c_vec} to \code{compute_smooth_signal}
 #' @param d_res result applying \code{d_vec} to \code{compute_smooth_signal}
-#' @param reducition_1 character, for the assay in \code{seurat_obj} to pull the
+#' @param reduction_1 character, for the assay in \code{seurat_obj} to pull the
 #' everything embedding from
-#' @param reducition_2 character, for the assay in \code{seurat_obj} to pull the
+#' @param reduction_2 character, for the assay in \code{seurat_obj} to pull the
 #' common embedding from
-#' @param reducition_3 character, for the assay in \code{seurat_obj} to pull the
+#' @param reduction_3 character, for the assay in \code{seurat_obj} to pull the
 #' distinct embedding from
 #' @param sig_digits integer
 #'

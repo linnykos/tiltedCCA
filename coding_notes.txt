@@ -1,0 +1,19 @@
+- Change plot_clisi to not be ggplot, and add tests for .pie_custom
+- See if I need to remove functions in rare_cel, plot_embedding2, graph_laplacian, consensus_pca, or information_plot
+
+======
+
+- In common_decomposition.R: Can .search_tilt_perc return the common score so I don't need to recompute it?
+- In determine_cluster.R: Add tests for KL-div as well as corner case test for if(length(list_1[[i]]) == 0 && length(list_2[[i]]) == 0)
+- In frnn.R: 
+-- Add test to make sure .matrix_to_nnlist and .nnlist_to_matrix is bijective translation
+-- Add tests to the different normalization methods
+
+- In plot_embedding.R: In .extract_matrix_helper, if rank_c isn't rank_1 or rank_2, then we would need to change canonical_score <- .add_two_matrices(common_score, distinct_score)
+
+- In plot_embedding2.R:
+-- Check to see when I call Seurat::RunUMAP(graph_obj, ..., does setting the metric = metric actually achieve anything?
+-- The logic is a bit sus. I use Seurat::RunUMAP.Graph on the common and distinct parts (feeding in graph object). For the everything-embedding, do I just run it on the matrix as-is, or do I need to do additional normalizations (as in frNN)?
+
+- In rare_cell.R: Currently, I use deg_threshold to determine which cells seem promising to build a set around. However, instead of deg_threshold, I feel like the correct way is to see
+  ## what percentage of neighbors of the candidates points are themselves in the included set

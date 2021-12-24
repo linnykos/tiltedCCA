@@ -31,8 +31,6 @@ detect_rare_cell <- function(c_g, d_g_1, d_g_2, idx,
                              custom_threshold = rep(NA, 3),
                              deg_threshold = 0, max_size = NA,
                              tol = 0.02, max_tries = 10, verbose = F){
-  # [[note to self: Instead of deg_threshold, I feel like the correct way is to see
-  ## what percentage of neighbors of the candidates points are themselves in the included set]]
   bool_vec <- c(common_enrich, distinct_enrich_1, distinct_enrich_2)
   stopifnot(any(bool_vec), any(!bool_vec))
   stopifnot(inherits(c_g, "dgCMatrix"), inherits(d_g_1, "dgCMatrix"), inherits(d_g_2, "dgCMatrix"))

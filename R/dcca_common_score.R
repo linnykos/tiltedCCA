@@ -5,25 +5,35 @@
 #' This calls the functions
 #' \code{.common_decomposition} and \code{.compute_distinct_score}. 
 #'
+#' @param cca_res returned object from \code{.cca}
+#' @param cell_max positive integer for how many cells to subsample (useful if  
+#'                 \code{nrow(mat_1) is too large})
+#' @param discretization_gridsize positive integer for how many values between 0 and 1 (inclusive) to search the 
+#'                                appropriate amount of tilt over
+#' @param enforce_boundary boolean, on whether or not the tilt is required to stay between
+#'                         the two canonical score vectors                               
+#' @param fix_tilt_perc boolean or a numeric. If \code{FALSE}, then the tilt is adaptively
+#'                     determined, and if \code{TRUE}, then the tilt is set to be equal to 
+#'                     \code{0.5}. If numeric, the value should be between \code{0} and \code{1},
+#'                     which the tilt will be set to.
+#' @param metacell_clustering_1 \code{NA} or factor vector of length \code{nrow(mat_1)} that 
+#'                              depicts the hard clustering structure of the cell
+#'                              (with possible \code{NA}'s for cells that don't
+#'                              conform to a hard clustering structure).      
+#' @param metacell_clustering_2 \code{NA} or factor vector of length \code{nrow(mat_2)} that 
+#'                              depicts the hard clustering structure of the cell
+#'                              (with possible \code{NA}'s for cells that don't
+#'                              conform to a hard clustering structure). 
+#' @param num_neigh number of neighbors to consider to computed the common percentage
+#'                  (when calling \code{.determine_cluster})
 #' @param svd_1 SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}
 #' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
-#' @param cca_res returned object from \code{.cca}
-#' @param num_neigh number of neighbors to consider to computed the common percentage
-#' @param fix_tilt_perc boolean or numeric between 0 and 1 (inclusive). If \code{TRUE}, the output \code{distinct_perc_2} will be fixed to at 0.5,
-#' meaning the common scores will be the "middle" of \code{score_1} and \code{score_2}.
-#' If \code{FALSE}, \code{distinct_perc_2} will be adaptively estimated via the
-#' \code{.common_decomposition} function.
-#' @param cell_max number of cells used to compute the distinct percentaage
-#' @param check_alignment boolean. If \code{TRUE}, recompute \code{score_1} and \code{score_2}
-#' after using \code{.compute_unnormalized_scores}. This might be needed if the \code{.cca} solution
-#' was not computed from exactly \code{svd_1} and \code{svd_2}
 #' @param verbose boolean
-#' @param msg character
+#' @param msg additional print character
 #'
 #' @return list 
 .dcca_common_score <- function(cca_res, 
                                cell_max,
-                               check_alignment, 
                                discretization_gridsize,
                                enforce_boundary,
                                fix_tilt_perc, 
@@ -44,16 +54,7 @@
             nrow(score_1) == nrow(score_2))
   
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing common factors"))
-  if(check_alignment){
-    # reparameterize the scores
-    tmp <- .cca(score_1, score_2, dims_1 = 1:ncol(score_1), dims_2 = 1:ncol(score_2), 
-                return_scores = T)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-    stopifnot(is.matrix(score_1), is.matrix(score_2))
-    obj_vec <- diag(crossprod(score_1, score_2))/n
-  } else {
-    obj_vec <- cca_res$obj_vec
-  }
+  obj_vec <- cca_res$obj_vec
   
   # compute the common scores
   n <- nrow(score_1)
@@ -63,7 +64,6 @@
     n_idx <- 1:n
   }
   
-  # [[note to self: use these n_idx somehow]]
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
                                enforce_boundary = enforce_boundary,

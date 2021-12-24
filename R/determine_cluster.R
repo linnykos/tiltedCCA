@@ -47,7 +47,6 @@
   
   n <- length(list_1)
   overlap_vec <- sapply(1:n, function(i){
-    # [[note to self: add a test for this corner case]]
     if(length(list_1[[i]]) == 0 && length(list_2[[i]]) == 0) return(0)
     
     length(intersect(list_1[[i]], list_2[[i]]))/length(unique(c(list_1[[i]], list_2[[i]])))
