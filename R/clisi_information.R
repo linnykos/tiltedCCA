@@ -43,17 +43,23 @@ clisi_information <- function(c_g, d_g, membership_vec,
     idx <- which(membership_vec[cell_subidx] == celltype)
     tmp_mat <- clisi_cell_mat[,idx,drop = F]
     mean_vec <- matrixStats::rowMeans2(tmp_mat)
+    sd_vec <- matrixStats::rowSds(tmp_mat)
     names(mean_vec) <- rownames(tmp_mat)
     
     mean_val <- mean_vec[which(levels(membership_vec) == celltype)]
+    sd_val <- sd_vec[which(levels(membership_vec) == celltype)]
     
     list(vec = mean_vec, 
-         value = mean_val)
+         value = mean_val,
+         sd = sd_val)
   })
   names(res) <- levels(membership_vec)
   
   # reorganize values
-  df <- data.frame(celltype = levels(membership_vec), value = sapply(res, function(x){x$value}))
+  df <- data.frame(celltype = levels(membership_vec), 
+                   value = sapply(res, function(x){x$value}),
+                   sd = sapply(res, function(x){x$sd}))
+  rownames(df) <- NULL
   mat <- sapply(res, function(x){x$vec})
   colnames(mat) <- paste0("from_", levels(membership_vec))
   rownames(mat) <- paste0("to_", levels(membership_vec))

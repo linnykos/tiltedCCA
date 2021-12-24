@@ -112,19 +112,17 @@ test_that("construct_frnn works", {
                         verbose = F, bool_matrix = T)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("c_g", "d_g", "e_g", "membership_vec", "original_radius"))))
+  expect_true(all(sort(names(res)) == sort(c("c_g", "d_g", "membership_vec", "original_radius"))))
   expect_true(inherits(res$c_g, "dgCMatrix"))
   expect_true(inherits(res$d_g, "dgCMatrix"))
-  expect_true(inherits(res$e_g, "dgCMatrix"))
   
   res <- construct_frnn(dcca_obj, nn = 25, membership_vec = membership_vec1, 
                         verbose = F, bool_matrix = F)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("c_g", "d_g", "e_g", "membership_vec", "original_radius"))))
+  expect_true(all(sort(names(res)) == sort(c("c_g", "d_g", "membership_vec", "original_radius"))))
   expect_true(inherits(res$c_g, "frNN"))
   expect_true(inherits(res$d_g, "frNN"))
-  expect_true(inherits(res$e_g, "frNN"))
 })
 
 ################################

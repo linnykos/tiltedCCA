@@ -4,6 +4,10 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
                                   renormalize = T, 
                                   xlim = range(c(0, 1.1*c(vec1, vec2, common_vec))),
                                   ylim = range(c(0, 1.1*c(vec1, vec2, common_vec))), 
+                                  length_arrow = 0.1,
+                                  lwd_arrow_black = 1.2,
+                                  lwd_arrow_redgreen = 2,
+                                  lwd_arrow_white = 3, 
                                   ...){
   if(renormalize){
     scalar <- .l2norm(vec1);
@@ -22,6 +26,10 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
                                plot_bg = plot_bg, 
                                xlim = xlim,
                                ylim = ylim,
+                               length_arrow = length_arrow,
+                               lwd_arrow_black = lwd_arrow_black,
+                               lwd_arrow_redgreen = lwd_arrow_redgreen,
+                               lwd_arrow_white = lwd_arrow_white, 
                                ...)
 }
 
@@ -32,7 +40,12 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
                                   xlim = range(c(0, 1.1*c(vec1, vec2, common_vec))),
                                   ylim = range(c(0, 1.1*c(vec1, vec2, common_vec))), 
                                   gridsize = 100, col_levels = 21,
-                                  plot_bg = T, ...){
+                                  plot_bg = T, 
+                                  length_arrow = 0.1,
+                                  lwd_arrow_black = 1.2,
+                                  lwd_arrow_redgreen = 2,
+                                  lwd_arrow_white = 3, 
+                                  ...){
   stopifnot(length(vec1) == 2, length(vec2) == 2,
             all(c(vec1, vec2) >= 0))
   
@@ -61,16 +74,24 @@ plot_decomposition_2d <- function(vec1, vec2, common_vec,
                               z = mat, levels = c(rev(seq(0, -max_val, length.out = side_length+2)[-1]), seq(0, max_val, length.out = side_length+2)[-1]),
                               col = col_vec)
   }
-  graphics::arrows(x0 = 0, y0 = 0, x1 = common_vec[1], y1 = common_vec[2], length = 0.1, col = "white", lwd = 3)
-  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec1[1], y1 = vec1[2], length = 0.1, col = "white", lwd = 3)
-  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec2[1], y1 = vec2[2], length = 0.1, col = "white", lwd = 3)
+  graphics::arrows(x0 = 0, y0 = 0, x1 = common_vec[1], y1 = common_vec[2], 
+                   length = length_arrow, col = "white", lwd = lwd_arrow_white)
+  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec1[1], y1 = vec1[2], 
+                   length = length_arrow, col = "white", lwd = lwd_arrow_white)
+  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec2[1], y1 = vec2[2], 
+                   length = length_arrow, col = "white", lwd = lwd_arrow_white)
   
-  graphics::arrows(x0 = 0, y0 = 0, x1 = common_vec[1], y1 = common_vec[2], length = 0.1, col = 3, lwd = 2)
-  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec1[1], y1 = vec1[2], length = 0.1, col = 2, lwd = 2)
-  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec2[1], y1 = vec2[2], length = 0.1, col = 2, lwd = 2)
+  graphics::arrows(x0 = 0, y0 = 0, x1 = common_vec[1], y1 = common_vec[2], 
+                   length = length_arrow, col = 3, lwd = lwd_arrow_redgreen)
+  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec1[1], y1 = vec1[2], 
+                   length = length_arrow, col = 2, lwd = lwd_arrow_redgreen)
+  graphics::arrows(x0 = common_vec[1], y0 = common_vec[2], x1 = vec2[1], y1 = vec2[2], 
+                   length = length_arrow, col = 2, lwd = lwd_arrow_redgreen)
   
-  graphics::arrows(x0 = 0, y0 = 0, x1 = vec1[1], y1 = vec1[2], length = 0.1, lwd = 1.2)
-  graphics::arrows(x0 = 0, y0 = 0, x1 = vec2[1], y1 = vec2[2], length = 0.1, lwd = 1.2)
+  graphics::arrows(x0 = 0, y0 = 0, x1 = vec1[1], y1 = vec1[2], 
+                   length = length_arrow, lwd = lwd_arrow_black)
+  graphics::arrows(x0 = 0, y0 = 0, x1 = vec2[1], y1 = vec2[2], 
+                   length = length_arrow, lwd = lwd_arrow_black)
   
   invisible()
 }
