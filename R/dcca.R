@@ -37,8 +37,8 @@
 #' less cells to be involved in \code{.determine_cluster})
 #' 
 #' For the tilt values (possibly set in \code{fix_tilt_perc}),
-#' values close to 0 or 1mean the common space resembles the canonical 
-#' scores of \code{mat_2} or \code{mat_1} respectively.
+#' values close to 0 or 1 means the common space resembles the 
+#' canonical scores of \code{mat_2} or \code{mat_1} respectively.
 #' 
 #' \code{metacell_clustering_1} and \code{metacell_clustering_2} need to be
 #' both either \code{NA} or factor vectors. If the former (i.e.,
