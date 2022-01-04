@@ -30,9 +30,10 @@
   
   min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
                                        dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
+                                       binarize = F,
                                        k = min(c(ncol(dimred_1), ncol(dimred_2))),
                                        num_neigh = num_neigh,
-                                       verbose = F)
+                                       verbose = verbose)
   
   # [[TODO: Format metacell_clustering_1 and metacell_clustering_2 from factor to list]]
   
@@ -87,8 +88,10 @@
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
   list(common_score = common_score, 
-       tilt_perc = tilt_perc,
-       df_percentage = df_percentage)
+       df_percentage = df_percentage,
+       min_mat = min_subspace$min_mat,
+       target_subspace = min_subspace$subspace_mat,
+       tilt_perc = tilt_perc)
 }
 
 #####################

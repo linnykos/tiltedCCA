@@ -79,8 +79,10 @@
                                verbose = verbose)
   
   common_score <- tmp$common_score
-  tilt_perc <- tmp$tilt_perc
   df_percentage <- tmp$df_percentage
+  min_mat <- tmp$min_mat
+  target_subspace <- tmp$subspace_mat
+  tilt_perc <- tmp$tilt_perc
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
@@ -95,6 +97,8 @@
        df_percentage = df_percentage,
        metacell_clustering_1 = metacell_clustering_1,
        metacell_clustering_2 = metacell_clustering_2,
+       min_mat = min_mat,
+       target_subspace = target_subspace,
        tilt_perc = tilt_perc
        )
 }

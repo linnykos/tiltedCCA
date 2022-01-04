@@ -165,7 +165,7 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
                                        dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
                                        metacell_clustering_1 = metacell_clustering_1,
                                        metacell_clustering_2 = metacell_clustering_2,
-                                       binarize = F,
+                                       binarize = T,
                                        num_neigh = 30,
                                        verbose = F)
   
