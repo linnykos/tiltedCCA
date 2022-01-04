@@ -1,6 +1,7 @@
 compute_min_subspace <- function(dimred_1, dimred_2,
                                  metacell_clustering_1,
                                  metacell_clustering_2,
+                                 binarize = T,
                                  k = min(c(ncol(dimred_1), ncol(dimred_2))),
                                  num_neigh = 30,
                                  verbose = F){
@@ -11,7 +12,7 @@ compute_min_subspace <- function(dimred_1, dimred_2,
                             verbose = verbose)
   
   ## [[TODO: If we're doing this, then we don't need to kernelize...]]
-  min_mat@x <- rep(1, length(min_mat@x))
+  if(binarize) min_mat@x <- rep(1, length(min_mat@x))
   subspace_mat <- .svd_truncated(min_mat, K = k, symmetric = F, rescale = F, 
                                  mean_vec = T, sd_vec = F, K_full_rank = F)$u
   
