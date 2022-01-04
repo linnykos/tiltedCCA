@@ -30,8 +30,9 @@
   
   min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
                                        dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
+                                       metacell_clustering_1 = metacell_clustering_1,
+                                       metacell_clustering_2 = metacell_clustering_2,
                                        binarize = F,
-                                       k = min(c(ncol(dimred_1), ncol(dimred_2))),
                                        num_neigh = num_neigh,
                                        verbose = verbose)
   
