@@ -42,6 +42,8 @@ form_seurat_obj <- function(mat_1, mat_2){
 .svd_truncated <- function(mat, K, symmetric, rescale,
                            mean_vec, sd_vec,
                            K_full_rank){
+  stopifnot(all(K <= dim(mat)))
+  
   if(is.na(K)) K <- min(dim(mat))
   stopifnot(min(dim(mat)) >= K)
   if(K == min(dim(mat))) K_full_rank <- T

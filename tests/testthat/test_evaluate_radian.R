@@ -161,6 +161,13 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
     .construct_circle(vec1, vec2)
   })
   
+  min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
+                                       dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
+                                       metacell_clustering_1 = metacell_clustering_1,
+                                       metacell_clustering_2 = metacell_clustering_2,
+                                       num_neigh = 30,
+                                       verbose = F)
+  
   list(basis_list = basis_list, 
        score_1 = score_1,
        score_2 = score_2,
@@ -168,7 +175,9 @@ compute_evaluate_radian_ingredients <- function(setting = 1){
        metacell_clustering_2 = metacell_clustering_2,
        svd_1 = svd_1, 
        svd_2 = svd_2,
-       circle_list = circle_list)
+       circle_list = circle_list,
+       min_mat = min_subspace$min_mat,
+       target_subspace = min_subspace$subspace_mat)
 }
 
 ## .evaluate_radian is correct
@@ -181,6 +190,7 @@ test_that(".evaluate_radian works", {
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
   metacell_clustering_1 <- tmp$metacell_clustering_1
   metacell_clustering_2 <- tmp$metacell_clustering_2
+  target_subspace <- tmp$target_subspace
   
   res <- .evaluate_radian(basis_list = basis_list, 
                           circle_list = circle_list,
@@ -194,7 +204,8 @@ test_that(".evaluate_radian works", {
                           score_1 = score_1,
                           score_2 = score_2,
                           svd_1 = svd_1, 
-                          svd_2 = svd_2)
+                          svd_2 = svd_2,
+                          target_subspace = target_subspace)
   expect_true(is.numeric(res))
   expect_true(length(res) == 1)
   
@@ -210,7 +221,8 @@ test_that(".evaluate_radian works", {
                           score_1 = score_1,
                           score_2 = score_2,
                           svd_1 = svd_1, 
-                          svd_2 = svd_2)
+                          svd_2 = svd_2,
+                          target_subspace = target_subspace)
   expect_true(is.matrix(res))
   expect_true(all(dim(res) == c(nrow(score_1), 2)))
 })
@@ -223,6 +235,10 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
   metacell_clustering_1 <- tmp$metacell_clustering_1
   metacell_clustering_2 <- tmp$metacell_clustering_2
+  min_mat <- as.matrix(tmp$min_mat)
+  # image(min_mat, asp = T)
+  target_subspace <- tmp$target_subspace
+  # plot(target_subspace[,1], target_subspace[,2], asp = T, col = rep(1:3, each = 100))
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
@@ -236,10 +252,11 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
-                     svd_2 = svd_2)
+                     svd_2 = svd_2,
+                     target_subspace = target_subspace)
   })
   expect_true(length(res) == 9)
-  expect_true(res[1] >= max(res[5:9]))
+  expect_true(res[1] <= min(res[5:9]))
   
   set.seed(10)
   tmp <- compute_evaluate_radian_ingredients(setting = 3)
@@ -248,6 +265,9 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
   metacell_clustering_1 <- tmp$metacell_clustering_1
   metacell_clustering_2 <- tmp$metacell_clustering_2
+  min_mat <- as.matrix(tmp$min_mat)
+  target_subspace <- tmp$target_subspace
+  # plot(target_subspace[,1], target_subspace[,2], asp = T, col = rep(1:3, each = 100))
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
@@ -261,9 +281,10 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
-                     svd_2 = svd_2)
+                     svd_2 = svd_2,
+                     target_subspace = target_subspace)
   })
-  expect_true(max(res[1:4]) >= max(res[5:9]))
+  expect_true(max(res[1:4]) <= min(res[5:9]))
   
   set.seed(10)
   tmp <- compute_evaluate_radian_ingredients(setting = 4)
@@ -272,6 +293,8 @@ test_that(".evaluate_radian is maximized at appropriate values", {
   svd_2 <- tmp$svd_2; circle_list <- tmp$circle_list
   metacell_clustering_1 <- tmp$metacell_clustering_1
   metacell_clustering_2 <- tmp$metacell_clustering_2
+  min_mat <- as.matrix(tmp$min_mat)
+  target_subspace <- tmp$target_subspace
   res <- sapply(seq(0, 1, length.out = 9), function(percentage){
     .evaluate_radian(basis_list = basis_list, 
                      circle_list = circle_list,
@@ -285,9 +308,10 @@ test_that(".evaluate_radian is maximized at appropriate values", {
                      score_1 = score_1,
                      score_2 = score_2,
                      svd_1 = svd_1, 
-                     svd_2 = svd_2)
+                     svd_2 = svd_2,
+                     target_subspace = target_subspace)
   })
-  expect_true(max(res[4:6]) >= max(res[1:3]))
-  expect_true(max(res[4:6]) >= max(res[7:9]))
+  expect_true(min(res[4:6]) <= min(res[1:3]))
+  expect_true(min(res[4:6]) <= min(res[7:9]))
 })
 

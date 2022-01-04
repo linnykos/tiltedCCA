@@ -28,6 +28,12 @@
     .construct_circle(vec1, vec2)
   })
   
+  min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
+                                       dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
+                                       k = min(c(ncol(dimred_1), ncol(dimred_2))),
+                                       num_neigh = num_neigh,
+                                       verbose = F)
+  
   # [[TODO: Format metacell_clustering_1 and metacell_clustering_2 from factor to list]]
   
   if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
@@ -45,6 +51,7 @@
       score_2 = score_2,
       svd_1 = svd_1,
       svd_2 = svd_2, 
+      target_subspace = min_subspace$subspace_mat,
       verbose = verbose
     )
     tilt_perc <- tmp$percentage
@@ -73,7 +80,8 @@
     score_1 = score_1,
     score_2 = score_2,
     svd_1 = svd_1, 
-    svd_2 = svd_2
+    svd_2 = svd_2,
+    target_subspace = min_subspace$subspace_mat
   )
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
@@ -97,6 +105,7 @@
                               score_2,
                               svd_1,
                               svd_2,
+                              target_subspace,
                               tol = 1e-3,
                               verbose = F){
   r <- length(basis_list)
@@ -124,12 +133,13 @@
                                      score_1 = score_1,
                                      score_2 = score_2,
                                      svd_1 = svd_1, 
-                                     svd_2 = svd_2)
+                                     svd_2 = svd_2,
+                                     target_subspace = target_subspace)
   }
   
   df <- data.frame(percentage = percentage_grid,
                    ratio_val = value_vec)
-  idx_min <- .select_minimum(minimum = F,
+  idx_min <- .select_minimum(minimum = T,
                              x_val = percentage_grid,
                              y_val = value_vec)
   if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
@@ -151,7 +161,8 @@
                              score_1,
                              score_2,
                              svd_1, 
-                             svd_2){
+                             svd_2,
+                             target_subspace){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
@@ -176,12 +187,9 @@
                                              score_2,
                                              svd_1, 
                                              svd_2)
-
-  .determine_cluster(mat = common_mat, 
-                     metacell_clustering_1 = metacell_clustering_1,
-                     metacell_clustering_2 = metacell_clustering_2,
-                     n_idx = n_idx,
-                     num_neigh = num_neigh)
+  
+  .determine_cluster(common_mat = common_mat, 
+                     target_subspace = target_subspace)
 }
 
 .select_minimum <- function(minimum, x_val, y_val){
@@ -248,6 +256,7 @@
   tmp
 }
 
+# [[TODO: Use this function for visualizations]]
 .convert_common_score_to_mat <- function(common_score,
                                          score_1,
                                          score_2,
