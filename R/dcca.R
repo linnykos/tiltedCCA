@@ -85,16 +85,17 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
   
-  if(all(is.na(metacell_clustering_1)) & all(is.na(metacell_clustering_2))){
+  if(all(is.na(metacell_clustering_1)) && all(is.na(metacell_clustering_2)) &&
+     is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .form_snns(num_neigh = num_neigh, svd_1 = svd_1, svd_2 = svd_2)
     metacell_clustering_1 <- tmp$metacell_clustering_1
     metacell_clustering_2 <- tmp$metacell_clustering_2
+    
+    stopifnot(is.factor(metacell_clustering_1) | is.list(metacell_clustering_1),
+              is.factor(metacell_clustering_2) | is.list(metacell_clustering_2),
+              length(metacell_clustering_1) == nrow(mat_1),
+              length(metacell_clustering_2) == nrow(mat_2))
   }
-  
-  stopifnot(is.factor(metacell_clustering_1) | is.list(metacell_clustering_1),
-            is.factor(metacell_clustering_2) | is.list(metacell_clustering_2),
-            length(metacell_clustering_1) == nrow(mat_1),
-            length(metacell_clustering_2) == nrow(mat_2))
   
   msg <- " (all cells)"
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))

@@ -28,18 +28,20 @@
     .construct_circle(vec1, vec2)
   })
   
-  min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
-                                       dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
-                                       metacell_clustering_1 = metacell_clustering_1,
-                                       metacell_clustering_2 = metacell_clustering_2,
-                                       binarize = F,
-                                       num_neigh = num_neigh,
-                                       verbose = verbose)
-  
   # [[TODO: Format metacell_clustering_1 and metacell_clustering_2 from factor to list]]
   
   if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
+    min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
+                                         dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
+                                         metacell_clustering_1 = metacell_clustering_1,
+                                         metacell_clustering_2 = metacell_clustering_2,
+                                         binarize = F,
+                                         num_neigh = num_neigh,
+                                         verbose = verbose)
+    min_mat <- min_subspace$min_mat
+    target_subspace <- min_subspace$subspace_mat
+    
     tmp <- .search_tilt_perc(
       basis_list = basis_list,
       circle_list = circle_list,
@@ -53,12 +55,16 @@
       score_2 = score_2,
       svd_1 = svd_1,
       svd_2 = svd_2, 
-      target_subspace = min_subspace$subspace_mat,
+      target_subspace = target_subspace,
       verbose = verbose
     )
     tilt_perc <- tmp$percentage
     df_percentage <- tmp$df
+    
   } else {
+    min_mat <- NA
+    target_subspace <- NA
+    
     if(is.logical(fix_tilt_perc) && fix_tilt_perc){
       tilt_perc <- 0.5; df_percentage <- NA
     } else if(is.numeric(fix_tilt_perc) & fix_tilt_perc >= 0 & fix_tilt_perc <= 1){
@@ -83,15 +89,15 @@
     score_2 = score_2,
     svd_1 = svd_1, 
     svd_2 = svd_2,
-    target_subspace = min_subspace$subspace_mat
+    target_subspace = target_subspace
   )
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
   list(common_score = common_score, 
        df_percentage = df_percentage,
-       min_mat = min_subspace$min_mat,
-       target_subspace = min_subspace$subspace_mat,
+       min_mat = min_mat,
+       target_subspace = target_subspace,
        tilt_perc = tilt_perc)
 }
 
