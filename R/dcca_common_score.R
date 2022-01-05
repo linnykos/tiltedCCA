@@ -81,7 +81,7 @@
   common_score <- tmp$common_score
   df_percentage <- tmp$df_percentage
   min_mat <- tmp$min_mat
-  target_subspace <- tmp$subspace_mat
+  target_subspace <- tmp$target_subspace
   tilt_perc <- tmp$tilt_perc
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
