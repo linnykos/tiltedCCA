@@ -1,6 +1,7 @@
 fine_tuning <- function(dcca_res, 
                         max_iter = 5,
                         fix_tilt_perc = NA,
+                        temp_path = NULL,
                         tol = 1e-5,
                         verbose = T){
   score_1 <- dcca_res$score_1
@@ -39,7 +40,7 @@ fine_tuning <- function(dcca_res,
   } else {
     tilt_perc <- fix_tilt_perc
   }
- 
+  
   while(iter <= max_iter){
     for(k in 1:rank_c){
       if(all(is.na(fix_tilt_perc))){
@@ -61,6 +62,7 @@ fine_tuning <- function(dcca_res,
                                     score_2 = score_2,
                                     svd_1 = dcca_res$svd_1, 
                                     svd_2 = dcca_res$svd_2,
+                                    target_subspace = dcca_res$target_subspace,
                                     verbose = verbose)
       if(verbose) {
         print(paste0("On iteration ", iter, " for latent dimension ", k))
@@ -72,6 +74,17 @@ fine_tuning <- function(dcca_res,
     }
     
     if(iter > 2 && sum(abs(common_score - common_score_prev)) <= tol) break()
+    if(!is.null(temp_path) && is.character(temp_path)){
+      tmp <- .compute_distinct_score(score_1, score_2, common_score)
+      distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
+      res <- list(common_score = common_score, 
+                  distinct_score_1 = distinct_score_1,
+                  distinct_score_2 = distinct_score_2,
+                  score_1 = score_1, score_2 = score_2, 
+                  svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
+                  tilt_perc = tilt_perc)
+      save(res, file = temp_path)
+    }
     
     iter <- iter + 1
     common_score_prev <- common_score
@@ -84,16 +97,18 @@ fine_tuning <- function(dcca_res,
   param_list[["fine_tuning_max_iter"]] <- max_iter
   
   res <- list(common_score = common_score, 
-       distinct_score_1 = distinct_score_1,
-       distinct_score_2 = distinct_score_2,
-       score_1 = score_1, score_2 = score_2, 
-       svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
-       cca_obj = dcca_res$cca_obj, 
-       df_percentage = NA,
-       metacell_clustering_1 = dcca_res$metacell_clustering_1,
-       metacell_clustering_2 = dcca_res$metacell_clustering_2,
-       param_list = dcca_res$param_list,
-       tilt_perc = tilt_perc
+              distinct_score_1 = distinct_score_1,
+              distinct_score_2 = distinct_score_2,
+              score_1 = score_1, score_2 = score_2, 
+              svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
+              cca_obj = dcca_res$cca_obj, 
+              df_percentage = NA,
+              metacell_clustering_1 = dcca_res$metacell_clustering_1,
+              metacell_clustering_2 = dcca_res$metacell_clustering_2,
+              min_mat = dcca_res$min_mat,
+              target_subspace = dcca_res$target_subspace,
+              param_list = dcca_res$param_list,
+              tilt_perc = tilt_perc
   )
   
   class(res) <- "dcca"
@@ -115,6 +130,7 @@ fine_tuning <- function(dcca_res,
                                    score_2,
                                    svd_1, 
                                    svd_2,
+                                   target_subspace,
                                    verbose = T){
   r <- length(basis_list)
   
@@ -134,18 +150,15 @@ fine_tuning <- function(dcca_res,
                                                svd_1, 
                                                svd_2)
     
-    value <- .determine_cluster(mat = common_mat, 
-                       metacell_clustering_1 = metacell_clustering_1,
-                       metacell_clustering_2 = metacell_clustering_2,
-                       n_idx = n_idx,
-                       num_neigh = num_neigh)
+    value <- .determine_cluster(common_mat = common_mat, 
+                                target_subspace = target_subspace)
     
     list(value = value, common_vec = common_score[,latent_dim])
   })
   names(value_list) <- percentage_grid
   value_vec <- sapply(value_list, function(x){x$value})
   
-  idx_min <- .select_minimum(minimum = F,
+  idx_min <- .select_minimum(minimum = T,
                              x_val = percentage_grid,
                              y_val = value_vec)
   df <- data.frame(percentage = percentage_grid,
