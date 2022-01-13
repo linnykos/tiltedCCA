@@ -1,8 +1,10 @@
 .determine_cluster <- function(common_mat,
+                               metacell_clustering,
                                target_subspace){
   
-  common_subspace = .svd_truncated(mat = common_mat,
-                                   K = ncol(target_subspace),
+  avg_mat <- .compute_average_mat(common_mat, metacell_clustering)
+  common_subspace = .svd_truncated(mat = avg_mat,
+                                   K = round(ncol(common_mat)/2),
                                    symmetric = F, rescale = F,
                                    mean_vec = F, sd_vec = F,
                                    K_full_rank = T)$u
@@ -41,6 +43,14 @@
   # }
   # 
   # min(val_1, val_2)
+}
+
+.compute_average_mat <- function(mat, metacell_clustering){
+  stopifnot(is.list(metacell_clustering))
+  
+  t(sapply(metacell_clustering, function(vec){
+    matrixStats::colSums2(mat[vec,,drop = F])
+  }))
 }
 
 # see https://arxiv.org/pdf/1407.0900.pdf
