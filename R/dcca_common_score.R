@@ -37,11 +37,11 @@
                                discretization_gridsize,
                                enforce_boundary,
                                fix_tilt_perc, 
-                               metacell_clustering_1,
-                               metacell_clustering_2,
+                               metacell_clustering,
                                num_neigh,
                                svd_1, 
                                svd_2, 
+                               target_embedding,
                                verbose = T, msg = ""){
   stopifnot(cell_max > 10)
   full_rank <- length(cca_res$obj_vec)
@@ -68,20 +68,18 @@
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
                                enforce_boundary = enforce_boundary,
                                fix_tilt_perc = fix_tilt_perc,
-                               metacell_clustering_1 = metacell_clustering_1,
-                               metacell_clustering_2 = metacell_clustering_2,
+                               metacell_clustering = metacell_clustering,
                                n_idx = n_idx,
                                num_neigh = num_neigh,
                                score_1 = score_1,
                                score_2 = score_2,
                                svd_1 = svd_1, 
                                svd_2 = svd_2,
+                               target_embedding = target_embedding,
                                verbose = verbose)
   
   common_score <- tmp$common_score
   df_percentage <- tmp$df_percentage
-  min_mat <- tmp$min_mat
-  target_subspace <- tmp$target_subspace
   tilt_perc <- tmp$tilt_perc
   
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
@@ -95,10 +93,8 @@
        svd_1 = svd_1, svd_2 = svd_2, 
        cca_obj = obj_vec, 
        df_percentage = df_percentage,
-       metacell_clustering_1 = metacell_clustering_1,
-       metacell_clustering_2 = metacell_clustering_2,
-       min_mat = min_mat,
-       target_subspace = target_subspace,
+       metacell_clustering = metacell_clustering,
+       target_embedding = target_embedding,
        tilt_perc = tilt_perc
        )
 }

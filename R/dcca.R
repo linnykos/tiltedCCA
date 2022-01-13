@@ -57,19 +57,16 @@
 #' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, dims_1, dims_2, 
+                        metacell_clustering,
+                        target_embedding,
                         center_1 = T, center_2 = T,
                         scale_1 = T, scale_2 = T,
                         cell_max = nrow(mat_1),
                         discretization_gridsize = 9, 
                         enforce_boundary = is.factor(metacell_clustering_1),
                         fix_tilt_perc = F, 
-                        metacell_clustering_1 = NA,
-                        metacell_clustering_2 = NA,
                         num_neigh = min(30, round(nrow(mat_1)/20)),
                         verbose = T){
-  stopifnot((all(is.na(metacell_clustering_1)) & all(is.na(metacell_clustering_2))) ||
-              (is.list(metacell_clustering_1) & is.list(metacell_clustering_2)) ||
-              (is.factor(metacell_clustering_1) & is.factor(metacell_clustering_2)))
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
             rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
@@ -85,18 +82,6 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   svd_1 <- .check_svd(svd_1, dims = dims_1)
   svd_2 <- .check_svd(svd_2, dims = dims_2)
   
-  if(all(is.na(metacell_clustering_1)) && all(is.na(metacell_clustering_2)) &&
-     is.logical(fix_tilt_perc) && !fix_tilt_perc){
-    tmp <- .form_snns(num_neigh = num_neigh, svd_1 = svd_1, svd_2 = svd_2)
-    metacell_clustering_1 <- tmp$metacell_clustering_1
-    metacell_clustering_2 <- tmp$metacell_clustering_2
-    
-    stopifnot(is.factor(metacell_clustering_1) | is.list(metacell_clustering_1),
-              is.factor(metacell_clustering_2) | is.list(metacell_clustering_2),
-              length(metacell_clustering_1) == nrow(mat_1),
-              length(metacell_clustering_2) == nrow(mat_2))
-  }
-  
   msg <- " (all cells)"
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
   cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
@@ -106,11 +91,11 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                             discretization_gridsize = discretization_gridsize,
                             enforce_boundary = enforce_boundary,
                             fix_tilt_perc = fix_tilt_perc, 
-                            metacell_clustering_1 = metacell_clustering_1,
-                            metacell_clustering_2 = metacell_clustering_2,
+                            metacell_clustering = metacell_clustering,
                             num_neigh = num_neigh,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
+                            target_embedding = target_embedding,
                             verbose = verbose, msg = msg)
   
   param_list <- list(center_1 = center_1, center_2 = center_2,

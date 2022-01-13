@@ -46,8 +46,9 @@
 # see https://arxiv.org/pdf/1407.0900.pdf
 .grassmann_distance <- function(orthonormal_1, orthonormal_2,
                                 tol = 1e-4){
-  stopifnot(all(dim(orthonormal_1) == dim(orthonormal_2)),
+  stopifnot(all(nrow(orthonormal_1) == nrow(orthonormal_2)),
             ncol(orthonormal_1) <= nrow(orthonormal_1),
+            ncol(orthonormal_2) <= nrow(orthonormal_2),
             sum(abs(crossprod(orthonormal_1) - diag(ncol(orthonormal_1)))) <= tol,
             sum(abs(crossprod(orthonormal_2) - diag(ncol(orthonormal_2)))) <= tol)
   

@@ -3,14 +3,14 @@
 .common_decomposition <- function(discretization_gridsize,
                                   enforce_boundary,
                                   fix_tilt_perc,
-                                  metacell_clustering_1,
-                                  metacell_clustering_2,
+                                  metacell_clustering,
                                   n_idx,
                                   num_neigh,
                                   score_1,
                                   score_2,
                                   svd_1, 
                                   svd_2,
+                                  target_embedding,
                                   tol = 1e-6, verbose = F){
   
   rank_c <- min(ncol(score_1), ncol(score_2))
@@ -32,39 +32,25 @@
   
   if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
-    min_subspace <- compute_min_subspace(dimred_1 = .mult_mat_vec(svd_1$u, svd_1$d),
-                                         dimred_2 = .mult_mat_vec(svd_2$u, svd_2$d),
-                                         metacell_clustering_1 = metacell_clustering_1,
-                                         metacell_clustering_2 = metacell_clustering_2,
-                                         binarize = F,
-                                         num_neigh = num_neigh,
-                                         verbose = verbose)
-    min_mat <- min_subspace$min_mat
-    target_subspace <- min_subspace$subspace_mat
-    
     tmp <- .search_tilt_perc(
       basis_list = basis_list,
       circle_list = circle_list,
       enforce_boundary = enforce_boundary,
       discretization_gridsize = discretization_gridsize,
-      metacell_clustering_1 = metacell_clustering_1,
-      metacell_clustering_2 = metacell_clustering_2,
+      metacell_clustering = metacell_clustering,
       n_idx = n_idx,
       num_neigh = num_neigh,
       score_1 = score_1,
       score_2 = score_2,
       svd_1 = svd_1,
       svd_2 = svd_2, 
-      target_subspace = target_subspace,
+      target_embedding = target_embedding,
       verbose = verbose
     )
     tilt_perc <- tmp$percentage
     df_percentage <- tmp$df
     
   } else {
-    min_mat <- NA
-    target_subspace <- NA
-    
     if(is.logical(fix_tilt_perc) && fix_tilt_perc){
       tilt_perc <- 0.5; df_percentage <- NA
     } else if(is.numeric(fix_tilt_perc) & fix_tilt_perc >= 0 & fix_tilt_perc <= 1){
@@ -80,8 +66,7 @@
     basis_list = basis_list, 
     circle_list = circle_list,
     enforce_boundary = enforce_boundary,
-    metacell_clustering_1 = metacell_clustering_1,
-    metacell_clustering_2 = metacell_clustering_2,
+    metacell_clustering = metacell_clustering,
     num_neigh = num_neigh,
     percentage = tilt_perc,
     return_common_score = T,
@@ -89,15 +74,14 @@
     score_2 = score_2,
     svd_1 = svd_1, 
     svd_2 = svd_2,
-    target_subspace = target_subspace
+    target_embedding = target_embedding
   )
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
   
   list(common_score = common_score, 
        df_percentage = df_percentage,
-       min_mat = min_mat,
-       target_subspace = target_subspace,
+       target_embedding = target_embedding,
        tilt_perc = tilt_perc)
 }
 
@@ -107,15 +91,14 @@
                               circle_list,
                               discretization_gridsize,
                               enforce_boundary,
-                              metacell_clustering_1,
-                              metacell_clustering_2,
+                              metacell_clustering,
                               n_idx,
                               num_neigh,
                               score_1,
                               score_2,
                               svd_1,
                               svd_2,
-                              target_subspace,
+                              target_embedding,
                               tol = 1e-3,
                               verbose = F){
   r <- length(basis_list)
@@ -134,8 +117,7 @@
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
                                      enforce_boundary = enforce_boundary,
-                                     metacell_clustering_1 = metacell_clustering_1,
-                                     metacell_clustering_2 = metacell_clustering_2,
+                                     metacell_clustering = metacell_clustering,
                                      n_idx = n_idx,
                                      num_neigh = num_neigh,
                                      percentage = percentage_grid[i],
@@ -144,7 +126,7 @@
                                      score_2 = score_2,
                                      svd_1 = svd_1, 
                                      svd_2 = svd_2,
-                                     target_subspace = target_subspace)
+                                     target_embedding = target_embedding)
   }
   
   df <- data.frame(percentage = percentage_grid,
@@ -162,8 +144,7 @@
 .evaluate_radian <- function(basis_list, 
                              circle_list,
                              enforce_boundary,
-                             metacell_clustering_1,
-                             metacell_clustering_2,
+                             metacell_clustering,
                              n_idx,
                              num_neigh,
                              percentage,
@@ -172,7 +153,7 @@
                              score_2,
                              svd_1, 
                              svd_2,
-                             target_subspace){
+                             target_embedding){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
@@ -199,7 +180,8 @@
                                              svd_2)
   
   .determine_cluster(common_mat = common_mat, 
-                     target_subspace = target_subspace)
+                     metacell_clustering = metacell_clustering,
+                     target_embedding = target_embedding)
 }
 
 .select_minimum <- function(minimum, x_val, y_val){
