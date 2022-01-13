@@ -1,6 +1,6 @@
 .determine_cluster <- function(common_mat,
                                metacell_clustering,
-                               target_subspace){
+                               target_embedding){
   
   avg_mat <- .compute_average_mat(common_mat, metacell_clustering)
   common_subspace = .svd_truncated(mat = avg_mat,
@@ -10,7 +10,7 @@
                                    K_full_rank = T)$u
   
   .grassmann_distance(orthonormal_1 = common_subspace,
-                      orthonormal_2 = target_subspace)
+                      orthonormal_2 = target_embedding)
   
   # list_mode <- is.list(metacell_clustering_1)
   # 
