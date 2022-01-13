@@ -53,8 +53,7 @@ fine_tuning <- function(dcca_res,
                                     circle_list = circle_list,
                                     common_score = common_score,
                                     latent_dim = k,
-                                    metacell_clustering_1 = dcca_res$metacell_clustering_1,
-                                    metacell_clustering_2 = dcca_res$metacell_clustering_2,
+                                    metacell_clustering = dcca_res$metacell_clustering,
                                     n_idx = n_idx,
                                     num_neigh = dcca_res$param_list$num_neigh,
                                     percentage_grid = tmp,
@@ -62,7 +61,7 @@ fine_tuning <- function(dcca_res,
                                     score_2 = score_2,
                                     svd_1 = dcca_res$svd_1, 
                                     svd_2 = dcca_res$svd_2,
-                                    target_subspace = dcca_res$target_subspace,
+                                    target_embedding = dcca_res$target_embedding,
                                     verbose = verbose)
       if(verbose) {
         print(paste0("On iteration ", iter, " for latent dimension ", k))
@@ -103,10 +102,8 @@ fine_tuning <- function(dcca_res,
               svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
               cca_obj = dcca_res$cca_obj, 
               df_percentage = NA,
-              metacell_clustering_1 = dcca_res$metacell_clustering_1,
-              metacell_clustering_2 = dcca_res$metacell_clustering_2,
-              min_mat = dcca_res$min_mat,
-              target_subspace = dcca_res$target_subspace,
+              metacell_clustering = dcca_res$metacell_clustering,
+              target_embedding = dcca_res$target_embedding,
               param_list = dcca_res$param_list,
               tilt_perc = tilt_perc
   )
@@ -121,8 +118,7 @@ fine_tuning <- function(dcca_res,
                                    circle_list,
                                    common_score,
                                    latent_dim,
-                                   metacell_clustering_1,
-                                   metacell_clustering_2,
+                                   metacell_clustering,
                                    n_idx,
                                    num_neigh,
                                    percentage_grid,
@@ -130,7 +126,7 @@ fine_tuning <- function(dcca_res,
                                    score_2,
                                    svd_1, 
                                    svd_2,
-                                   target_subspace,
+                                   target_embedding,
                                    verbose = T){
   r <- length(basis_list)
   
@@ -151,7 +147,8 @@ fine_tuning <- function(dcca_res,
                                                svd_2)
     
     value <- .determine_cluster(common_mat = common_mat, 
-                                target_subspace = target_subspace)
+                                metacell_clustering = metacell_clustering,
+                                target_embedding = target_embedding)
     
     list(value = value, common_vec = common_score[,latent_dim])
   })
