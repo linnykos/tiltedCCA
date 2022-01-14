@@ -1,6 +1,8 @@
 - Change plot_clisi to not be ggplot, and add tests for .pie_custom
 - See if I need to remove functions in rare_cel, plot_embedding2, graph_laplacian, consensus_pca, or information_plot
 
+- The Dec 2021 version of the code isn't great since I think I recompute the SNN of the original RNA or ADT graph every time I have a new common graph?
+
 ======
 
 - In common_decomposition.R: Can .search_tilt_perc return the common score so I don't need to recompute it?
