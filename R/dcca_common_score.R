@@ -33,15 +33,12 @@
 #'
 #' @return list 
 .dcca_common_score <- function(cca_res, 
-                               cell_max,
                                discretization_gridsize,
                                enforce_boundary,
                                fix_tilt_perc, 
-                               metacell_clustering_1,
-                               metacell_clustering_2,
-                               num_neigh,
                                svd_1, 
                                svd_2, 
+                               target_dimred,
                                verbose = T, msg = ""){
   stopifnot(cell_max > 10)
   full_rank <- length(cca_res$obj_vec)
@@ -55,27 +52,16 @@
   
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing common factors"))
   obj_vec <- cca_res$obj_vec
-  
-  # compute the common scores
-  n <- nrow(score_1)
-  if(cell_max < n){
-    n_idx <- sample(1:n, size = cell_max)
-  } else {
-    n_idx <- 1:n
-  }
-  
+
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
   tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
                                enforce_boundary = enforce_boundary,
                                fix_tilt_perc = fix_tilt_perc,
-                               metacell_clustering_1 = metacell_clustering_1,
-                               metacell_clustering_2 = metacell_clustering_2,
-                               n_idx = n_idx,
-                               num_neigh = num_neigh,
                                score_1 = score_1,
                                score_2 = score_2,
                                svd_1 = svd_1, 
                                svd_2 = svd_2,
+                               target_dimred = target_dimred,
                                verbose = verbose)
   
   common_score <- tmp$common_score
@@ -93,8 +79,6 @@
        svd_1 = svd_1, svd_2 = svd_2, 
        cca_obj = obj_vec, 
        df_percentage = df_percentage,
-       metacell_clustering_1 = metacell_clustering_1,
-       metacell_clustering_2 = metacell_clustering_2,
        tilt_perc = tilt_perc
        )
 }

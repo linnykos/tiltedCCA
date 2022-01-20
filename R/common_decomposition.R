@@ -3,14 +3,11 @@
 .common_decomposition <- function(discretization_gridsize,
                                   enforce_boundary,
                                   fix_tilt_perc,
-                                  metacell_clustering_1,
-                                  metacell_clustering_2,
-                                  n_idx,
-                                  num_neigh,
                                   score_1,
                                   score_2,
                                   svd_1, 
                                   svd_2,
+                                  target_dimred,
                                   tol = 1e-6, verbose = F){
   
   rank_c <- min(ncol(score_1), ncol(score_2))
@@ -28,8 +25,6 @@
     .construct_circle(vec1, vec2)
   })
   
-  # [[TODO: Format metacell_clustering_1 and metacell_clustering_2 from factor to list]]
-  
   if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
@@ -37,14 +32,11 @@
       circle_list = circle_list,
       enforce_boundary = enforce_boundary,
       discretization_gridsize = discretization_gridsize,
-      metacell_clustering_1 = metacell_clustering_1,
-      metacell_clustering_2 = metacell_clustering_2,
-      n_idx = n_idx,
-      num_neigh = num_neigh,
       score_1 = score_1,
       score_2 = score_2,
       svd_1 = svd_1,
       svd_2 = svd_2, 
+      target_dimred = target_dimred,
       verbose = verbose
     )
     tilt_perc <- tmp$percentage
@@ -65,15 +57,13 @@
     basis_list = basis_list, 
     circle_list = circle_list,
     enforce_boundary = enforce_boundary,
-    metacell_clustering_1 = metacell_clustering_1,
-    metacell_clustering_2 = metacell_clustering_2,
-    num_neigh = num_neigh,
     percentage = tilt_perc,
     return_common_score = T,
     score_1 = score_1,
     score_2 = score_2,
     svd_1 = svd_1, 
-    svd_2 = svd_2
+    svd_2 = svd_2,
+    target_dimred = target_dimred
   )
   
   if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
@@ -89,14 +79,11 @@
                               circle_list,
                               discretization_gridsize,
                               enforce_boundary,
-                              metacell_clustering_1,
-                              metacell_clustering_2,
-                              n_idx,
-                              num_neigh,
                               score_1,
                               score_2,
                               svd_1,
                               svd_2,
+                              target_dimred,
                               tol = 1e-3,
                               verbose = F){
   r <- length(basis_list)
@@ -115,21 +102,18 @@
     value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
                                      circle_list = circle_list,
                                      enforce_boundary = enforce_boundary,
-                                     metacell_clustering_1 = metacell_clustering_1,
-                                     metacell_clustering_2 = metacell_clustering_2,
-                                     n_idx = n_idx,
-                                     num_neigh = num_neigh,
                                      percentage = percentage_grid[i],
                                      return_common_score = F,
                                      score_1 = score_1,
                                      score_2 = score_2,
                                      svd_1 = svd_1, 
-                                     svd_2 = svd_2)
+                                     svd_2 = svd_2,
+                                     target_dimred = target_dimred)
   }
   
   df <- data.frame(percentage = percentage_grid,
                    ratio_val = value_vec)
-  idx_min <- .select_minimum(minimum = F,
+  idx_min <- .select_minimum(minimum = T,
                              x_val = percentage_grid,
                              y_val = value_vec)
   if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
@@ -142,16 +126,13 @@
 .evaluate_radian <- function(basis_list, 
                              circle_list,
                              enforce_boundary,
-                             metacell_clustering_1,
-                             metacell_clustering_2,
-                             n_idx,
-                             num_neigh,
                              percentage,
                              return_common_score,
                              score_1,
                              score_2,
                              svd_1, 
-                             svd_2){
+                             svd_2,
+                             target_dimred){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
@@ -176,12 +157,9 @@
                                              score_2,
                                              svd_1, 
                                              svd_2)
-
-  .determine_cluster(mat = common_mat, 
-                     metacell_clustering_1 = metacell_clustering_1,
-                     metacell_clustering_2 = metacell_clustering_2,
-                     n_idx = n_idx,
-                     num_neigh = num_neigh)
+  
+  .grassmann_distance(orthonormal_1 = common_mat, 
+                      orthonormal_2 = target_dimred)
 }
 
 .select_minimum <- function(minimum, x_val, y_val){
