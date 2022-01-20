@@ -152,13 +152,21 @@
   })
   if(return_common_score) return(common_score)
   
-  # common_mat <- .convert_common_score_to_mat(common_score,
-  #                                            score_1,
-  #                                            score_2,
-  #                                            svd_1, 
-  #                                            svd_2)
+  common_mat <- .convert_common_score_to_mat(common_score,
+                                             score_1,
+                                             score_2,
+                                             svd_1,
+                                             svd_2)
+  # [[TODO: Pass all these parameters up]]
+  snn_mat <- .form_snn_mat(bool_intersect = T,
+                           mat = common_mat, 
+                           min_deg = 30,
+                           num_neigh = 60,
+                           verbose = T)
+  common_basis <- compute_laplacian_basis(snn_mat, 
+                                          k = 50)
   
-  .grassmann_distance(orthonormal_1 = common_score, 
+  .grassmann_distance(orthonormal_1 = common_basis, 
                       orthonormal_2 = target_dimred)
 }
 
