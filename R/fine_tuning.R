@@ -1,6 +1,7 @@
 fine_tuning <- function(dcca_res, 
                         max_iter = 5,
                         fix_tilt_perc = NA,
+                        temp_path = NULL,
                         tol = 1e-5,
                         verbose = T){
   score_1 <- dcca_res$score_1
@@ -64,6 +65,17 @@ fine_tuning <- function(dcca_res,
     }
     
     if(iter > 2 && sum(abs(common_score - common_score_prev)) <= tol) break()
+    if(!is.null(temp_path) && is.character(temp_path)){
+      tmp <- .compute_distinct_score(score_1, score_2, common_score)
+      distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
+      res <- list(common_score = common_score, 
+                  distinct_score_1 = distinct_score_1,
+                  distinct_score_2 = distinct_score_2,
+                  score_1 = score_1, score_2 = score_2, 
+                  svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
+                  tilt_perc = tilt_perc)
+      save(res, file = temp_path)
+    }
     
     iter <- iter + 1
     common_score_prev <- common_score
