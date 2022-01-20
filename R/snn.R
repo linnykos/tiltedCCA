@@ -18,7 +18,7 @@ form_snns <- function(num_neigh,
     norm_vec <- apply(dimred_2, 1, .l2norm)
     dimred_2 <- .mult_vec_mat(1/norm_vec, dimred_2)
   }
-
+  
   snn_mat_1 <- .form_snn_mat(bool_intersect = bool_intersect,
                              mat = dimred_1, 
                              min_deg = min_deg,
@@ -57,6 +57,8 @@ compute_laplacian_basis <- function(sparse_mat,
   if(verbose) print("Extracting basis")
   eigen_res <- irlba::partial_eigen(lap_mat, n = k, symmetric = F)
   dimred <- .mult_mat_vec(eigen_res$vectors, eigen_res$values)
+  
+  rownames(dimred) <- rownames(sparse_mat)
   
   dimred
 }
@@ -100,9 +102,15 @@ compute_laplacian_basis <- function(sparse_mat,
       idx <- which(deg_vec < min_deg)
       if(verbose) print(paste0("Joining the ", length(idx), " nodes with too few neighbors"))
       
-      for(i in idx) sparse_mat[i,nn_mat[i,1:min_deg]] <- 1
+      i_vec2 <- rep(1:n, times = ncol(nn_mat[,1:deg_vec]))
+      j_vec2 <- as.numeric(nn_mat[,1:deg_vec])
+      sparse_mat2 <- Matrix::sparseMatrix(i = i_vec2,
+                                          j = j_vec2,
+                                          x = rep(1, length(i_vec2)),
+                                          dims = c(n,n),
+                                          repr = "C")
       
-      sparse_mat <- sparse_mat + Matrix::t(sparse_mat)
+      sparse_mat <- sparse_mat + sparse_mat2 + Matrix::t(sparse_mat2)
       sparse_mat@x <- rep(1, length(sparse_mat@x))
     }
   }

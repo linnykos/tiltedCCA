@@ -5,6 +5,8 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
   if(any(table(clustering_1) == 0)) clustering_1 <- factor(clustering_1)
   if(any(table(clustering_2) == 0)) clustering_2 <- factor(clustering_2)
   
+  n <- nrow(snn_mat_1)
+  
   nn_list <- .common_selection_nn(clustering_1 = clustering_1, 
                                   clustering_2 = clustering_2,
                                   num_neigh = num_neigh,
