@@ -42,6 +42,8 @@ form_snns <- function(num_neigh,
 compute_laplacian_basis <- function(sparse_mat,
                                     k = 50,
                                     verbose = T){
+  stopifnot(k <= ncol(sparse_mat), nrow(sparse_mat) == ncol(sparse_mat))
+  
   if(verbose) print("Computing symmetrized Laplacians")
   deg_vec <- sparseMatrixStats::rowSums2(sparse_mat)
   deg_vec[deg_vec == 0] <- 1

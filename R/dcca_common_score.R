@@ -40,7 +40,6 @@
                                svd_2, 
                                target_dimred,
                                verbose = T, msg = ""){
-  stopifnot(cell_max > 10)
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
