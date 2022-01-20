@@ -78,6 +78,7 @@
        svd_1 = svd_1, svd_2 = svd_2, 
        cca_obj = obj_vec, 
        df_percentage = df_percentage,
+       target_dimred = target_dimred,
        tilt_perc = tilt_perc
        )
 }

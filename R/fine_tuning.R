@@ -29,17 +29,12 @@ fine_tuning <- function(dcca_res,
   common_score <- dcca_res$common_score
   common_score_prev <- common_score
   n <- nrow(dcca_res$common_score)
-  if(dcca_res$param_list$cell_max < n){
-    n_idx <- sample(1:n, size = dcca_res$param_list$cell_max)
-  } else {
-    n_idx <- 1:n
-  }
   if(all(is.na(fix_tilt_perc))) {
     tilt_perc <- rep(dcca_res$tilt_perc[1], rank_c)
   } else {
     tilt_perc <- fix_tilt_perc
   }
- 
+  
   while(iter <= max_iter){
     for(k in 1:rank_c){
       if(all(is.na(fix_tilt_perc))){
@@ -52,15 +47,12 @@ fine_tuning <- function(dcca_res,
                                     circle_list = circle_list,
                                     common_score = common_score,
                                     latent_dim = k,
-                                    metacell_clustering_1 = dcca_res$metacell_clustering_1,
-                                    metacell_clustering_2 = dcca_res$metacell_clustering_2,
-                                    n_idx = n_idx,
-                                    num_neigh = dcca_res$param_list$num_neigh,
                                     percentage_grid = tmp,
                                     score_1 = score_1,
                                     score_2 = score_2,
                                     svd_1 = dcca_res$svd_1, 
                                     svd_2 = dcca_res$svd_2,
+                                    target_dimred = dcca_res$target_dimred,
                                     verbose = verbose)
       if(verbose) {
         print(paste0("On iteration ", iter, " for latent dimension ", k))
@@ -84,16 +76,15 @@ fine_tuning <- function(dcca_res,
   param_list[["fine_tuning_max_iter"]] <- max_iter
   
   res <- list(common_score = common_score, 
-       distinct_score_1 = distinct_score_1,
-       distinct_score_2 = distinct_score_2,
-       score_1 = score_1, score_2 = score_2, 
-       svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
-       cca_obj = dcca_res$cca_obj, 
-       df_percentage = NA,
-       metacell_clustering_1 = dcca_res$metacell_clustering_1,
-       metacell_clustering_2 = dcca_res$metacell_clustering_2,
-       param_list = dcca_res$param_list,
-       tilt_perc = tilt_perc
+              distinct_score_1 = distinct_score_1,
+              distinct_score_2 = distinct_score_2,
+              score_1 = score_1, score_2 = score_2, 
+              svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
+              cca_obj = dcca_res$cca_obj, 
+              df_percentage = NA,
+              param_list = dcca_res$param_list,
+              target_dimred = dcca_res$target_dimred,
+              tilt_perc = tilt_perc
   )
   
   class(res) <- "dcca"
@@ -106,15 +97,12 @@ fine_tuning <- function(dcca_res,
                                    circle_list,
                                    common_score,
                                    latent_dim,
-                                   metacell_clustering_1,
-                                   metacell_clustering_2,
-                                   n_idx,
-                                   num_neigh,
                                    percentage_grid,
                                    score_1,
                                    score_2,
                                    svd_1, 
                                    svd_2,
+                                   target_dimred,
                                    verbose = T){
   r <- length(basis_list)
   
@@ -128,24 +116,15 @@ fine_tuning <- function(dcca_res,
     common_representation_new <- .position_from_circle(circle_list[[latent_dim]], radian_val)
     common_score[,latent_dim] <- basis_list[[latent_dim]]$basis_mat %*% common_representation_new
     
-    common_mat <- .convert_common_score_to_mat(common_score,
-                                               score_1,
-                                               score_2,
-                                               svd_1, 
-                                               svd_2)
-    
-    value <- .determine_cluster(mat = common_mat, 
-                       metacell_clustering_1 = metacell_clustering_1,
-                       metacell_clustering_2 = metacell_clustering_2,
-                       n_idx = n_idx,
-                       num_neigh = num_neigh)
+    value <- .grassmann_distance(orthonormal_1 = common_score, 
+                                 orthonormal_2 = target_dimred)
     
     list(value = value, common_vec = common_score[,latent_dim])
   })
   names(value_list) <- percentage_grid
   value_vec <- sapply(value_list, function(x){x$value})
   
-  idx_min <- .select_minimum(minimum = F,
+  idx_min <- .select_minimum(minimum = T,
                              x_val = percentage_grid,
                              y_val = value_vec)
   df <- data.frame(percentage = percentage_grid,
