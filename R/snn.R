@@ -56,7 +56,7 @@ compute_laplacian_basis <- function(sparse_mat,
   
   if(verbose) print("Extracting basis")
   eigen_res <- irlba::partial_eigen(lap_mat, n = k+1, symmetric = F)
-  dimred <- .mult_mat_vec(eigen_res$vectors[,-1,drop = F], eigen_res$values[,-1,drop = F])
+  dimred <- .mult_mat_vec(eigen_res$vectors[,-1,drop = F], eigen_res$values[-1])
   
   rownames(dimred) <- rownames(sparse_mat)
   
@@ -102,8 +102,8 @@ compute_laplacian_basis <- function(sparse_mat,
       idx <- which(deg_vec < min_deg)
       if(verbose) print(paste0("Joining the ", length(idx), " nodes with too few neighbors"))
       
-      i_vec2 <- rep(1:n, times = ncol(nn_mat[,1:deg_vec]))
-      j_vec2 <- as.numeric(nn_mat[,1:deg_vec])
+      i_vec2 <- rep(1:n, times = ncol(nn_mat[,1:min_deg]))
+      j_vec2 <- as.numeric(nn_mat[,1:min_deg])
       sparse_mat2 <- Matrix::sparseMatrix(i = i_vec2,
                                           j = j_vec2,
                                           x = rep(1, length(i_vec2)),
