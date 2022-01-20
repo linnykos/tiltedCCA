@@ -152,13 +152,13 @@
   })
   if(return_common_score) return(common_score)
   
-  common_mat <- .convert_common_score_to_mat(common_score,
-                                             score_1,
-                                             score_2,
-                                             svd_1, 
-                                             svd_2)
+  # common_mat <- .convert_common_score_to_mat(common_score,
+  #                                            score_1,
+  #                                            score_2,
+  #                                            svd_1, 
+  #                                            svd_2)
   
-  .grassmann_distance(orthonormal_1 = common_mat, 
+  .grassmann_distance(orthonormal_1 = common_score, 
                       orthonormal_2 = target_dimred)
 }
 
