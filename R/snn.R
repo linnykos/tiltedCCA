@@ -1,35 +1,83 @@
-.form_snns <- function(num_neigh,
-                       svd_1,
-                       svd_2){
-  tmp_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
-  snn_mat_1 <- .form_snn_mat(bool_intersect = T,
-                                            mat = tmp_1, 
-                                            num_neigh = num_neigh)
-  metacell_clustering_1 <- lapply(1:nrow(snn_mat_1), function(i){
-    .nonzero_col(snn_mat_1, i, bool_value = F)
-  })
+form_snns <- function(num_neigh,
+                      svd_1,
+                      svd_2,
+                      bool_intersect = T,
+                      distance_func = "cosine",
+                      min_deg = 1,
+                      verbose = T){
+  stopifnot(distance_func %in% c("cosine", "euclidean"),
+            length(distance_func) == 1)
   
-  tmp_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
-  snn_mat_2 <- .form_snn_mat(bool_intersect = T,
-                                            mat = tmp_2, 
-                                            num_neigh = num_neigh)
-  metacell_clustering_2 <- lapply(1:nrow(snn_mat_2), function(i){
-    .nonzero_col(snn_mat_2, i, bool_value = F)
-  })
+  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
   
-  list(metacell_clustering_1 = metacell_clustering_1,
-       metacell_clustering_2 = metacell_clustering_2)
+  if(distance_func == "cosine"){
+    norm_vec <- apply(dimred_1, 1, .l2norm)
+    dimred_1 <- .mult_vec_mat(1/norm_vec, dimred_1)
+    
+    norm_vec <- apply(dimred_2, 1, .l2norm)
+    dimred_2 <- .mult_vec_mat(1/norm_vec, dimred_2)
+  }
+
+  snn_mat_1 <- .form_snn_mat(bool_intersect = bool_intersect,
+                             mat = dimred_1, 
+                             min_deg = min_deg,
+                             num_neigh = num_neigh,
+                             verbose = verbose)
+  snn_mat_2 <- .form_snn_mat(bool_intersect = bool_intersect,
+                             mat = dimred_2, 
+                             min_deg = min_deg,
+                             num_neigh = num_neigh,
+                             verbose = verbose)
+  
+  rownames(snn_mat_1) <- rownames(svd_1$u)
+  colnames(snn_mat_1) <- rownames(svd_1$u)
+  rownames(snn_mat_2) <- rownames(svd_1$u)
+  rownames(snn_mat_2) <- rownames(svd_1$u)
+  
+  list(snn_mat_1 = snn_mat_1,
+       snn_mat_2 = snn_mat_2)
 }
 
-.form_snn_mat <- function(bool_intersect, mat, num_neigh){
-  stopifnot(num_neigh > 1)
+compute_laplacian_basis <- function(sparse_mat,
+                                    k = 50,
+                                    verbose = T){
+  if(verbose) print("Computing symmetrized Laplacians")
+  deg_vec <- sparseMatrixStats::rowSums2(sparse_mat)
+  deg_vec[deg_vec == 0] <- 1
+  diag_mat <- Matrix::Diagonal(x = 1/sqrt(deg_vec))
+  lap_mat <-  diag_mat %*% sparse_mat %*% diag_mat
   
+  if(verbose) print("Converting to random walk Laplacian")
+  deg_vec <- sparseMatrixStats::rowSums2(lap_mat)
+  deg_vec[deg_vec == 0] <- 1
+  diag_mat <- Matrix::Diagonal(x = 1/deg_vec)
+  lap_mat <-  diag_mat %*% lap_mat
+  
+  if(verbose) print("Extracting basis")
+  eigen_res <- irlba::partial_eigen(lap_mat, n = k, symmetric = F)
+  dimred <- .mult_mat_vec(eigen_res$vectors, eigen_res$values)
+  
+  dimred
+}
+
+################################
+
+.form_snn_mat <- function(bool_intersect,
+                          mat, 
+                          min_deg,
+                          num_neigh,
+                          verbose = T){
+  stopifnot(num_neigh >= min_deg, min_deg >= 0)
+  
+  if(verbose) print("Compute NNs")
   n <- nrow(mat)
   nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
   if(all(nn_mat[,1] == 1:n)){
     nn_mat <- nn_mat[,-1,drop = F]
   }
   
+  if(verbose) print("Forming NN matrix")
   i_vec <- rep(1:n, times = ncol(nn_mat))
   j_vec <- as.numeric(nn_mat)
   
@@ -39,8 +87,28 @@
                                      dims = c(n,n),
                                      repr = "C")
   
-  if(bool_intersect) sparse_mat <- sparse_mat * Matrix::t(sparse_mat)
+  if(bool_intersect) {
+    sparse_mat <- sparse_mat * Matrix::t(sparse_mat)
+  } else {
+    sparse_mat <- sparse_mat + Matrix::t(sparse_mat)
+    sparse_mat@x <- rep(1, length(sparse_mat@x))
+  }
+  
+  if(min_deg > 0){
+    deg_vec <- sparseMatrixStats::rowSums2(sparse_mat)
+    if(min(deg_vec) < min_deg) {
+      idx <- which(deg_vec < min_deg)
+      if(verbose) print(paste0("Joining the ", length(idx), " nodes with too few neighbors"))
+      
+      for(i in idx) sparse_mat[i,nn_mat[i,1:min_deg]] <- 1
+      
+      sparse_mat <- sparse_mat + Matrix::t(sparse_mat)
+      sparse_mat@x <- rep(1, length(sparse_mat@x))
+    }
+  }
+  
   sparse_mat
 }
+
 
 
