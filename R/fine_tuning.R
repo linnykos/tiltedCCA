@@ -116,7 +116,21 @@ fine_tuning <- function(dcca_res,
     common_representation_new <- .position_from_circle(circle_list[[latent_dim]], radian_val)
     common_score[,latent_dim] <- basis_list[[latent_dim]]$basis_mat %*% common_representation_new
     
-    value <- .grassmann_distance(orthonormal_1 = common_score, 
+    common_mat <- .convert_common_score_to_mat(common_score,
+                                               score_1,
+                                               score_2,
+                                               svd_1,
+                                               svd_2)
+    # [[TODO: Grab these parameters from dcca_Res]]
+    snn_mat <- .form_snn_mat(bool_intersect = T,
+                             mat = common_mat, 
+                             min_deg = 30,
+                             num_neigh = 60,
+                             verbose = T)
+    common_basis <- compute_laplacian_basis(snn_mat, 
+                                            k = 50)
+    
+    value <- .grassmann_distance(orthonormal_1 = common_basis, 
                                  orthonormal_2 = target_dimred)
     
     list(value = value, common_vec = common_score[,latent_dim])
