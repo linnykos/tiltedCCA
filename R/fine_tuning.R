@@ -138,7 +138,7 @@ fine_tuning <- function(dcca_res,
                              mat = common_mat, 
                              min_deg = 0,
                              num_neigh = 30,
-                             verbose = T)
+                             verbose = F)
     common_basis <- compute_laplacian_basis(snn_mat, 
                                             k = 20)
     
