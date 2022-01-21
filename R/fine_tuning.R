@@ -134,13 +134,13 @@ fine_tuning <- function(dcca_res,
                                                svd_1,
                                                svd_2)
     # [[TODO: Grab these parameters from dcca_Res]]
-    snn_mat <- .form_snn_mat(bool_intersect = T,
+    snn_mat <- .form_snn_mat(bool_intersect = F,
                              mat = common_mat, 
-                             min_deg = 30,
-                             num_neigh = 60,
+                             min_deg = 0,
+                             num_neigh = 30,
                              verbose = T)
     common_basis <- compute_laplacian_basis(snn_mat, 
-                                            k = 50)
+                                            k = 20)
     
     value <- .grassmann_distance(orthonormal_1 = common_basis, 
                                  orthonormal_2 = target_dimred)

@@ -40,7 +40,7 @@ form_snns <- function(num_neigh,
 }
 
 compute_laplacian_basis <- function(sparse_mat,
-                                    k = 50,
+                                    k = 20,
                                     verbose = T){
   stopifnot(k <= ncol(sparse_mat), nrow(sparse_mat) == ncol(sparse_mat))
   
