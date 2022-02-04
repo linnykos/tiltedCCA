@@ -6,6 +6,8 @@ fine_tuning <- function(dcca_res,
                         verbose = T){
   score_1 <- dcca_res$score_1
   score_2 <- dcca_res$score_2
+  averaging_mat <- .generate_averaging_matrix(nrow(score_1), 
+                                              dcca_res$metacell_clustering)
   
   rank_c <- min(ncol(score_1), ncol(score_2))
   stopifnot(all(is.na(fix_tilt_perc)) || length(fix_tilt_perc) == rank_c)
@@ -44,13 +46,18 @@ fine_tuning <- function(dcca_res,
         tmp <- tilt_perc[k]
       }
       
-      res <- .fine_tuning_dimension(basis_list = basis_list,
+      res <- .fine_tuning_dimension(averaging_mat = averaging_mat,
+                                    basis_list = basis_list,
                                     circle_list = circle_list,
                                     common_score = common_score,
                                     latent_dim = k,
                                     percentage_grid = tmp,
                                     score_1 = score_1,
                                     score_2 = score_2,
+                                    snn_bool_intersect = dcca_res$snn_bool_intersect,
+                                    snn_k = dcca_res$snn_k,
+                                    snn_min_deg = dcca_res$snn_min_deg,
+                                    snn_num_neigh = dcca_res$snn_num_neigh,
                                     svd_1 = dcca_res$svd_1, 
                                     svd_2 = dcca_res$svd_2,
                                     target_dimred = dcca_res$target_dimred,
@@ -105,13 +112,18 @@ fine_tuning <- function(dcca_res,
 
 ##############################
 
-.fine_tuning_dimension <- function(basis_list,
+.fine_tuning_dimension <- function(averaging_mat,
+                                   basis_list,
                                    circle_list,
                                    common_score,
                                    latent_dim,
                                    percentage_grid,
                                    score_1,
                                    score_2,
+                                   snn_bool_intersect,
+                                   snn_k,
+                                   snn_min_deg,
+                                   snn_num_neigh,
                                    svd_1, 
                                    svd_2,
                                    target_dimred,
@@ -133,14 +145,16 @@ fine_tuning <- function(dcca_res,
                                                score_2,
                                                svd_1,
                                                svd_2)
-    # [[TODO: Grab these parameters from dcca_Res]]
-    snn_mat <- .form_snn_mat(bool_intersect = F,
-                             mat = common_mat, 
-                             min_deg = 0,
-                             num_neigh = 30,
+    avg_common_mat <- averaging_mat %*% common_mat
+    
+    snn_mat <- .form_snn_mat(bool_intersect = snn_bool_intersect,
+                             mat = avg_common_mat, 
+                             min_deg = snn_min_deg,
+                             num_neigh = snn_num_neigh,
                              verbose = F)
     common_basis <- compute_laplacian_basis(snn_mat, 
-                                            k = 20)
+                                            k = snn_k,
+                                            verbose = F)
     
     value <- .grassmann_distance(orthonormal_1 = common_basis, 
                                  orthonormal_2 = target_dimred)

@@ -2,7 +2,10 @@
 - See if I need to remove functions in rare_cel, plot_embedding2, graph_laplacian, consensus_pca, or information_plot
 
 - The Dec 2021 version of the code isn't great since I think I recompute the SNN of the original RNA or ADT graph every time I have a new common graph?
-
+- For coherence, when I use CLISI, the frnn graph should really just be the graph Laplacian? (Or maybe not, since we want to explicitly make sure the distinct and common are on the same scale hm...)
+- In the common_frnn graph (the combine_frnn function), the "2022-01-26 18:09:44: Converting matrices to list" step takes WAY too long -- it took a day to build this matrix for PBMC224
+- Update the plot_clisi function (the current one is for ggplot, which is outdated)
+- see if I can remove the dependencies on sparesMatrixStats
 
 ======
 

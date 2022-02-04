@@ -32,10 +32,15 @@
 #' @param msg additional print character
 #'
 #' @return list 
-.dcca_common_score <- function(cca_res, 
+.dcca_common_score <- function(averaging_mat,
+                               cca_res, 
                                discretization_gridsize,
                                enforce_boundary,
                                fix_tilt_perc, 
+                               snn_bool_intersect,
+                               snn_k,
+                               snn_min_deg,
+                               snn_num_neigh,
                                svd_1, 
                                svd_2, 
                                target_dimred,
@@ -53,11 +58,16 @@
   obj_vec <- cca_res$obj_vec
 
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
-  tmp <- .common_decomposition(discretization_gridsize = discretization_gridsize,
+  tmp <- .common_decomposition(averaging_mat = averaging_mat,
+                               discretization_gridsize = discretization_gridsize,
                                enforce_boundary = enforce_boundary,
                                fix_tilt_perc = fix_tilt_perc,
                                score_1 = score_1,
                                score_2 = score_2,
+                               snn_bool_intersect = snn_bool_intersect,
+                               snn_k = snn_k,
+                               snn_min_deg = snn_min_deg,
+                               snn_num_neigh = snn_num_neigh,
                                svd_1 = svd_1, 
                                svd_2 = svd_2,
                                target_dimred = target_dimred,

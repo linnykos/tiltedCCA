@@ -20,14 +20,6 @@
 #'                     determined, and if \code{TRUE}, then the tilt is set to be equal to 
 #'                     \code{0.5}. If numeric, the value should be between \code{0} and \code{1},
 #'                     which the tilt will be set to.
-#' @param metacell_clustering_1 \code{NA} or factor vector of length \code{nrow(mat_1)} that 
-#'                              depicts the hard clustering structure of the cell
-#'                              (with possible \code{NA}'s for cells that don't
-#'                              conform to a hard clustering structure). See details.            
-#' @param metacell_clustering_2 \code{NA} or factor vector of length \code{nrow(mat_2)} that 
-#'                              depicts the hard clustering structure of the cell
-#'                              (with possible \code{NA}'s for cells that don't
-#'                              conform to a hard clustering structure). See details.
 #' @param num_neigh positive integer for how many NNs are used to construct the relevant
 #'                  NN graphs. 
 #' @param verbose boolean                
@@ -57,12 +49,17 @@
 #' @return list of class \code{dcca}
 #' @export
 dcca_factor <- function(mat_1, mat_2, dims_1, dims_2, 
+                        metacell_clustering,
                         target_dimred,
                         center_1 = T, center_2 = T,
                         scale_1 = T, scale_2 = T,
                         discretization_gridsize = 21, 
                         enforce_boundary = F,
                         fix_tilt_perc = F, 
+                        snn_bool_intersect = F,
+                        snn_k = 20,
+                        snn_min_deg = 0,
+                        snn_num_neigh = 30,
                         verbose = T){
   rank_1 <- max(dims_1); rank_2 <- max(dims_2)
   stopifnot(nrow(mat_1) == nrow(mat_2), 
@@ -82,11 +79,17 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
   msg <- " (all cells)"
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
   cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
+  averaging_mat <- .generate_averaging_matrix(n, metacell_clustering)
 
-  res <- .dcca_common_score(cca_res = cca_res, 
+  res <- .dcca_common_score(averaging_mat = averaging_mat,
+                            cca_res = cca_res, 
                             discretization_gridsize = discretization_gridsize,
                             enforce_boundary = enforce_boundary,
                             fix_tilt_perc = fix_tilt_perc, 
+                            snn_bool_intersect = snn_bool_intersect,
+                            snn_k = snn_k,
+                            snn_min_deg = snn_min_deg,
+                            snn_num_neigh = snn_num_neigh,
                             svd_1 = svd_1, 
                             svd_2 = svd_2, 
                             target_dimred = target_dimred,
@@ -96,8 +99,13 @@ dcca_factor <- function(mat_1, mat_2, dims_1, dims_2,
                      scale_1 = scale_1, scale_2 = scale_2,
                      discretization_gridsize = discretization_gridsize, 
                      enforce_boundary = enforce_boundary,
-                     fix_tilt_perc = fix_tilt_perc)
+                     fix_tilt_perc = fix_tilt_perc,
+                     snn_bool_intersect = snn_bool_intersect,
+                     snn_k = snn_k,
+                     snn_min_deg = snn_min_deg,
+                     snn_num_neigh = snn_num_neigh)
   res$param_list <- param_list
+  res$metacell_clustering <- metacell_clustering
   
   class(res) <- "dcca"
   res
@@ -286,4 +294,23 @@ dcca_decomposition <- function(dcca_res, rank_c = NA, verbose = T){
   score_2 <- .mult_mat_vec(svd_2$u, svd_2$d) %*% crossprod(svd_2$v, cca_res$loading_2)
   
   list(score_1 = score_1, score_2 = score_2)
+}
+
+.generate_averaging_matrix <- function(n, subcluster_list){
+  stopifnot(max(unlist(subcluster_list)) <= n)
+  
+  k <- length(subcluster_list)
+  i_vec <- unlist(lapply(1:k, function(i){
+    len <- length(subcluster_list[[i]]); rep(i, len)
+  }))
+  j_vec <- unlist(subcluster_list)
+  x_vec <- unlist(lapply(subcluster_list, function(vec){
+    len <- length(vec); rep(1/len, len)
+  }))
+  
+  Matrix::sparseMatrix(i = i_vec,
+                       j = j_vec,
+                       x = x_vec,
+                       dims = c(k,n),
+                       repr = "C")
 }

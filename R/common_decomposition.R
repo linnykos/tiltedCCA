@@ -1,10 +1,15 @@
 # a tilt_perc near-0 means that most of the distinct information
 # is in modality 1, not modality 2
-.common_decomposition <- function(discretization_gridsize,
+.common_decomposition <- function(averaging_mat,
+                                  discretization_gridsize,
                                   enforce_boundary,
                                   fix_tilt_perc,
                                   score_1,
                                   score_2,
+                                  snn_bool_intersect,
+                                  snn_k,
+                                  snn_min_deg,
+                                  snn_num_neigh,
                                   svd_1, 
                                   svd_2,
                                   target_dimred,
@@ -28,12 +33,17 @@
   if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
+      averaging_mat = averaging_mat,
       basis_list = basis_list,
       circle_list = circle_list,
       enforce_boundary = enforce_boundary,
       discretization_gridsize = discretization_gridsize,
       score_1 = score_1,
       score_2 = score_2,
+      snn_bool_intersect = snn_bool_intersect,
+      snn_k = snn_k,
+      snn_min_deg = snn_min_deg,
+      snn_num_neigh = snn_num_neigh,
       svd_1 = svd_1,
       svd_2 = svd_2, 
       target_dimred = target_dimred,
@@ -61,6 +71,10 @@
     return_common_score = T,
     score_1 = score_1,
     score_2 = score_2,
+    snn_bool_intersect = snn_bool_intersect,
+    snn_k = snn_k,
+    snn_min_deg = snn_min_deg,
+    snn_num_neigh = snn_num_neigh,
     svd_1 = svd_1, 
     svd_2 = svd_2,
     target_dimred = target_dimred
@@ -75,12 +89,17 @@
 
 #####################
 
-.search_tilt_perc <- function(basis_list,
+.search_tilt_perc <- function(averaging_mat,
+                              basis_list,
                               circle_list,
                               discretization_gridsize,
                               enforce_boundary,
                               score_1,
                               score_2,
+                              snn_bool_intersect,
+                              snn_k,
+                              snn_min_deg,
+                              snn_num_neigh,
                               svd_1,
                               svd_2,
                               target_dimred,
@@ -99,13 +118,18 @@
   
   for(i in which(is.na(value_vec))){
     if(verbose) print(paste0(Sys.time(),": D-CCA : Evaluating percentage ", percentage_grid[i]))
-    value_vec[i] <- .evaluate_radian(basis_list = basis_list, 
+    value_vec[i] <- .evaluate_radian(averaging_mat = averaging_mat,
+                                     basis_list = basis_list, 
                                      circle_list = circle_list,
                                      enforce_boundary = enforce_boundary,
                                      percentage = percentage_grid[i],
                                      return_common_score = F,
                                      score_1 = score_1,
                                      score_2 = score_2,
+                                     snn_bool_intersect = snn_bool_intersect,
+                                     snn_k = snn_k,
+                                     snn_min_deg = snn_min_deg,
+                                     snn_num_neigh = snn_num_neigh,
                                      svd_1 = svd_1, 
                                      svd_2 = svd_2,
                                      target_dimred = target_dimred)
@@ -123,13 +147,18 @@
 
 ############################################
 
-.evaluate_radian <- function(basis_list, 
+.evaluate_radian <- function(averaging_mat,
+                             basis_list, 
                              circle_list,
                              enforce_boundary,
                              percentage,
                              return_common_score,
                              score_1,
                              score_2,
+                             snn_bool_intersect,
+                             snn_k,
+                             snn_min_deg,
+                             snn_num_neigh,
                              svd_1, 
                              svd_2,
                              target_dimred){
@@ -157,14 +186,16 @@
                                              score_2,
                                              svd_1,
                                              svd_2)
-  # [[TODO: Pass all these parameters up]]
-  snn_mat <- .form_snn_mat(bool_intersect = F,
-                           mat = common_mat, 
-                           min_deg = 0,
-                           num_neigh = 30,
+  avg_common_mat <- averaging_mat %*% common_mat
+  
+  snn_mat <- .form_snn_mat(bool_intersect = snn_bool_intersect,
+                           mat = avg_common_mat, 
+                           min_deg = snn_min_deg,
+                           num_neigh = snn_num_neigh,
                            verbose = F)
   common_basis <- compute_laplacian_basis(snn_mat, 
-                                          k = 20)
+                                          k = snn_k,
+                                          verbose = F)
   
   .grassmann_distance(orthonormal_1 = common_basis, 
                       orthonormal_2 = target_dimred)
@@ -254,4 +285,27 @@
   common_2 <- common_score2 %*% crossprod(score_2, dimred_2)/n
   
   cbind(common_1, common_2)
+}
+
+.grassmann_distance <- function(orthonormal_1,
+                                orthonormal_2,
+                                tol = 1e-3){
+  stopifnot(all(nrow(orthonormal_1) == nrow(orthonormal_2)),
+            ncol(orthonormal_1) <= nrow(orthonormal_1),
+            ncol(orthonormal_2) <= nrow(orthonormal_2))
+  
+  l2_vec <- apply(orthonormal_1, 2, .l2norm)
+  orthonormal_1 <- .mult_mat_vec(orthonormal_1, 1/l2_vec)
+  l2_vec <- apply(orthonormal_2, 2, .l2norm)
+  orthonormal_2 <- .mult_mat_vec(orthonormal_2, 1/l2_vec)
+  
+  stopifnot(sum(abs(crossprod(orthonormal_1) - diag(ncol(orthonormal_1)))) <= tol,
+            sum(abs(crossprod(orthonormal_2) - diag(ncol(orthonormal_2)))) <= tol)
+  
+  k <- ncol(orthonormal_1)
+  crossprod_mat <- crossprod(orthonormal_1, orthonormal_2)
+  svd_res <- svd(crossprod_mat)
+  sing_vec <- svd_res$d
+  theta_vec <- acos(sing_vec)
+  .l2norm(theta_vec)
 }

@@ -1,18 +1,16 @@
-common_neighborhood <- function(snn_mat_1, snn_mat_2,
-                                clustering_1, clustering_2,
-                                num_neigh = 30,
-                                verbose = T){
+l2_neighborhood_selection <- function(snn_mat_1, snn_mat_2,
+                                      clustering_1, clustering_2,
+                                      num_neigh = 30,
+                                      verbose = T){
   if(any(table(clustering_1) == 0)) clustering_1 <- factor(clustering_1)
   if(any(table(clustering_2) == 0)) clustering_2 <- factor(clustering_2)
   
-  n <- nrow(snn_mat_1)
-  
-  nn_list <- .common_selection_nn(clustering_1 = clustering_1, 
-                                  clustering_2 = clustering_2,
-                                  num_neigh = num_neigh,
-                                  snn_mat_1 = snn_mat_1, 
-                                  snn_mat_2 = snn_mat_2,
-                                  verbose = verbose)
+  nn_list <- .l2_selection_nn(clustering_1 = clustering_1, 
+                              clustering_2 = clustering_2,
+                              num_neigh = num_neigh,
+                              snn_mat_1 = snn_mat_1, 
+                              snn_mat_2 = snn_mat_2,
+                              verbose = verbose)
   
   i_vec <- rep(1:n, times = sapply(nn_list, length))
   j_vec <- unlist(nn_list)
@@ -32,15 +30,14 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
 
 #######################
 
-.common_selection_nn <- function(clustering_1, clustering_2,
-                                 num_neigh,
-                                 snn_mat_1, snn_mat_2,
-                                 verbose = T){
+.l2_selection_nn <- function(clustering_1, clustering_2,
+                             num_neigh,
+                             snn_mat_1, snn_mat_2,
+                             verbose = T){
   n <- nrow(snn_mat_1)
   
   nn_list <- lapply(1:n, function(i){
     if(verbose && n > 10 && i %% floor(n/10) == 0) cat('*')
-    
     nn_1 <- .nonzero_col(snn_mat_1, 
                          col_idx = i,
                          bool_value = F)
@@ -68,13 +65,13 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
     if(all(dim(obs_tab) == c(1,1))){
       sample(idx_df$idx, num_neigh)
     } else {
-      desired_tab <- .compute_desired_tab(num_neigh = num_neigh,
-                                          obs_tab = obs_tab,
-                                          prior_1 = prior_1[names(prior_1) %in% rownames(obs_tab)],
-                                          prior_2 = prior_2[names(prior_2) %in% colnames(obs_tab)])
+      desired_tab <- .l2_selection_lp(num_neigh = num_neigh,
+                                      obs_tab = obs_tab,
+                                      prior_1 = prior_1[names(prior_1) %in% rownames(obs_tab)],
+                                      prior_2 = prior_2[names(prior_2) %in% colnames(obs_tab)])
       
-      .select_common_cells(desired_tab = desired_tab,
-                           idx_df = idx_df)
+      .select_l2_cells(desired_tab = desired_tab,
+                       idx_df = idx_df)
     }
   })
   
@@ -90,29 +87,29 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
   mat[row_idx, col_idx, drop = F]
 }
 
-.compute_desired_tab <- function(num_neigh,
-                                 obs_tab,
-                                 prior_1,
-                                 prior_2,
-                                 tol = 1e-3,
-                                 tol_diag = 1){
+.l2_selection_lp <- function(num_neigh,
+                             obs_tab,
+                             prior_1,
+                             prior_2,
+                             tol = 1e-3,
+                             tol_diag = 1){
   stopifnot(nrow(obs_tab) == length(prior_1),
             ncol(obs_tab) == length(prior_2),
             abs(sum(prior_1) - 1) <= tol,
             abs(sum(prior_2) - 1) <= tol)
   p1 <- nrow(obs_tab); p2 <- ncol(obs_tab)
   
-  obj_mat <- .generate_objmat_common(obs_tab)
+  obj_mat <- .generate_objmat_l2(obs_tab)
   diag(obj_mat) <- diag(obj_mat) + tol_diag 
   #[[note to self: see https://stats.stackexchange.com/questions/138730/what-are-the-differences-between-various-r-quadratic-programming-solvers, switch solvers maybe?]]
-  obj_vec <- .generate_objvec_common(num_neigh = num_neigh,
-                                     obs_tab = obs_tab,
-                                     prior_1 = prior_1,
-                                     prior_2 = prior_2)
+  obj_vec <- .generate_objvec_l2(num_neigh = num_neigh,
+                                 obs_tab = obs_tab,
+                                 prior_1 = prior_1,
+                                 prior_2 = prior_2)
   
-  tmp <- .generate_constr_common(obs_tab,  
-                                 target_count = num_neigh)
-  constr_mat <- tmp$mat; constr_vec <- tmp$vec
+  tmp <- .generate_constr_l2(obs_tab,  
+                             target_count = num_neigh)
+  constr_mat <- tmp$mat; constr_vec = tmp$vec
   
   res <- quadprog::solve.QP(Dmat = obj_mat, 
                             dvec = obj_vec,
@@ -123,7 +120,7 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
   round(res$solution*obs_tab)
 }
 
-.select_common_cells <- function(desired_tab, idx_df){
+.select_l2_cells <- function(desired_tab, idx_df){
   p1 <- nrow(desired_tab); p2 <- ncol(desired_tab)
   combn_mat <- cbind(rep(1:p1, each = p2), rep(1:p2, times = p1))
   lis <- lapply(1:nrow(combn_mat), function(k){
@@ -143,9 +140,9 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
 
 ###################
 
-.generate_indices_common <- function(bool_row,
-                                     idx,
-                                     p1, p2){
+.generate_indices_l2 <- function(bool_row,
+                                 idx,
+                                 p1, p2){
   if(bool_row) {
     idx + c(0:(p2-1))*p1
   } else {
@@ -153,60 +150,60 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
   }
 }
 
-.generate_objmat_common <- function(obs_tab){
+.generate_objmat_l2 <- function(obs_tab){
   p1 <- nrow(obs_tab); p2 <- ncol(obs_tab)
   
   row_objmat_list <- lapply(1:p1, function(i){
-    idx_vec <- .generate_indices_common(bool_row = T,
-                                        idx = i,
-                                        p1 = p1, p2 = p2)
-    .generate_objmat_common_helper(idx_vec = idx_vec,
-                                   num_vec = obs_tab[idx_vec],
-                                   total_len = p1*p2)
+    idx_vec <- .generate_indices_l2(bool_row = T,
+                                    idx = i,
+                                    p1 = p1, p2 = p2)
+    .generate_objmat_l2_helper(idx_vec = idx_vec,
+                               num_vec = obs_tab[idx_vec],
+                               total_len = p1*p2)
   })
   col_objmat_list <- lapply(1:p2, function(j){
-    idx_vec <- .generate_indices_common(bool_row = F,
-                                        idx = j,
-                                        p1 = p1, p2 = p2)
-    .generate_objmat_common_helper(idx_vec = idx_vec,
-                                   num_vec = obs_tab[idx_vec],
-                                   total_len = p1*p2)
+    idx_vec <- .generate_indices_l2(bool_row = F,
+                                    idx = j,
+                                    p1 = p1, p2 = p2)
+    .generate_objmat_l2_helper(idx_vec = idx_vec,
+                               num_vec = obs_tab[idx_vec],
+                               total_len = p1*p2)
   })
   Reduce("+", row_objmat_list) + Reduce("+", col_objmat_list)
 }
 
-.generate_objvec_common <- function(num_neigh,
-                                    obs_tab,
-                                    prior_1,
-                                    prior_2){
+.generate_objvec_l2 <- function(num_neigh,
+                                obs_tab,
+                                prior_1,
+                                prior_2){
   p1 <- nrow(obs_tab); p2 <- ncol(obs_tab)
   
   row_objvec_mat <- sapply(1:p1, function(i){
-    idx_vec <- .generate_indices_common(bool_row = T,
-                                        idx = i,
-                                        p1 = p1, p2 = p2)
-    .generate_objvec_common_helper(idx_vec = idx_vec,
-                                   num_vec = obs_tab[idx_vec],
-                                   target_count = prior_1[i]*num_neigh,
-                                   total_len = p1*p2)
+    idx_vec <- .generate_indices_l2(bool_row = T,
+                                    idx = i,
+                                    p1 = p1, p2 = p2)
+    .generate_objvec_l2_helper(idx_vec = idx_vec,
+                               num_vec = obs_tab[idx_vec],
+                               target_count = prior_1[i]*num_neigh,
+                               total_len = p1*p2)
   })
   col_objvec_mat <- sapply(1:p2, function(j){
-    idx_vec <- .generate_indices_common(bool_row = F,
-                                        idx = j,
-                                        p1 = p1, p2 = p2)
-    .generate_objvec_common_helper(idx_vec = idx_vec,
-                                   num_vec = obs_tab[idx_vec],
-                                   target_count = prior_2[j]*num_neigh,
-                                   total_len = p1*p2)
+    idx_vec <- .generate_indices_l2(bool_row = F,
+                                    idx = j,
+                                    p1 = p1, p2 = p2)
+    .generate_objvec_l2_helper(idx_vec = idx_vec,
+                               num_vec = obs_tab[idx_vec],
+                               target_count = prior_2[j]*num_neigh,
+                               total_len = p1*p2)
   })
   matrixStats::rowSums2(row_objvec_mat) + matrixStats::rowSums2(col_objvec_mat)
 }
 
 ################3
 
-.generate_objmat_common_helper <- function(idx_vec,
-                                           num_vec,
-                                           total_len){
+.generate_objmat_l2_helper <- function(idx_vec,
+                                       num_vec,
+                                       total_len){
   len <- length(idx_vec)
   mat <- matrix(0, nrow = total_len, ncol = total_len)
   mat[idx_vec,idx_vec] <- rep(num_vec, each = len)
@@ -215,17 +212,17 @@ common_neighborhood <- function(snn_mat_1, snn_mat_2,
   2*mat
 }
 
-.generate_objvec_common_helper <- function(idx_vec,
-                                           num_vec,
-                                           target_count,
-                                           total_len){
+.generate_objvec_l2_helper <- function(idx_vec,
+                                       num_vec,
+                                       target_count,
+                                       total_len){
   vec <- rep(0, total_len)
   vec[idx_vec] <- 2*num_vec*target_count
   vec
 }
 
-.generate_constr_common <- function(obs_tab,  
-                                    target_count){
+.generate_constr_l2 <- function(obs_tab,  
+                                target_count){
   p1 <- nrow(obs_tab); p2 <- ncol(obs_tab)
   total_len <- p1*p2
   mat <- matrix(0, nrow = total_len, ncol = 2*total_len+1)
