@@ -1,9 +1,17 @@
-form_snn_mat <- function(mat, 
-                         num_neigh,
-                         bool_intersect = T,
-                         min_deg = 1,
-                         verbose = T){
+.form_snn_mat <- function(mat, 
+                          num_neigh,
+                          bool_cosine, # suggested: TRUE
+                          bool_intersect, # suggested: TRUE
+                          min_deg, #suggested: 1
+                          verbose = T,
+                          tol = 1e-4){
   stopifnot(num_neigh >= min_deg, min_deg >= 0)
+  
+  if(bool_cosine) {
+    l2_vec <- apply(mat, 1, .l2norm)
+    l2_vec[l2_vec <= tol] <- tol
+    mat <- .mult_vec_mat(1/l2_vec, mat)
+  }
   
   if(verbose) print("Compute NNs")
   n <- nrow(mat)
@@ -45,9 +53,9 @@ form_snn_mat <- function(mat,
   sparse_mat
 }
 
-compute_laplacian_basis <- function(sparse_mat,
-                                    k = 50,
-                                    verbose = T){
+.compute_laplacian_basis <- function(sparse_mat,
+                                     k, # suggested: 50
+                                     verbose = T){
   if(verbose) print("Computing symmetrized Laplacians")
   deg_vec <- sparseMatrixStats::rowSums2(sparse_mat)
   deg_vec[deg_vec == 0] <- 1

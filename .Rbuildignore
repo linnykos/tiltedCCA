@@ -1,3 +1,4 @@
 coding_notes.txt
+^\oldcode\*
 ^.*\.Rproj$
 ^\.Rproj\.user$

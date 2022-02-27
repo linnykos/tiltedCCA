@@ -188,7 +188,8 @@
                                              svd_2)
   avg_common_mat <- averaging_mat %*% common_mat
   
-  snn_mat <- .form_snn_mat(bool_intersect = snn_bool_intersect,
+  snn_mat <- .form_snn_mat(bool_cosine = T,
+                           bool_intersect = snn_bool_intersect,
                            mat = avg_common_mat, 
                            min_deg = snn_min_deg,
                            num_neigh = snn_num_neigh,

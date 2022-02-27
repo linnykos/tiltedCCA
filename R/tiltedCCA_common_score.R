@@ -32,32 +32,32 @@
 #' @param msg additional print character
 #'
 #' @return list 
-.dcca_common_score <- function(averaging_mat,
-                               cca_res, 
-                               discretization_gridsize,
-                               enforce_boundary,
-                               fix_tilt_perc, 
-                               snn_bool_intersect,
-                               snn_k,
-                               snn_min_deg,
-                               snn_num_neigh,
-                               svd_1, 
-                               svd_2, 
-                               target_dimred,
-                               verbose = T, msg = ""){
+.tiltedCCA_common_score <- function(averaging_mat,
+                                    cca_res, 
+                                    discretization_gridsize,
+                                    enforce_boundary,
+                                    fix_tilt_perc, 
+                                    snn_bool_intersect,
+                                    snn_k,
+                                    snn_min_deg,
+                                    snn_num_neigh,
+                                    svd_1, 
+                                    svd_2, 
+                                    target_dimred,
+                                    verbose = T, msg = ""){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
-  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing unnormalized scores"))
+  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Computing unnormalized scores"))
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   stopifnot(ncol(score_1) == length(svd_1$d), ncol(score_2) == length(svd_2$d),
             nrow(score_1) == nrow(score_2))
   
-  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing common factors"))
+  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Computing common factors"))
   obj_vec <- cca_res$obj_vec
-
-  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing discrete tilt"))
+  
+  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Computing discrete tilt"))
   tmp <- .common_decomposition(averaging_mat = averaging_mat,
                                discretization_gridsize = discretization_gridsize,
                                enforce_boundary = enforce_boundary,
@@ -80,7 +80,7 @@
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
-  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Done"))
+  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Done"))
   list(common_score = common_score, 
        distinct_score_1 = distinct_score_1,
        distinct_score_2 = distinct_score_2,
@@ -90,5 +90,5 @@
        df_percentage = df_percentage,
        target_dimred = target_dimred,
        tilt_perc = tilt_perc
-       )
+  )
 }

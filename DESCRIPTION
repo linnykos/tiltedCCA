@@ -1,8 +1,8 @@
-Package: multiomicCCA
+Package: tiltedCCA
 Title: Kevin Lin
 Version: 0.0.0.0071
 Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: Multiomic CCA method. Currently under development.
+Description: Tilted CCA method. Currently under development.
 Depends:
     R (>= 3.3.0)
 License: MIT +file LICENSE
@@ -16,7 +16,6 @@ Imports:
     SeuratObject,
     irlba,
     RANN,
-    igraph,
     dbscan,
     scales,
     sparseMatrixStats,

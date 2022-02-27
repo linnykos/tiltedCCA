@@ -1,9 +1,15 @@
-l2_neighborhood_selection <- function(snn_mat_1, snn_mat_2,
-                                      clustering_1, clustering_2,
-                                      num_neigh = 30,
-                                      verbose = T){
-  if(any(table(clustering_1) == 0)) clustering_1 <- factor(clustering_1)
-  if(any(table(clustering_2) == 0)) clustering_2 <- factor(clustering_2)
+.compute_common_snn <- function(snn_mat_1, snn_mat_2,
+                                clustering_1, clustering_2,
+                                num_neigh = 30,
+                                verbose = T){
+  stopifnot(is.factor(clustering_1), is.factor(clustering_2),
+            all(dim(snn_mat_1) == dim(snn_mat_2)),
+            ncol(snn_mat_1) == nrow(snn_mat_1))
+  
+  if(any(table(clustering_1) == 0)) clustering_1 <- droplevels(clustering_1)
+  if(any(table(clustering_2) == 0)) clustering_2 <- droplevels(clustering_2)
+  
+  n <- nrow(snn_mat_1)
   
   nn_list <- .l2_selection_nn(clustering_1 = clustering_1, 
                               clustering_2 = clustering_2,
@@ -38,6 +44,7 @@ l2_neighborhood_selection <- function(snn_mat_1, snn_mat_2,
   
   nn_list <- lapply(1:n, function(i){
     if(verbose && n > 10 && i %% floor(n/10) == 0) cat('*')
+    
     nn_1 <- .nonzero_col(snn_mat_1, 
                          col_idx = i,
                          bool_value = F)
@@ -57,8 +64,8 @@ l2_neighborhood_selection <- function(snn_mat_1, snn_mat_2,
       idx_df <- idx_df[-na_idx,]
     }
     idx_all <- idx_df$idx
-    stopifnot(length(idx_all) >= num_neigh)
-    
+    if(length(idx_all) < num_neigh) return(idx_df$idx)
+   
     obs_tab <- table(clustering_1[idx_all], clustering_2[idx_all])
     obs_tab <- .remove_all_zeros_rowcol(obs_tab)
     
