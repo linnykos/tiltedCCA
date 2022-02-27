@@ -78,7 +78,7 @@ tiltedCCA <- function(mat_1, mat_2, dims_1, dims_2,
   if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
   cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   averaging_mat <- .generate_averaging_matrix(n, metacell_clustering)
-  
+
   res <- .tiltedCCA_common_score(averaging_mat = averaging_mat,
                                  cca_res = cca_res, 
                                  discretization_gridsize = discretization_gridsize,
@@ -103,7 +103,7 @@ tiltedCCA <- function(mat_1, mat_2, dims_1, dims_2,
                      snn_min_deg = snn_min_deg,
                      snn_num_neigh = snn_num_neigh)
   res$param_list <- param_list
-  res$metacell_clustering <- metacell_clustering
+  res$averaging_mat <- averaging_mat
   
   class(res) <- "tiltedCCA"
   res

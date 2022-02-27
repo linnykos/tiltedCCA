@@ -24,7 +24,8 @@ Imports:
     ggplot2,
     ggrepel,
     rlang,
-    quadprog
+    quadprog,
+    UniIsoRegression
 Suggests:
     testthat
 RoxygenNote: 7.1.2

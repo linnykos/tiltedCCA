@@ -94,8 +94,8 @@ form_seurat_obj <- function(mat_1, mat_2){
   idx <- sort(intersect(which(svd_res$d > tol), dims), decreasing = F)
   if(length(idx) == length(svd_res$d)) return(svd_res)
   
-  svd_res$u <- svd_res$u[, idx, drop = F]
-  svd_res$v <- svd_res$v[, idx, drop = F]
+  svd_res$u <- svd_res$u[,idx, drop = F]
+  svd_res$v <- svd_res$v[,idx, drop = F]
   svd_res$d <- svd_res$d[idx]
   
   svd_res
@@ -137,15 +137,27 @@ form_seurat_obj <- function(mat_1, mat_2){
 
 # for diag(vec) %*% mat
 .mult_vec_mat <- function(vec, mat){
-  stopifnot(is.matrix(mat), !is.matrix(vec), length(vec) == nrow(mat))
-  vec * mat
+  stopifnot(inherits(mat, c("matrix", "dgCMatrix")), 
+            !is.matrix(vec), length(vec) == nrow(mat))
+  
+  if(inherits(mat, "dgCMatrix")) {
+    Matrix::Diagonal(x = vec) %*% mat
+  } else {
+    vec * mat
+  }
 }
 
 # for mat %*% diag(vec)
 # see https://stackoverflow.com/questions/17080099/fastest-way-to-multiply-matrix-columns-with-vector-elements-in-r
 .mult_mat_vec <- function(mat, vec){
-  stopifnot(is.matrix(mat), !is.matrix(vec), length(vec) == ncol(mat))
-  mat * rep(vec, rep(nrow(mat), length(vec)))
+  stopifnot(inherits(mat, c("matrix", "dgCMatrix")), 
+            !is.matrix(vec), length(vec) == ncol(mat))
+  
+  if(inherits(mat, "dgCMatrix")) {
+    mat %*% Matrix::Diagonal(x = vec)
+  } else {
+    mat * rep(vec, rep(nrow(mat), length(vec)))
+  }
 }
 
 ###########################

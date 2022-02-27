@@ -63,12 +63,13 @@
   
   if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
   
-  common_score <- .evaluate_radian(
+  tmp <- .evaluate_radian(
+    averaging_mat = averaging_mat,
     basis_list = basis_list, 
     circle_list = circle_list,
     enforce_boundary = enforce_boundary,
     percentage = tilt_perc,
-    return_common_score = T,
+    return_common_score_basis = T,
     score_1 = score_1,
     score_2 = score_2,
     snn_bool_intersect = snn_bool_intersect,
@@ -79,10 +80,16 @@
     svd_2 = svd_2,
     target_dimred = target_dimred
   )
+  common_score <- tmp$common_score
+  common_basis <- tmp$common_basis
   
-  if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
+  if(length(rownames(score_1)) != 0) {
+    rownames(common_score) <- rownames(score_1)
+    rownames(common_basis) <- rownames(score_1)
+  }
   
-  list(common_score = common_score, 
+  list(common_basis = common_basis,
+       common_score = common_score, 
        tilt_perc = tilt_perc,
        df_percentage = df_percentage)
 }
@@ -152,7 +159,7 @@
                              circle_list,
                              enforce_boundary,
                              percentage,
-                             return_common_score,
+                             return_common_score_basis,
                              score_1,
                              score_2,
                              snn_bool_intersect,
@@ -179,14 +186,13 @@
   common_score <- sapply(1:r, function(k){
     basis_list[[k]]$basis_mat %*% common_representation[,k]
   })
-  if(return_common_score) return(common_score)
   
   common_mat <- .convert_common_score_to_mat(common_score,
                                              score_1,
                                              score_2,
                                              svd_1,
                                              svd_2)
-  avg_common_mat <- averaging_mat %*% common_mat
+  avg_common_mat <- as.matrix(averaging_mat %*% common_mat)
   
   snn_mat <- .form_snn_mat(bool_cosine = T,
                            bool_intersect = snn_bool_intersect,
@@ -194,9 +200,14 @@
                            min_deg = snn_min_deg,
                            num_neigh = snn_num_neigh,
                            verbose = F)
-  common_basis <- compute_laplacian_basis(snn_mat, 
-                                          k = snn_k,
-                                          verbose = F)
+  common_basis <- .compute_laplacian_basis(snn_mat, 
+                                           k = snn_k,
+                                           verbose = F)
+  
+  if(return_common_score_basis) {
+    return(list(common_score = common_score,
+                common_basis = common_basis))
+  }
   
   .grassmann_distance(orthonormal_1 = common_basis, 
                       orthonormal_2 = target_dimred)
@@ -204,27 +215,41 @@
 
 .select_minimum <- function(minimum, x_val, y_val){
   stopifnot(length(x_val) == length(y_val))
+  
   if(!minimum) y_val <- -y_val
   
   min_val <- min(y_val)
   min_idx <- which(y_val == min_val)
-  if(length(min_idx) == 1){
-    return(min_idx)
-  }
+  if(length(min_idx) == 1) return(min_idx)
   
-  len <- length(x_val)
-  extreme_pos <- sapply(min_idx, function(x){
-    min(x_val[x]-min(x_val), max(x_val) - x_val[x])
-  })
-  min_pos <- which(extreme_pos == min(extreme_pos))
-  if(length(min_pos) > 1){
-    warning("Unable to determine best tilt. Returning the median.")
-    mid <- stats::median(range(x_val))
-    return(which.min(abs(x_val - mid)))
-  } else {
-    return(min_idx[min_pos])
-  }
+  min_idx[which.min(abs(x_val[min_idx] - median(x_val)))]
+  
+  # bool_unimodal <- .detect_unimodality(minimum, min_idx, y_val)
+  # if(bool_unimodal) {
+  #   warning("Unable to determine best tilt. Returning the median.")
+  #   mid <- stats::median(range(x_val))
+  #   return(which.min(abs(x_val - mid)))
+  # } 
 }
+# 
+# .detect_unimodality <- function(minimum, min_idx, y_val){
+#   res1 <- UniIsoRegression::reg_1d(y_vec = y_val, 
+#                                    w_vec = rep(1, length(y_val)), 
+#                                    metric = 2, 
+#                                    unimodal = T, 
+#                                    decreasing = F)
+#   res2 <- c(-isoreg(-y_val[c(1:min_idx)])$yf,
+#             isoreg(y_val[c(min_idx:length(y_val))])$yf[-1])
+#   
+#   error1 <- .l2norm(y_val - res1)
+#   error2 <- .l2norm(y_val - res2)
+#   
+#   if(minimum){
+#     if(error1 > error2) return(FALSE) else return(TRUE)
+#   } else {
+#     if(error1 < error2) return(FALSE) else return(TRUE)
+#   }
+# }
 
 ############################################
 

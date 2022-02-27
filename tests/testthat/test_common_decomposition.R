@@ -1,147 +1,5 @@
 context("Test .common_decomposition")
 
-compute_common_decomposition_ingredients <- function(setting = 1){
-  # setting 1 has modality 2 having no distinct information
-  if(setting == 1){
-    n_clust <- 100
-    high <- 0.9; low <- 0.05
-    B_mat1 <- matrix(c(0.9, 0.1, 0.1,
-                       0.1, 0.9, 0.1,
-                       0.1, 0.1, 0.9), 3, 3, byrow = T)
-    K <- ncol(B_mat1)
-    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-    n <- length(membership_vec); true_membership_vec <- membership_vec
-    svd_u_1 <- multiomicCCA::generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)[,1:2]
-    svd_u_2 <- multiomicCCA::generate_random_orthogonal(n, 2, centered = T)
-    
-    p_1 <- 20; p_2 <- 40
-    svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-    svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
-    svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, 2)
-    
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1)
-    mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
-  } else if(setting == 2){
-    # setting 2 is where both modalities are the same
-    n_each <- 100
-    true_membership_vec <- rep(1:3, each = n_each)
-    mat_1 <- do.call(rbind, lapply(1:3, function(i){
-      if(i == 1){
-        MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-      } else if(i == 2){
-        MASS::mvrnorm(n = n_each, mu = c(0,12), Sigma = diag(2)) 
-      } else {
-        MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
-      }
-    }))
-    
-    mat_2 <- do.call(rbind, lapply(1:3, function(i){
-      if(i == 1){
-        MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-      } else if(i == 2){
-        MASS::mvrnorm(n = n_each, mu = c(0,12), Sigma = diag(2)) 
-      } else {
-        MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
-      }
-    }))
-    
-    mat_1 <- scale(mat_1, center = T, scale = F)
-    mat_2 <- scale(mat_2, center = T, scale = F)
-    svd_1 <- svd(mat_1)
-    svd_2 <- svd(mat_2)
-    
-    p_1 <- 40; p_2 <- 40
-    svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
-    svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, 2)
-    
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
-    mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
-  } else if(setting == 3){
-    # setting 3 is where modality 2 has information, but not as much
-    n_each <- 100
-    true_membership_vec <- rep(1:3, each = n_each)
-    mat_1 <- do.call(rbind, lapply(1:3, function(i){
-      if(i %in% c(1,2)){
-        MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-      } else {
-        MASS::mvrnorm(n = n_each, mu = c(9,0), Sigma = diag(2)) 
-      }
-    }))
-    
-    mat_2 <- do.call(rbind, lapply(1:3, function(i){
-      if(i %in% c(1,3)){
-        MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-      } else {
-        MASS::mvrnorm(n = n_each, mu = c(3,0), Sigma = diag(2)) 
-      }
-    }))
-    
-    mat_1 <- scale(mat_1, center = T, scale = F)
-    mat_2 <- scale(mat_2, center = T, scale = F)
-    svd_1 <- svd(mat_1)
-    svd_2 <- svd(mat_2)
-    
-    p_1 <- 40; p_2 <- 40
-    svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
-    svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, 2)
-    
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
-    mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
-  } else {
-    # setting 4 is two modalities with high distinct information
-    n_each <- 100
-    true_membership_vec <- rep(1:4, each = n_each)
-    mat_1 <- do.call(rbind, lapply(1:4, function(i){
-      if(i %in% c(1,2)){
-        MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-      } else {
-        MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
-      }
-    }))
-    
-    mat_2 <- do.call(rbind, lapply(1:4, function(i){
-      if(i %in% c(1,3)){
-        MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-      } else {
-        MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
-      }
-    }))
-    
-    mat_1 <- scale(mat_1, center = T, scale = F)
-    mat_2 <- scale(mat_2, center = T, scale = F)
-    svd_1 <- svd(mat_1)
-    svd_2 <- svd(mat_2)
-    
-    p_1 <- 40; p_2 <- 40
-    svd_v_1 <- multiomicCCA::generate_random_orthogonal(p_1, 2)
-    svd_v_2 <- multiomicCCA::generate_random_orthogonal(p_2, 2)
-    
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
-    mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
-  }
-  
-  svd_1 <- .svd_truncated(mat_1, K = 2, symmetric = F, rescale = F, 
-                          mean_vec = T, sd_vec = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = 2, symmetric = F, rescale = F, 
-                          mean_vec = T, sd_vec = F, K_full_rank = F)
-  
-  svd_1 <- .check_svd(svd_1, dims = c(1:2))
-  svd_2 <- .check_svd(svd_2, dims = c(1:2))
-  
-  cca_res <- .cca(svd_1, svd_2, 
-                  dims_1 = NA, dims_2 = NA, 
-                  return_scores = F)
-  
-  tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  
-  list(metacell_clustering = as.factor(true_membership_vec),
-       score_1 = score_1,
-       score_2 = score_2,
-       svd_1 = svd_1, 
-       svd_2 = svd_2)
-}
-
 test_compute_common_score <- function(score_1, score_2, obj_vec = NA){
   stopifnot(nrow(score_1) == nrow(score_2), nrow(score_1) >= ncol(score_1),
             nrow(score_2) >= ncol(score_2), is.matrix(score_1), is.matrix(score_2))
@@ -162,101 +20,65 @@ test_compute_common_score <- function(score_1, score_2, obj_vec = NA){
 ## .common_decomposition is correct
 
 test_that("(Basic) .common_decomposition works", {
-  set.seed(5)
-  n <- 200; K <- 2
-  common_space <- scale(MASS::mvrnorm(n = n, mu = rep(0,K), Sigma = diag(K)), center = T, scale = F)
+  # load("tests/assets/test_data1.RData")
+  load("../assets/test_data1.RData")
+  averaging_mat <- test_data$averaging_mat
+  score_1 <- test_data$score_1
+  score_2 <- test_data$score_2
+  svd_1 <- test_data$svd_1
+  svd_2 <- test_data$svd_2
+  target_dimred <- test_data$target_dimred
   
-  p1 <- 5; p2 <- 10
-  transform_mat_1 <- matrix(stats::runif(K*p1, min = -1, max = 1), nrow = K, ncol = p1)
-  transform_mat_2 <- matrix(stats::runif(K*p2, min = -1, max = 1), nrow = K, ncol = p2)
-  
-  mat_1 <- common_space %*% transform_mat_1 + scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = 0.01*diag(p1)), center = T, scale = F)
-  mat_2 <- common_space %*% transform_mat_2 + scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = 0.01*diag(p2)), center = T, scale = F)
-  
-  svd_1 <- .svd_truncated(mat_1, p1, symmetric = F, rescale = F,
-                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, p2, symmetric = F, rescale = F, 
-                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F) 
-  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
-  tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  
-  tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
-  metacell_clustering_1 <- tmp$metacell_clustering_1
-  metacell_clustering_2 <- tmp$metacell_clustering_2
-
-  res <- suppressWarnings(.common_decomposition(discretization_gridsize = 9,
-                                                enforce_boundary = T,
-                                                fix_tilt_perc = F,
-                                                metacell_clustering_1 = metacell_clustering_1,
-                                                metacell_clustering_2 = metacell_clustering_2,
-                                                n_idx = 1:nrow(score_1),
-                                                num_neigh = 30,
-                                                score_1 = score_1,
-                                                score_2 = score_2,
-                                                svd_1 = svd_1, 
-                                                svd_2 = svd_2))
+  res <- .common_decomposition(averaging_mat = averaging_mat,
+                               discretization_gridsize = 9,
+                               enforce_boundary = T,
+                               fix_tilt_perc = F,
+                               score_1 = score_1,
+                               score_2 = score_2,
+                               snn_bool_intersect = T,
+                               snn_k = 2,
+                               snn_min_deg = 1,
+                               snn_num_neigh = 10,
+                               svd_1 = svd_1, 
+                               svd_2 = svd_2,
+                               target_dimred = target_dimred)
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", "tilt_perc", "df_percentage"))))
+  expect_true(all(sort(names(res)) == sort(c("common_score", "common_basis", "tilt_perc", "df_percentage"))))
   expect_true(nrow(res$common_score) == nrow(score_1))
   expect_true(ncol(res$common_score) == min(ncol(score_1), ncol(score_2)))
+  expect_true(all(dim(res$common_basis) == c(nrow(score_1), 2)))
   expect_true(length(res$tilt_perc) == 1)
 })
 
 test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
-  trials <- 20
+  # load("tests/assets/test_data1.RData")
   
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    n_clust <- 100
-    B_mat <- matrix(c(0.9, 0.4, 0.1, 
-                      0.4, 0.9, 0.1,
-                      0.1, 0.1, 0.5), 3, 3)
-    K <- ncol(B_mat)
-    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-    n <- length(membership_vec)
-    rho <- 1
-    svd_u_1 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
-    svd_u_2 <- generate_sbm_orthogonal(rho*B_mat, membership_vec, centered = T)
+  bool_vec <- sapply(1:4, function(i){
+    load(paste0("../assets/test_data", i, ".RData"))
+    averaging_mat <- test_data$averaging_mat
+    cca_res_obj <- test_data$cca_res_obj
+    score_1 <- test_data$score_1
+    score_2 <- test_data$score_2
+    svd_1 <- test_data$svd_1
+    svd_2 <- test_data$svd_2
+    target_dimred <- test_data$target_dimred
     
-    set.seed(10)
-    p_1 <- 20; p_2 <- 40
-    svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-    svd_v_1 <- generate_random_orthogonal(p_1, K-1)
-    svd_v_2 <- generate_random_orthogonal(p_2, K-1)
-    
-    set.seed(10)
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1) 
-    mat_1 <- mat_1 + matrix(rnorm(prod(dim(mat_1))), ncol = ncol(mat_1), nrow = nrow(mat_1))
-    mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
-    mat_2 <- mat_2 + matrix(rnorm(prod(dim(mat_2))), ncol = ncol(mat_2), nrow = nrow(mat_2))
-    
-    svd_1 <- .svd_truncated(mat_1, p_1, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
-    svd_2 <- .svd_truncated(mat_2, p_2, symmetric = F, rescale = F,
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F) 
-    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
-    tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-
-    tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
-    metacell_clustering_1 <- tmp$metacell_clustering_1
-    metacell_clustering_2 <- tmp$metacell_clustering_2
-    
-    res1 <- .common_decomposition(discretization_gridsize = NA,
+    res1 <- .common_decomposition(averaging_mat = averaging_mat,
+                                  discretization_gridsize = 9,
                                   enforce_boundary = T,
-                                  fix_tilt_perc = T,
-                                  metacell_clustering_1 = metacell_clustering_1,
-                                  metacell_clustering_2 = metacell_clustering_2,
-                                  n_idx = 1:nrow(score_1),
-                                  num_neigh = 30,
+                                  fix_tilt_perc = 0.5,
                                   score_1 = score_1,
                                   score_2 = score_2,
+                                  snn_bool_intersect = T,
+                                  snn_k = 2,
+                                  snn_min_deg = 1,
+                                  snn_num_neigh = 10,
                                   svd_1 = svd_1, 
-                                  svd_2 = svd_2)
-    res2 <- test_compute_common_score(score_1, score_2, obj_vec = cca_res$obj_vec)
-    
+                                  svd_2 = svd_2,
+                                  target_dimred = target_dimred)
+    res2 <- test_compute_common_score(score_1, score_2, 
+                                      obj_vec = cca_res_obj)
     sum(abs(res1$common_score - res2)) <= 1e-6
   })
   
@@ -264,29 +86,28 @@ test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
 })
 
 test_that("(Coding) .common_decomposition preserves rownames and colnames", {
-  set.seed(10)
-  tmp <- compute_common_decomposition_ingredients(setting = 1)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  svd_1 <- tmp$svd_1; svd_2 <- tmp$svd_2
-  n <- nrow(tmp$score_1)
-  rownames(score_1) <- paste0("a", 1:n)
-  rownames(score_2) <- paste0("a", 1:n)
+  # load("tests/assets/test_data1.RData")
+  load("../assets/test_data1.RData")
+  averaging_mat <- test_data$averaging_mat
+  score_1 <- test_data$score_1
+  score_2 <- test_data$score_2
+  svd_1 <- test_data$svd_1
+  svd_2 <- test_data$svd_2
+  target_dimred <- test_data$target_dimred
   
-  tmp <- .form_snns(num_neigh = 30, svd_1 = svd_1, svd_2 = svd_2)
-  metacell_clustering_1 <- tmp$metacell_clustering_1
-  metacell_clustering_2 <- tmp$metacell_clustering_2
-  
-  res <- .common_decomposition(discretization_gridsize = 9,
+  res <- .common_decomposition(averaging_mat = averaging_mat,
+                               discretization_gridsize = 9,
                                enforce_boundary = T,
                                fix_tilt_perc = F,
-                               metacell_clustering_1 = metacell_clustering_1,
-                               metacell_clustering_2 = metacell_clustering_2,
-                               n_idx = 1:nrow(score_1),
-                               num_neigh = 30,
                                score_1 = score_1,
                                score_2 = score_2,
+                               snn_bool_intersect = T,
+                               snn_k = 2,
+                               snn_min_deg = 1,
+                               snn_num_neigh = 10,
                                svd_1 = svd_1, 
-                               svd_2 = svd_2)
+                               svd_2 = svd_2,
+                               target_dimred = target_dimred)
   expect_true(all(dim(res$common_score) == dim(score_1)))
   expect_true(length(rownames(res$common_score)) > 1)
   expect_true(all(rownames(res$common_score) == rownames(score_1)))
@@ -295,58 +116,30 @@ test_that("(Coding) .common_decomposition preserves rownames and colnames", {
 })
 
 test_that("(Math) .common_decomposition gives sensible numbers in asymmetric information settings and strong clusters", {
-  trials <- 10
-  
-  bool_vec <- sapply(1:trials, function(x){
-    set.seed(x)
-    n_clust <- 100
-    B_mat1 <- matrix(c(0.9, 0, 0, 
-                       0, 0.9, 0,
-                       0, 0, 0.9), 3, 3, byrow = T)
-    B_mat2 <- matrix(c(0.9, 0.85, 0, 
-                       0.85, 0.9, 0,
-                       0, 0, 1), 3, 3, byrow = T)
-    K <- ncol(B_mat1)
-    membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
-    n <- length(membership_vec); true_membership_vec <- membership_vec
-    svd_u_1 <- generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)
-    svd_u_2 <- generate_sbm_orthogonal(B_mat2, membership_vec, centered = T)
+  # load("tests/assets/test_data1.RData")
+  bool_vec <- sapply(c(1,3), function(i){
+    load(paste0("../assets/test_data", i, ".RData"))
+    averaging_mat <- test_data$averaging_mat
+    cca_res_obj <- test_data$cca_res_obj
+    score_1 <- test_data$score_1
+    score_2 <- test_data$score_2
+    svd_1 <- test_data$svd_1
+    svd_2 <- test_data$svd_2
+    target_dimred <- test_data$target_dimred
     
-    set.seed(10)
-    p_1 <- 20; p_2 <- 40
-    svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
-    svd_v_1 <- generate_random_orthogonal(p_1, K-1)
-    svd_v_2 <- generate_random_orthogonal(p_2, K-1)
-    
-    set.seed(10)
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_u_1, svd_d_1), svd_v_1) 
-    mat_1 <- mat_1 + matrix(rnorm(prod(dim(mat_1)), sd = 0.1), ncol = ncol(mat_1), nrow = nrow(mat_1))
-    mat_2 <- tcrossprod(.mult_mat_vec(svd_u_2, svd_d_2), svd_v_2)
-    mat_2 <- mat_2 + matrix(rnorm(prod(dim(mat_2)), sd = 0.1), ncol = ncol(mat_2), nrow = nrow(mat_2))
-    
-    svd_1 <- .svd_truncated(mat_1, 2, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
-    svd_2 <- .svd_truncated(mat_2, 2, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F) 
-    cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
-    tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-    score_1 <- tmp$score_1; score_2 <- tmp$score_2
-   
-    metacell_clustering_1 <- factor(c(rep("A", n_clust), rep("B", n_clust), rep("C", n_clust)))
-    metacell_clustering_2 <- factor(c(rep("AB", 2*n_clust), rep("C", n_clust)))
-    
-    res <- .common_decomposition(discretization_gridsize = 9,
+    res <- .common_decomposition(averaging_mat = averaging_mat,
+                                 discretization_gridsize = 9,
                                  enforce_boundary = T,
-                                 fix_tilt_perc = F,
-                                 metacell_clustering_1 = metacell_clustering_1,
-                                 metacell_clustering_2 = metacell_clustering_2,
-                                 n_idx = 1:nrow(score_1),
-                                 num_neigh = 30,
+                                 fix_tilt_perc = 0.5,
                                  score_1 = score_1,
                                  score_2 = score_2,
+                                 snn_bool_intersect = T,
+                                 snn_k = 2,
+                                 snn_min_deg = 1,
+                                 snn_num_neigh = 10,
                                  svd_1 = svd_1, 
-                                 svd_2 = svd_2)
-    
+                                 svd_2 = svd_2,
+                                 target_dimred = target_dimred)
     res$tilt_perc <= 0.5
   })
   
@@ -424,7 +217,7 @@ test_that(".compute_radian returns the correct radian when enforce_boundary = T"
                          circle = circle)
   vec <- .position_from_circle(circle, res)
   expect_true(abs(t(vec) %*% vec1 / (.l2norm(vec) * .l2norm(vec1)) - 1) <= 1e-6)
-
+  
   res <- .compute_radian(percentage_val = 0,
                          enforce_boundary = T,
                          vec1 = vec1, vec2 = vec2,
@@ -465,15 +258,13 @@ test_that(".select_minimum works when there are multiple similar values", {
   x_val <- c(0, 0.25, 0.5, 0.75, 1)
   y_val <- c(3,3,1,1,1)
   res <- .select_minimum(minimum = T, x_val, y_val)
-  expect_true(res == 5)
+  expect_true(res == 3)
   
   y_val <- c(3,1,1,1,1)
   res <- .select_minimum(minimum = T, x_val, y_val)
-  expect_true(res == 5)
+  expect_true(res == 3)
   
   y_val <- c(3,2,1,1,2)
   res <- .select_minimum(minimum = T, x_val, y_val)
-  expect_true(res == 4)
-  
-  expect_warning(.select_minimum(minimum = T, x_val, c(3,1,1,1,3)))
+  expect_true(res == 3)
 })

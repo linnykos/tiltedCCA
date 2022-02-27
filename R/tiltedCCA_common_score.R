@@ -73,6 +73,7 @@
                                target_dimred = target_dimred,
                                verbose = verbose)
   
+  common_basis <- tmp$common_basis
   common_score <- tmp$common_score
   tilt_perc <- tmp$tilt_perc
   df_percentage <- tmp$df_percentage
@@ -81,7 +82,8 @@
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
   if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Done"))
-  list(common_score = common_score, 
+  list(common_basis = common_basis,
+       common_score = common_score, 
        distinct_score_1 = distinct_score_1,
        distinct_score_2 = distinct_score_2,
        score_1 = score_1, score_2 = score_2, 

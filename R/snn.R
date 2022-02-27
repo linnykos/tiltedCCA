@@ -50,6 +50,11 @@
     }
   }
   
+  if(length(rownames(mat)) > 0){
+    rownames(sparse_mat) <- rownames(mat)
+    colnames(sparse_mat) <- rownames(mat)
+  }
+  
   sparse_mat
 }
 
@@ -71,6 +76,10 @@
   if(verbose) print("Extracting basis")
   eigen_res <- irlba::partial_eigen(lap_mat, n = k, symmetric = F)
   dimred <- .mult_mat_vec(eigen_res$vectors, eigen_res$values)
+  
+  if(length(rownames(sparse_mat)) > 0){
+    rownames(dimred) <- rownames(sparse_mat)
+  }
   
   dimred
 }

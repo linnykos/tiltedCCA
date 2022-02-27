@@ -10,7 +10,7 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
     K <- ncol(B_mat1)
     membership_vec <- c(rep(1, n_clust), rep(2, n_clust), rep(3, n_clust))
     clustering_1 <- factor(membership_vec)
-    clustering_2 <- factor(rep(1, n))
+    clustering_2 <- factor(rep(1, length(membership_vec)))
     n <- length(membership_vec); true_membership_vec <- membership_vec
     svd_u_1 <- generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)[,1:2]
     svd_u_2 <- generate_random_orthogonal(n, 2, centered = T)
@@ -129,9 +129,13 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
   }
   
   ############################
+  rownames(mat_1) <- paste0("n", 1:nrow(mat_1))
+  rownames(mat_2) <- paste0("n", 1:nrow(mat_2))
+  colnames(mat_1) <- paste0("g", 1:ncol(mat_1))
+  colnames(mat_2) <- paste0("p", 1:ncol(mat_2))
   
   # compute relevant ingredients based on mat_1 and mat_2
-  
+  n <- nrow(mat_1)
   svd_1 <- tiltedCCA:::.svd_truncated(mat_1, K = 2, symmetric = F, rescale = F, 
                                       mean_vec = F, sd_vec = F, K_full_rank = F)
   svd_2 <- tiltedCCA:::.svd_truncated(mat_2, K = 2, symmetric = F, rescale = F, 
@@ -163,7 +167,33 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
                                                         k = 2, 
                                                         verbose = F)
   
-  list(mat_1 = mat_1,
+  svd_1 <- tiltedCCA:::.check_svd(svd_1, dims = c(1:2))
+  svd_2 <- tiltedCCA:::.check_svd(svd_2, dims = c(1:2))
+  
+  cca_res <- tiltedCCA:::.cca(svd_1, svd_2, 
+                  dims_1 = NA, dims_2 = NA, 
+                  return_scores = F)
+  
+  tmp <- tiltedCCA:::.compute_unnormalized_scores(svd_1, svd_2, cca_res)
+  score_1 <- tmp$score_1; score_2 <- tmp$score_2
+  
+  metacell_clustering <- lapply(1:nrow(mat_1), function(i){i})
+  averaging_mat <- tiltedCCA:::.generate_averaging_matrix(n, metacell_clustering)
+  
+  list(averaging_mat = averaging_mat,
+       cca_res_obj = cca_res$obj_vec,
+       K = K,
+       mat_1 = mat_1,
        mat_2 = mat_2,
-       target_dimred = target_dimred)
+       score_1 = score_1,
+       score_2 = score_2,
+       svd_1 = svd_1,
+       svd_2 = svd_2,
+       target_dimred = target_dimred,
+       true_membership_vec = as.factor(true_membership_vec))
+}
+
+for(setting in 1:4){
+  test_data <- compute_tiltedCCA_ingredients(setting = setting)
+  save(test_data, file = paste0("tests/assets/test_data", setting, ".RData"))
 }

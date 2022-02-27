@@ -25,7 +25,7 @@
 #' @export
 construct_frnn <- function(obj, 
                            membership_vec = NA, 
-                           nn = 30, 
+                           num_neigh = 30, 
                            data_1 = T, 
                            data_2 = F,
                            normalization_type = "none",
@@ -65,7 +65,7 @@ construct_frnn <- function(obj,
   vec_print <- c("common", "distinct")
   vec_rad <- sapply(1:2, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Computing radius -- ", vec_print[i]))
-    .compute_radius(embedding[[i]], nn, radius_quantile)
+    .compute_radius(embedding[[i]], num_neigh, radius_quantile)
   })
   vec_rad_org <- vec_rad
   names(vec_rad_org) <- c("common", "distinct")
@@ -74,7 +74,7 @@ construct_frnn <- function(obj,
   # construct frnn
   list_g <- lapply(1:2, function(i){
     if(verbose) print(paste0(Sys.time(),": cLISI: Construct graph -- ", vec_print[i]))
-    .construct_frnn(embedding[[i]], radius = vec_rad[i], nn = nn, 
+    .construct_frnn(embedding[[i]], radius = vec_rad[i], num_neigh = num_neigh, 
                     frnn_approx = frnn_approx, 
                     resolve_isolated_nodes = T,
                     radius_quantile = NA,
@@ -126,7 +126,7 @@ construct_frnn <- function(obj,
 combine_frnn <- function(dcca_obj, 
                          g_1, 
                          g_2, 
-                         nn, 
+                         num_neigh, 
                          common_1 = T, 
                          common_2 = T, 
                          keep_nn = T,
@@ -182,9 +182,9 @@ combine_frnn <- function(dcca_obj,
     # intersect
     idx_all <- unique(c(nn_idx_1[[i]], nn_idx_2[[i]]))
     idx_intersect <- intersect(nn_idx_1[[i]], nn_idx_2[[i]])
-    if(length(idx_intersect) < nn){
+    if(length(idx_intersect) < num_neigh){
       idx_subset <- setdiff(idx_all, idx_intersect)
-      idx_intersect <- c(idx_intersect, sample(idx_subset, size = nn - length(idx_intersect)))
+      idx_intersect <- c(idx_intersect, sample(idx_subset, size = num_neigh - length(idx_intersect)))
     }
     
     # start tabulating nn_dist
@@ -194,21 +194,21 @@ combine_frnn <- function(dcca_obj,
                                                    nn_dist_1[[i]], nn_dist_2[[i]],
                                                    start_idx = i, end_idx_vec = idx_intersect)
     # sample these entries
-    tmp <- .embedding_resampling(nn_idx_all, nn_dist_all, nn = nn, 
+    tmp <- .embedding_resampling(nn_idx_all, nn_dist_all, num_neigh = num_neigh, 
                                  sampling_type = sampling_type, keep_nn = F)
     nn_idx_all <- tmp$id; nn_dist_all <- tmp$dist
     
     # find the nn's
     if(keep_nn){
-      if(length(nn_idx_1[[i]]) < nn){
+      if(length(nn_idx_1[[i]]) < num_neigh){
         order_1 <- nn_idx_1[[i]]
       } else {
-        order_1 <- order(nn_dist_1[[i]], decreasing = F)[1:nn]
+        order_1 <- order(nn_dist_1[[i]], decreasing = F)[1:num_neigh]
       }
-      if(length(nn_idx_2[[i]]) < nn){
+      if(length(nn_idx_2[[i]]) < num_neigh){
         order_2 <- nn_idx_2[[i]]
       } else {
-        order_2 <- order(nn_dist_2[[i]], decreasing = F)[1:nn]
+        order_2 <- order(nn_dist_2[[i]], decreasing = F)[1:num_neigh]
       }
       
       tmp_idx <- unique(c(nn_idx_1[[i]][order_1], nn_idx_2[[i]][order_2]))
@@ -216,7 +216,7 @@ combine_frnn <- function(dcca_obj,
                                              nn_idx_1[[i]], nn_idx_2[[i]],
                                              nn_dist_1[[i]], nn_dist_2[[i]],
                                              start_idx = i, end_idx_vec = tmp_idx)
-      zz <- intersect(order(tmp_dist, decreasing = F)[1:nn], which(!tmp_idx %in% nn_idx_all[[i]]))
+      zz <- intersect(order(tmp_dist, decreasing = F)[1:num_neigh], which(!tmp_idx %in% nn_idx_all[[i]]))
       nn_idx_all[[i]] <- c(nn_idx_all[[i]], tmp_idx[zz])
       nn_dist_all[[i]] <- c(nn_dist_all[[i]], tmp_dist[zz])
     }
@@ -317,21 +317,21 @@ combine_frnn <- function(dcca_obj,
   sort(unlist(res))
 }
 
-.compute_radius <- function(mat, nn, radius_quantile){
-  res <- RANN::nn2(mat, k = nn)
-  as.numeric(stats::quantile(res$nn.dists[,nn], probs = radius_quantile))[1]
+.compute_radius <- function(mat, num_neigh, radius_quantile){
+  res <- RANN::nn2(mat, k = num_neigh)
+  as.numeric(stats::quantile(res$nn.dists[,num_neigh], probs = radius_quantile))[1]
 }
 
 .construct_frnn <- function(mat, 
                             radius, 
-                            nn, 
+                            num_neigh, 
                             frnn_approx, 
                             resolve_isolated_nodes,
                             radius_quantile, 
                             verbose = F){
   if(is.na(radius)){
     radius <- .compute_radius(mat, 
-                              nn = nn, 
+                              num_neigh = num_neigh, 
                               radius_quantile = radius_quantile)
   }
   
@@ -339,10 +339,10 @@ combine_frnn <- function(dcca_obj,
   res <- dbscan::frNN(mat, eps = radius, sort = F, approx = frnn_approx)
   
   if(resolve_isolated_nodes){
-    idx <- which(sapply(res$id, length) < nn)
+    idx <- which(sapply(res$id, length) < num_neigh)
     if(verbose) print(paste0(Sys.time(),": ", length(idx), " cells with too few neighbors"))
     if(length(idx) > 0){
-      res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = nn+1, eps = frnn_approx)
+      res2 <- RANN::nn2(mat, query = mat[idx,,drop = F], k = num_neigh+1, eps = frnn_approx)
       
       if(verbose) print(paste0(Sys.time(),": Plugging in kNN neighbors"))
       for(i in 1:length(idx)){
