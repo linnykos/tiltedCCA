@@ -180,7 +180,7 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
   metacell_clustering <- lapply(1:nrow(mat_1), function(i){i})
   averaging_mat <- tiltedCCA:::.generate_averaging_matrix(n, metacell_clustering)
   
-  res <- .common_decomposition(averaging_mat = averaging_mat,
+  res <- tiltedCCA:::.common_decomposition(averaging_mat = averaging_mat,
                                discretization_gridsize = 9,
                                enforce_boundary = T,
                                fix_tilt_perc = 0.5,
@@ -195,8 +195,20 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
                                target_dimred = target_dimred)
   common_score <- res$common_score
   
+  basis_list <- lapply(1:2, function(k){
+    tiltedCCA:::.representation_2d(score_1[,k], score_2[,k])
+  })
+  
+  circle_list <- lapply(1:2, function(k){
+    vec1 <- basis_list[[k]]$rep1
+    vec2 <- basis_list[[k]]$rep2
+    tiltedCCA:::.construct_circle(vec1, vec2)
+  })
+  
   list(averaging_mat = averaging_mat,
+       basis_list = basis_list,
        cca_res_obj = cca_res$obj_vec,
+       circle_list = circle_list,
        common_score = common_score,
        K = 2,
        mat_1 = mat_1,

@@ -1,99 +1,14 @@
 context("Test .convert_common_score_to_mat")
 
-compute_common_score_ingredients <- function(){
-  n_each <- 100
-  true_membership_vec <- rep(1:3, each = n_each)
-  mat_1 <- do.call(rbind, lapply(1:3, function(i){
-    if(i == 1){
-      MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-    } else if(i == 2){
-      MASS::mvrnorm(n = n_each, mu = c(0,12), Sigma = diag(2)) 
-    } else {
-      MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
-    }
-  }))
-  
-  mat_2 <- do.call(rbind, lapply(1:3, function(i){
-    if(i == 1){
-      MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
-    } else if(i == 2){
-      MASS::mvrnorm(n = n_each, mu = c(0,12), Sigma = diag(2)) 
-    } else {
-      MASS::mvrnorm(n = n_each, mu = c(12,0), Sigma = diag(2)) 
-    }
-  }))
-  
-  n <- nrow(mat_1)
-  mat_1 <- scale(mat_1, center = T, scale = F)
-  mat_2 <- scale(mat_2, center = T, scale = F)
-  svd_1 <- svd(mat_1)
-  svd_2 <- svd(mat_2)
-  
-  p_1 <- 40; p_2 <- 40
-  svd_v_1 <- generate_random_orthogonal(p_1, 2)
-  svd_v_2 <- generate_random_orthogonal(p_2, 2)
-  
-  mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_v_1)
-  mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_v_2)
-  
-  svd_1 <- .svd_truncated(mat_1, K = 2, symmetric = F, rescale = F, 
-                          mean_vec = T, sd_vec = F, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = 2, symmetric = F, rescale = F, 
-                          mean_vec = T, sd_vec = F, K_full_rank = F)
-  
-  svd_1 <- .check_svd(svd_1, dims = c(1:2))
-  svd_2 <- .check_svd(svd_2, dims = c(1:2))
-  
-  cca_res <- .cca(svd_1, svd_2, 
-                  dims_1 = NA, dims_2 = NA, 
-                  return_scores = F)
-  
-  tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
-  score_1 <- tmp$score_1; score_2 <- tmp$score_2
-  
-  r <- min(ncol(score_1), ncol(score_2))
-  basis_list <- lapply(1:r, function(k){
-    .representation_2d(score_1[,k], score_2[,k])
-  })
-  
-  circle_list <- lapply(1:r, function(k){
-    vec1 <- basis_list[[k]]$rep1
-    vec2 <- basis_list[[k]]$rep2
-    .construct_circle(vec1, vec2)
-  })
-  
-  radian_vec <- sapply(1:r, function(k){
-    .compute_radian(percentage_val = 0.5,
-                    enforce_boundary = T,
-                    vec1 = basis_list[[k]]$rep1,
-                    vec2 = basis_list[[k]]$rep2,
-                    circle = circle_list[[k]])
-  })
-  
-  common_representation <- sapply(1:r, function(k){
-    .position_from_circle(circle_list[[k]], radian_vec[k])
-  })
-  
-  common_score <- sapply(1:r, function(k){
-    basis_list[[k]]$basis_mat %*% common_representation[,k]
-  })
-  
-  list(common_score = common_score,
-       score_1 = score_1,
-       score_2 = score_2,
-       svd_1 = svd_1, 
-       svd_2 = svd_2)
-}
-
 ## .convert_common_score_to_mat is correct
 test_that(".convert_common_score_to_mat returns reasonable values", {
-  set.seed(10)
-  tmp <- compute_common_score_ingredients()
-  common_score <- tmp$common_score
-  score_1 <- tmp$score_1
-  score_2 <- tmp$score_2
-  svd_1 <- tmp$svd_1
-  svd_2 <- tmp$svd_2
+  # load("tests/assets/test_data1.RData")
+  load("../assets/test_data1.RData")
+  common_score <- test_data$common_score
+  score_1 <- test_data$score_1
+  score_2 <- test_data$score_2
+  svd_1 <- test_data$svd_1
+  svd_2 <- test_data$svd_2
   n <- nrow(score_1)
   
   res <- .convert_common_score_to_mat(common_score,
