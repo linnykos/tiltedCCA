@@ -128,36 +128,4 @@ plot_embeddings2 <- function(dcca_obj,
 
 ##########################################
 
-.embedding_resampling <- function(nn_idx, nn_dist, nn, 
-                                  sampling_type, keep_nn){
-  stopifnot(sampling_type %in% c("uniform", "gaussian", "adaptive_gaussian",
-                                 "median_gaussian"), is.logical(keep_nn))
-  n <- length(nn_idx)
-  
-  for(j in 1:n){
-    if(length(nn_idx[[j]]) <= nn) next()
-    
-    if(sampling_type == "uniform"){
-      idx <- sample(1:length(nn_idx[[j]]), size = nn)
-    } else if(sampling_type == "gaussian"){
-      idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-nn_dist[[j]]))
-    } else if(sampling_type == "adaptive_gaussian"){
-      min_val <- min(nn_dist[[j]])
-      max_val <- max(nn_dist[[j]])
-      idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-(nn_dist[[j]] - min_val)/max_val))
-    } else {
-      med_val <- stats::median(nn_dist[[j]])
-      idx <- sample(1:length(nn_idx[[j]]), size = nn, prob = exp(-nn_dist[[j]]/med_val))
-    }
-    
-    if(keep_nn){
-      idx <- unique(c(idx, order(nn_dist[[j]], decreasing = F)[1:nn]))
-    }
-    
-    nn_idx[[j]] <- nn_idx[[j]][idx]
-    nn_dist[[j]] <- nn_dist[[j]][idx]
-  }
-  
-  list(id = nn_idx, dist = nn_dist)
-}
 

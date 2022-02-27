@@ -24,16 +24,16 @@
 #' @return list, depends on \code{bool_matrix}
 #' @export
 construct_frnn <- function(obj, 
-                           membership_vec = NA, 
-                           num_neigh = 30, 
                            data_1 = T, 
                            data_2 = F,
-                           normalization_type = "none",
-                           max_subsample_frnn = nrow(obj$common_score),
-                           frnn_approx = 0, 
-                           radius_quantile = 0.5,
+                           num_neigh = 30, 
                            bool_matrix = T, 
                            center = T,
+                           frnn_approx = 0, 
+                           max_subsample_frnn = nrow(obj$common_score),
+                           membership_vec = NA, 
+                           normalization_type = "none",
+                           radius_quantile = 0.5,
                            renormalize = F, 
                            symmetrize = F,
                            verbose = T){
@@ -126,13 +126,13 @@ construct_frnn <- function(obj,
 combine_frnn <- function(dcca_obj, 
                          g_1, 
                          g_2, 
-                         num_neigh, 
+                         num_neigh = 30, 
+                         center = T, 
                          common_1 = T, 
                          common_2 = T, 
                          keep_nn = T,
-                         sampling_type = "adaptive_gaussian",
-                         center = T, 
                          renormalize = F,
+                         sampling_type = "adaptive_gaussian",
                          verbose = 0){
   stopifnot(all(dim(g_1) == dim(g_2)))
   
@@ -323,11 +323,11 @@ combine_frnn <- function(dcca_obj,
 }
 
 .construct_frnn <- function(mat, 
-                            radius, 
-                            num_neigh, 
                             frnn_approx, 
-                            resolve_isolated_nodes,
+                            num_neigh, 
+                            radius, 
                             radius_quantile, 
+                            resolve_isolated_nodes,
                             verbose = F){
   if(is.na(radius)){
     radius <- .compute_radius(mat, 
@@ -426,4 +426,37 @@ combine_frnn <- function(dcca_obj,
   if(set_ones) g_mat@x <- rep(1, length(g_mat@x))
   
   g_mat
+}
+
+.embedding_resampling <- function(nn_idx, nn_dist, num_neigh, 
+                                  sampling_type, keep_nn){
+  stopifnot(sampling_type %in% c("uniform", "gaussian", "adaptive_gaussian",
+                                 "median_gaussian"), is.logical(keep_nn))
+  n <- length(nn_idx)
+  
+  for(j in 1:n){
+    if(length(nn_idx[[j]]) <= num_neigh) next()
+    
+    if(sampling_type == "uniform"){
+      idx <- sample(1:length(nn_idx[[j]]), size = num_neigh)
+    } else if(sampling_type == "gaussian"){
+      idx <- sample(1:length(nn_idx[[j]]), size = num_neigh, prob = exp(-nn_dist[[j]]))
+    } else if(sampling_type == "adaptive_gaussian"){
+      min_val <- min(nn_dist[[j]])
+      max_val <- max(nn_dist[[j]])
+      idx <- sample(1:length(nn_idx[[j]]), size = num_neigh, prob = exp(-(nn_dist[[j]] - min_val)/max_val))
+    } else {
+      med_val <- stats::median(nn_dist[[j]])
+      idx <- sample(1:length(nn_idx[[j]]), size = num_neigh, prob = exp(-nn_dist[[j]]/med_val))
+    }
+    
+    if(keep_nn){
+      idx <- unique(c(idx, order(nn_dist[[j]], decreasing = F)[1:nn]))
+    }
+    
+    nn_idx[[j]] <- nn_idx[[j]][idx]
+    nn_dist[[j]] <- nn_dist[[j]][idx]
+  }
+  
+  list(id = nn_idx, dist = nn_dist)
 }
