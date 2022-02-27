@@ -180,9 +180,25 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
   metacell_clustering <- lapply(1:nrow(mat_1), function(i){i})
   averaging_mat <- tiltedCCA:::.generate_averaging_matrix(n, metacell_clustering)
   
+  res <- .common_decomposition(averaging_mat = averaging_mat,
+                               discretization_gridsize = 9,
+                               enforce_boundary = T,
+                               fix_tilt_perc = 0.5,
+                               score_1 = score_1,
+                               score_2 = score_2,
+                               snn_bool_intersect = T,
+                               snn_k = 2,
+                               snn_min_deg = 1,
+                               snn_num_neigh = 10,
+                               svd_1 = svd_1, 
+                               svd_2 = svd_2,
+                               target_dimred = target_dimred)
+  common_score <- res$common_score
+  
   list(averaging_mat = averaging_mat,
        cca_res_obj = cca_res$obj_vec,
-       K = K,
+       common_score = common_score,
+       K = 2,
        mat_1 = mat_1,
        mat_2 = mat_2,
        score_1 = score_1,
