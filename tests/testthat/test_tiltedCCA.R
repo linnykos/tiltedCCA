@@ -4,7 +4,7 @@ context("Test tiltedCCA")
 
 test_that("(Basic) tiltedCCA works", {
   # load("tests/assets/test_data1.RData")
-  load("assets/test_data1.RData")
+  load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   target_dimred <- test_data$target_dimred
@@ -24,14 +24,15 @@ test_that("(Basic) tiltedCCA works", {
                                              "target_dimred",
                                              "averaging_mat",
                                              "param_list",
-                                             "df_percentage"))))
+                                             "df_percentage",
+                                             "common_basis"))))
   expect_true(all(dim(res$common_score) == c(nrow(mat_1), 2)))
 })
 
 
 test_that("(Basic) tiltedCCA works with variable dimensions", {
   # load("tests/assets/test_data1.RData")
-  load("assets/test_data1.RData")
+  load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   target_dimred <- test_data$target_dimred
@@ -55,7 +56,8 @@ test_that("(Basic) tiltedCCA works with variable dimensions", {
                                              "target_dimred",
                                              "averaging_mat",
                                              "param_list",
-                                             "df_percentage"))))
+                                             "df_percentage",
+                                             "common_basis"))))
   expect_true(all(dim(res$common_score) == c(n,2)))
   expect_true(all(dim(res$distinct_score_1) == c(n,4)))
   expect_true(all(dim(res$distinct_score_2) == c(n,2)))
@@ -63,7 +65,7 @@ test_that("(Basic) tiltedCCA works with variable dimensions", {
 
 test_that("(Basic) tiltedCCA works with a sparse matrix", {
   # load("tests/assets/test_data1.RData")
-  load("assets/test_data1.RData")
+  load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   target_dimred <- test_data$target_dimred
@@ -87,7 +89,7 @@ test_that("(Basic) tiltedCCA works with a sparse matrix", {
 
 test_that("(Coding) tiltedCCA preserves rownames and colnames", {
   # load("tests/assets/test_data1.RData")
-  load("assets/test_data1.RData")
+  load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   target_dimred <- test_data$target_dimred
@@ -127,7 +129,7 @@ test_that("(Coding) tiltedCCA preserves rownames and colnames", {
 
 test_that("(Math) tiltedCCA is symmetric if the arguments are flipped", {
   # load("tests/assets/test_data1.RData")
-  load("assets/test_data1.RData")
+  load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   target_dimred <- test_data$target_dimred

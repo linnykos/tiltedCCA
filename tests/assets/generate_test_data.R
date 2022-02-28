@@ -207,7 +207,7 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
   
   list(averaging_mat = averaging_mat,
        basis_list = basis_list,
-       cca_res_obj = cca_res$obj_vec,
+       cca_res = cca_res,
        circle_list = circle_list,
        common_score = common_score,
        K = 2,

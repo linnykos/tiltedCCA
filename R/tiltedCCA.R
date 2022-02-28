@@ -140,20 +140,23 @@ tiltedCCA_decomposition <- function(tiltedCCA_res, rank_c = NA, verbose = T){
   distinct_mat_2 <- tiltedCCA_res$distinct_score_2 %*% coef_mat_2
   
   if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Done"))
-  structure(list(common_score = tiltedCCA_res$common_score[,1:rank_c, drop = F],
-                 distinct_score_1 = tiltedCCA_res$distinct_score_1,
-                 distinct_score_2 = tiltedCCA_res$distinct_score_2,
-                 score_1 = tiltedCCA_res$score_1, 
-                 score_2 = tiltedCCA_res$score_2,
-                 svd_1 = tiltedCCA_res$svd_1, 
-                 svd_2 = tiltedCCA_res$svd_2, 
+  structure(list(cca_obj = tiltedCCA_res$cca_obj, 
+                 common_basis = tiltedCCA_res$common_basis,
                  common_mat_1 = common_mat_1, 
                  common_mat_2 = common_mat_2, 
+                 common_score = tiltedCCA_res$common_score[,1:rank_c, drop = F],
+                 df_percentage = tiltedCCA_res$df_percentage,
                  distinct_mat_1 = distinct_mat_1, 
                  distinct_mat_2 = distinct_mat_2,
-                 cca_obj = tiltedCCA_res$cca_obj, 
-                 distinct_perc_2 = tiltedCCA_res$distinct_perc_2,
-                 param_list = tiltedCCA_res$param_list), class = "dcca_decomp")
+                 distinct_score_1 = tiltedCCA_res$distinct_score_1,
+                 distinct_score_2 = tiltedCCA_res$distinct_score_2,
+                 param_list = tiltedCCA_res$param_list,
+                 score_1 = tiltedCCA_res$score_1, 
+                 score_2 = tiltedCCA_res$score_2, 
+                 svd_1 = tiltedCCA_res$svd_1, 
+                 svd_2 = tiltedCCA_res$svd_2, 
+                 target_dimred = tiltedCCA_res$target_dimred,
+                 tilt_perc = tiltedCCA_res$tilt_perc), class = "tiltedCCA_decomp")
 }
 
 

@@ -23,9 +23,7 @@ Imports:
     RColorBrewer,
     ggplot2,
     ggrepel,
-    rlang,
-    quadprog,
-    UniIsoRegression
+    quadprog
 Suggests:
     testthat
 RoxygenNote: 7.1.2

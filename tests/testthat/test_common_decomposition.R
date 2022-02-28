@@ -57,7 +57,7 @@ test_that("(Math) .common_decomposition is correct when fix_tilt_perc = T", {
   bool_vec <- sapply(1:4, function(i){
     load(paste0("../assets/test_data", i, ".RData"))
     averaging_mat <- test_data$averaging_mat
-    cca_res_obj <- test_data$cca_res_obj
+    cca_res_obj <- test_data$cca_res$obj
     score_1 <- test_data$score_1
     score_2 <- test_data$score_2
     svd_1 <- test_data$svd_1
@@ -120,7 +120,7 @@ test_that("(Math) .common_decomposition gives sensible numbers in asymmetric inf
   bool_vec <- sapply(c(1,3), function(i){
     load(paste0("../assets/test_data", i, ".RData"))
     averaging_mat <- test_data$averaging_mat
-    cca_res_obj <- test_data$cca_res_obj
+    cca_res_obj <- test_data$cca_res$obj
     score_1 <- test_data$score_1
     score_2 <- test_data$score_2
     svd_1 <- test_data$svd_1

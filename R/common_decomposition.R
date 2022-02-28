@@ -223,33 +223,7 @@
   if(length(min_idx) == 1) return(min_idx)
   
   min_idx[which.min(abs(x_val[min_idx] - median(x_val)))]
-  
-  # bool_unimodal <- .detect_unimodality(minimum, min_idx, y_val)
-  # if(bool_unimodal) {
-  #   warning("Unable to determine best tilt. Returning the median.")
-  #   mid <- stats::median(range(x_val))
-  #   return(which.min(abs(x_val - mid)))
-  # } 
 }
-# 
-# .detect_unimodality <- function(minimum, min_idx, y_val){
-#   res1 <- UniIsoRegression::reg_1d(y_vec = y_val, 
-#                                    w_vec = rep(1, length(y_val)), 
-#                                    metric = 2, 
-#                                    unimodal = T, 
-#                                    decreasing = F)
-#   res2 <- c(-isoreg(-y_val[c(1:min_idx)])$yf,
-#             isoreg(y_val[c(min_idx:length(y_val))])$yf[-1])
-#   
-#   error1 <- .l2norm(y_val - res1)
-#   error2 <- .l2norm(y_val - res2)
-#   
-#   if(minimum){
-#     if(error1 > error2) return(FALSE) else return(TRUE)
-#   } else {
-#     if(error1 < error2) return(FALSE) else return(TRUE)
-#   }
-# }
 
 ############################################
 
