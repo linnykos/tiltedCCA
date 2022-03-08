@@ -29,3 +29,31 @@ test_that("create_multiSVD works", {
   expect_true(inherits(res, "multiSVD"))
   expect_true(sort(names(res)) == sort(c("svd_1", "svd_2", "default_assay", "param")))
 })
+
+test_that("create_multiSVD respects scale and center", {
+  load(paste0("../assets/test_data", i, ".RData"))
+  mat_1 <- test_data$mat_1
+  mat_2 <- test_data$mat_2 + 2
+  res <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                         dims_1 = 1:2, dims_2 = 1:2,
+                         center_1 = T, center_2 = F,
+                         scale_1 = T, scale_2 = F)
+  
+  res <- .set_defaultAssay(res, assay = 1)
+  svd_1 <- .get_SVD(res)
+  res <- .set_defaultAssay(res, assay = 2)
+  svd_2 <- .get_SVD(res)
+  
+  expect_true(sum(abs(colMeans(svd_1$u))) <= 1e-6)
+  expect_true(sum(abs(colMeans(svd_2$u))) >= 1e-6)
+  
+  mat_1b <- test_data$mat_1*100
+  res2 <- create_multiSVD(mat_1 = mat_1b, mat_2 = mat_2,
+                         dims_1 = 1:2, dims_2 = 1:2,
+                         center_1 = T, center_2 = F,
+                         scale_1 = F, scale_2 = F)
+  res2 <- .set_defaultAssay(res2, assay = 1)
+  svd_1b <- .get_SVD(res2)
+  
+  expect_true(sum(svd_1b$d) > sum(svd_1$d))
+})

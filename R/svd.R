@@ -59,9 +59,7 @@ create_multiSVD <- function(mat_1, mat_2,
                                   recenter,
                                   rescale, ...){
   if(recenter | rescale) {
-    input_obj <- sapply(1:ncol(input_obj), function(k){scale(input_obj, 
-                                                             center = recenter,
-                                                             scale = rescale)})
+    input_obj <- scale(input_obj, center = recenter, scale = rescale)
   }
   
   if(!all(is.null(averaging_mat))){
@@ -70,7 +68,7 @@ create_multiSVD <- function(mat_1, mat_2,
   
   if(normalize_row){
     l2_vec <- apply(input_obj, 1, function(x){.l2norm(x)})
-    .mult_vec_mat(1/l2_vec, input_obj)
+    input_obj <- .mult_vec_mat(1/l2_vec, input_obj)
   }
   
   input_obj

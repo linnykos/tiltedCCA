@@ -100,3 +100,72 @@ test_that(".get_postDimred works", {
   expect_true(all(rownames(res) == rownames(mat_1)) & length(rownames(res)) == nrow(mat_1))
 })
 
+
+test_that(".get_postDimred can differentiate between centering and not", {
+  load(paste0("../assets/test_data", i, ".RData"))
+  mat_1 <- test_data$mat_1
+  mat_2 <- test_data$mat_2; mat_2 <- mat_2 + 2
+  multiSVD_obj1 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2,
+                                  center_1 = T, center_2 = F,
+                                  normalize_row = F,
+                                  normalize_singular_value = T,
+                                  recenter_1 = F, recenter_2 = T,
+                                  rescale_1 = F, rescale_2 = T,
+                                  scale_1 = T, scale_2 = F)
+  multiSVD_obj2 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                   dims_1 = 1:2, dims_2 = 1:2,
+                                   center_1 = T, center_2 = F,
+                                   normalize_row = F,
+                                   normalize_singular_value = T,
+                                   recenter_1 = F, recenter_2 = F,
+                                   rescale_1 = F, rescale_2 = F,
+                                   scale_1 = T, scale_2 = F)
+  
+  multiSVD_obj1 <- .set_defaultAssay(multiSVD_obj1, assay = 2)
+  res1 <- .get_postDimred(multiSVD_obj1, averaging_mat = NULL)
+  multiSVD_obj2 <- .set_defaultAssay(multiSVD_obj2, assay = 2)
+  res2 <- .get_postDimred(multiSVD_obj2, averaging_mat = NULL)
+  
+  colmeans_1 <- colMeans(res1)
+  colmeans_2 <- colMeans(res2)
+  expect_true(sum(abs(colmeans_1)) <= 1e-6)
+  expect_true(sum(abs(colmeans_2)) >= 1e-6)
+  
+  colsd_1 <- matrixStats::colSds(res1)
+  colsd_2 <- matrixStats::colSds(res2)
+  expect_true(sum(abs(colsd_1 - 1)) <= 1e-6)
+  expect_true(sum(abs(colsd_2 - 1)) >= 1e-6)
+})
+
+
+test_that(".get_postDimred respects normalize_row", {
+  load(paste0("../assets/test_data", i, ".RData"))
+  mat_1 <- test_data$mat_1
+  mat_2 <- test_data$mat_2; mat_2 <- mat_2 + 2
+  multiSVD_obj1 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                   dims_1 = 1:2, dims_2 = 1:2,
+                                   center_1 = T, center_2 = T,
+                                   normalize_row = T,
+                                   normalize_singular_value = T,
+                                   recenter_1 = F, recenter_2 = F,
+                                   rescale_1 = F, rescale_2 = F,
+                                   scale_1 = T, scale_2 = T)
+  multiSVD_obj2 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                   dims_1 = 1:2, dims_2 = 1:2,
+                                   center_1 = T, center_2 = T,
+                                   normalize_row = F,
+                                   normalize_singular_value = T,
+                                   recenter_1 = F, recenter_2 = F,
+                                   rescale_1 = F, rescale_2 = F,
+                                   scale_1 = T, scale_2 = T)
+  
+  multiSVD_obj1 <- .set_defaultAssay(multiSVD_obj1, assay = 2)
+  res1 <- .get_postDimred(multiSVD_obj1, averaging_mat = NULL)
+  multiSVD_obj2 <- .set_defaultAssay(multiSVD_obj2, assay = 2)
+  res2 <- .get_postDimred(multiSVD_obj2, averaging_mat = NULL)
+  
+  expect_true(sum(abs(apply(res1, 1, .l2norm) - 1)) <= 1e-6)
+  expect_true(sum(abs(apply(res2, 1, .l2norm) - 1)) >= 1e-6)
+})
+
