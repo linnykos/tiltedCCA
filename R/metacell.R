@@ -4,7 +4,7 @@ form_metacells <- function(input_obj,
                            num_metacells = NULL,
                            min_size = 5,
                            verbose = 0){
-  stopifnot(inherits(input_obj), "multiSVD")
+  stopifnot(inherits(input_obj, "multiSVD"))
   
   if(verbose >= 1) print("Extracting SVD")
   input_obj <- .set_defaultAssay(input_obj, assay = 1)

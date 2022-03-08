@@ -154,8 +154,8 @@
 }
 
 #' @export
-.get_metacell.meta <- function(input_obj,
-                               resolution, type, what, ...){
+.get_metacell.metacell <- function(input_obj,
+                                   resolution, type, what, ...){
   stopifnot(what %in% c("large_clustering_1", "large_clustering_2", "metacell_clustering"),
             type %in% c("list", "factor"),
             resolution %in% c("cell", "metacell"))
@@ -200,10 +200,9 @@
 }
 
 #' @export
-.get_metacell.multiSVD <- function(input_obj,
-                                   resolution, type, what, ...){
+.get_metacell.multiSVD <- function(input_obj, ...){
   stopifnot("metacell_obj" %in% names(input_obj))
-  .get_metacell(input_obj$metacell_obj)
+  .get_metacell(input_obj$metacell_obj, ...)
 }
 
 #############################

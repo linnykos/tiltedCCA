@@ -122,3 +122,37 @@ test_that(".generate_averaging_matrix works", {
   expect_true(sum(abs(rowsum_vec - 1)) <= 1e-6)
   expect_true(all(sapply(idx_list, length) <= 1))
 })
+
+#############################
+
+## form_metacells is correct
+
+test_that("form_metacells works", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  svd_1 <- test_data$svd_1; svd_2 <- test_data$svd_2
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
+  n <- nrow(dimred_1)
+  set.seed(10)
+  large_clustering_1 <- factor(stats::kmeans(dimred_1, centers = 2)$cluster)
+  large_clustering_2 <- factor(stats::kmeans(dimred_2, centers = 2)$cluster)
+  
+  res <- form_metacells(input_obj = multiSVD_obj,
+                        large_clustering_1 = large_clustering_1, 
+                        large_clustering_2 = large_clustering_2,
+                        num_metacells = 100)
+  
+  expect_true(all(names(multiSVD_obj) %in% names(res)))
+  expect_true(all("metacell_obj" %in% names(res)))
+  expect_true(inherits(res$metacell_obj, "metacell"))
+  expect_true(all(sort(names(res$metacell_obj)) == sort(c("large_clustering_1",
+                                                          "large_clustering_2",
+                                                          "metacell_clustering_list"))))
+  expect_true(all(res$metacell_obj$large_clustering_1 == large_clustering_1))
+  expect_true(all(res$metacell_obj$large_clustering_2 == large_clustering_2))
+  expect_true(max(table(unlist(res$metacell_obj$metacell_clustering_list))) == 1)
+  expect_true(all(sort(unlist(res$metacell_obj$metacell_clustering_list)) == 1:n))
+})

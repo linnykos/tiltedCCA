@@ -106,13 +106,13 @@ test_that(".get_postDimred can differentiate between centering and not", {
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2; mat_2 <- mat_2 + 2
   multiSVD_obj1 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
-                                  dims_1 = 1:2, dims_2 = 1:2,
-                                  center_1 = T, center_2 = F,
-                                  normalize_row = F,
-                                  normalize_singular_value = T,
-                                  recenter_1 = F, recenter_2 = T,
-                                  rescale_1 = F, rescale_2 = T,
-                                  scale_1 = T, scale_2 = F)
+                                   dims_1 = 1:2, dims_2 = 1:2,
+                                   center_1 = T, center_2 = F,
+                                   normalize_row = F,
+                                   normalize_singular_value = T,
+                                   recenter_1 = F, recenter_2 = T,
+                                   rescale_1 = F, rescale_2 = T,
+                                   scale_1 = T, scale_2 = F)
   multiSVD_obj2 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
                                    dims_1 = 1:2, dims_2 = 1:2,
                                    center_1 = T, center_2 = F,
@@ -167,5 +167,63 @@ test_that(".get_postDimred respects normalize_row", {
   
   expect_true(sum(abs(apply(res1, 1, .l2norm) - 1)) <= 1e-6)
   expect_true(sum(abs(apply(res2, 1, .l2norm) - 1)) >= 1e-6)
+})
+
+#############################
+
+## .get_metacell is correct
+
+test_that(".get_metacell works", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  svd_1 <- test_data$svd_1; svd_2 <- test_data$svd_2
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
+  n <- nrow(dimred_1)
+  set.seed(10)
+  large_clustering_1 <- factor(stats::kmeans(dimred_1, centers = 2)$cluster)
+  large_clustering_2 <- factor(stats::kmeans(dimred_2, centers = 2)$cluster)
+  
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = 100)
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "metacell_clustering")
+  expect_true(length(levels(res1)) == 100)
+  res2 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "list", what = "metacell_clustering")
+  expect_true(length(res2) == 100)
+  expect_true(all(res1 == .convert_list2factor(res2, n = n)))
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(length(levels(res1)) == 2)
+  expect_true(all(res1 == large_clustering_1))
+  res2 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "list", what = "large_clustering_1")
+  expect_true(length(res2) == 2)
+  expect_true(all(res1 == .convert_list2factor(res2, n = n)))
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "large_clustering_2")
+  expect_true(length(levels(res1)) == 2)
+  expect_true(all(res1 == large_clustering_2))
+  res2 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "list", what = "large_clustering_2")
+  expect_true(length(res2) == 2)
+  expect_true(all(res1 == .convert_list2factor(res2, n = n)))
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "metacell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(length(levels(res1)) == 2)
+  expect_true(length(res1) == 100)
+  res2 <- .get_metacell(multiSVD_obj, resolution = "metacell", 
+                        type = "list", what = "large_clustering_1")
+  expect_true(length(res2) == 2)
+  expect_true(all(res1 == .convert_list2factor(res2, n = 100)))
 })
 
