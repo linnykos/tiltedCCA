@@ -14,7 +14,7 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
     n <- length(membership_vec); true_membership_vec <- membership_vec
     svd_u_1 <- generate_sbm_orthogonal(B_mat1, membership_vec, centered = T)[,1:2]
     svd_u_2 <- generate_random_orthogonal(n, 2, centered = T)
-  
+    
     p_1 <- 20; p_2 <- 40
     svd_d_1 <- sqrt(n*p_1)*c(1.5,1); svd_d_2 <- sqrt(n*p_2)*c(1.5,1)
     svd_v_1 <- generate_random_orthogonal(p_1, 2)
@@ -156,43 +156,44 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
                                      verbose = F)
   
   set.seed(10)
-  common_mat <- tiltedCCA:::.compute_common_snn(snn_mat_1 = snn_1, 
-                                                snn_mat_2 = snn_2,
+  common_mat <- tiltedCCA:::.compute_common_snn(snn_1 = snn_1, 
+                                                snn_2 = snn_2,
                                                 clustering_1 = clustering_1, 
                                                 clustering_2 = clustering_2,
                                                 num_neigh = 10,
                                                 verbose = F)
   
   target_dimred <- tiltedCCA:::.compute_laplacian_basis(common_mat, 
-                                                        k = 2, 
+                                                        latent_k = 2, 
                                                         verbose = F)
   
   svd_1 <- tiltedCCA:::.check_svd(svd_1, dims = c(1:2))
   svd_2 <- tiltedCCA:::.check_svd(svd_2, dims = c(1:2))
   
   cca_res <- tiltedCCA:::.cca(svd_1, svd_2, 
-                  dims_1 = NA, dims_2 = NA, 
-                  return_scores = F)
+                              dims_1 = NA, dims_2 = NA, 
+                              return_scores = F)
   
   tmp <- tiltedCCA:::.compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   
   metacell_clustering <- lapply(1:nrow(mat_1), function(i){i})
-  averaging_mat <- tiltedCCA:::.generate_averaging_matrix(n, metacell_clustering)
+  averaging_mat <- tiltedCCA:::.generate_averaging_matrix(metacell_clustering = metacell_clustering,
+                                                          n = n)
   
   res <- tiltedCCA:::.common_decomposition(averaging_mat = averaging_mat,
-                               discretization_gridsize = 9,
-                               enforce_boundary = T,
-                               fix_tilt_perc = 0.5,
-                               score_1 = score_1,
-                               score_2 = score_2,
-                               snn_bool_intersect = T,
-                               snn_k = 2,
-                               snn_min_deg = 1,
-                               snn_num_neigh = 10,
-                               svd_1 = svd_1, 
-                               svd_2 = svd_2,
-                               target_dimred = target_dimred)
+                                           discretization_gridsize = 9,
+                                           enforce_boundary = T,
+                                           fix_tilt_perc = 0.5,
+                                           score_1 = score_1,
+                                           score_2 = score_2,
+                                           snn_bool_intersect = T,
+                                           snn_k = 2,
+                                           snn_min_deg = 1,
+                                           snn_num_neigh = 10,
+                                           svd_1 = svd_1, 
+                                           svd_2 = svd_2,
+                                           target_dimred = target_dimred)
   common_score <- res$common_score
   
   basis_list <- lapply(1:2, function(k){
@@ -209,6 +210,8 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
        basis_list = basis_list,
        cca_res = cca_res,
        circle_list = circle_list,
+       clustering_1 = clustering_1,
+       clustering_2 = clustering_2,
        common_score = common_score,
        K = 2,
        mat_1 = mat_1,

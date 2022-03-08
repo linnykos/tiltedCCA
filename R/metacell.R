@@ -22,10 +22,10 @@ form_metacells <- function(input_obj,
   
   if(verbose >= 1) print("Computing metacells")
   metacell_clustering_list <- .form_metacells(dimred_1 = dimred_1, 
-                                         dimred_2 = dimred_2,
-                                         large_clustering_list = res$large_clustering_list,
-                                         num_metacells = num_metacells, 
-                                         verbose = verbose)
+                                              dimred_2 = dimred_2,
+                                              large_clustering_list = res$large_clustering_list,
+                                              num_metacells = num_metacells, 
+                                              verbose = verbose)
   
   metacell_obj <- .create_metacell_obj(large_clustering_1 = large_clustering_1, 
                                        large_clustering_2 = large_clustering_2,
@@ -206,10 +206,15 @@ form_metacells <- function(input_obj,
     len <- length(vec); rep(1/len, len)
   }))
   
-  Matrix::sparseMatrix(i = i_vec,
-                       j = j_vec,
-                       x = x_vec,
-                       dims = c(k,n),
-                       repr = "C")
+  mat <- Matrix::sparseMatrix(i = i_vec,
+                              j = j_vec,
+                              x = x_vec,
+                              dims = c(k,n),
+                              repr = "C")
+  if(length(names(metacell_clustering_list)) > 0){
+    rownames(mat) <- names(metacell_clustering_list)
+  }
+
+  mat
 }
 

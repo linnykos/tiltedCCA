@@ -176,16 +176,11 @@ test_that(".get_postDimred respects normalize_row", {
 test_that(".get_metacell works", {
   load(paste0("../assets/test_data3.RData"))
   mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
-  svd_1 <- test_data$svd_1; svd_2 <- test_data$svd_2
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  n <- nrow(mat_1)
   multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
                                   dims_1 = 1:2, dims_2 = 1:2)
-  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
-  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
-  n <- nrow(dimred_1)
-  set.seed(10)
-  large_clustering_1 <- factor(stats::kmeans(dimred_1, centers = 2)$cluster)
-  large_clustering_2 <- factor(stats::kmeans(dimred_2, centers = 2)$cluster)
-  
   multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
                                  large_clustering_1 = large_clustering_1, 
                                  large_clustering_2 = large_clustering_2,
@@ -226,4 +221,118 @@ test_that(".get_metacell works", {
   expect_true(length(res2) == 2)
   expect_true(all(res1 == .convert_list2factor(res2, n = 100)))
 })
+
+
+test_that(".get_metacell works with num_metacells = NA", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = NULL)
+  expect_true(is.null(multiSVD_obj$metacell_obj$metacell_clustering_list))
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(all(res1 == large_clustering_1))
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "metacell_clustering")
+  expect_true(is.null(res1))
+  res1 <- .get_metacell(multiSVD_obj, resolution = "metacell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(all(res1 == large_clustering_1))
+})
+
+#####################
+
+## .get_SNN is correct
+
+test_that(".get_SNN works", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = 100)
+  multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                               latent_k = 2,
+                               num_neigh = 10,
+                               bool_cosine = T,
+                               bool_intersect = T,
+                               min_deg = 5)
+  
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  snn_1 <- .get_SNN(multiSVD_obj, bool_common = F)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  snn_2 <- .get_SNN(multiSVD_obj, bool_common = F)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  common_snn_1 <- .get_SNN(multiSVD_obj, bool_common = T)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  common_snn_2 <- .get_SNN(multiSVD_obj, bool_common = T)
+  
+  expect_true(all(dim(snn_1) == dim(snn_2)))
+  expect_true(sum(abs(snn_1 - snn_2)) >= 1e-6)
+  expect_true(sum(abs(snn_1 - common_snn_1)) >= 1e-6)
+  expect_true(sum(abs(common_snn_1 - common_snn_2)) <= 1e-6)
+  expect_true(length(rownames(snn_1)) == 100)
+  expect_true(length(rownames(snn_2)) == 100)
+  expect_true(length(rownames(common_snn_1)) == 100)
+  
+  expect_true(sum(abs(snn_1 - Matrix::t(snn_1))) <= 1e-6)
+  expect_true(sum(abs(snn_2 - Matrix::t(snn_2))) <= 1e-6)
+  expect_true(sum(abs(common_snn_1 - Matrix::t(common_snn_1))) <= 1e-6)
+})
+
+##############################
+
+## .get_Laplacian is correct
+
+test_that(".get_Laplacian works", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = 100)
+  multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                               latent_k = 2,
+                               num_neigh = 10,
+                               bool_cosine = T,
+                               bool_intersect = T,
+                               min_deg = 5)
+  
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  lap_1 <- .get_Laplacian(multiSVD_obj, bool_common = F)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  lap_2 <- .get_Laplacian(multiSVD_obj, bool_common = F)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  common_lap_1 <- .get_Laplacian(multiSVD_obj, bool_common = T)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  common_lap_2 <- .get_Laplacian(multiSVD_obj, bool_common = T)
+  
+  expect_true(all(dim(lap_1) == c(100,2)))
+  expect_true(all(dim(lap_1) == dim(lap_2)))
+  expect_true(sum(abs(lap_1 - lap_2)) >= 1e-6)
+  expect_true(sum(abs(lap_1 - common_lap_1)) >= 1e-6)
+  expect_true(sum(abs(common_lap_1 - common_lap_2)) <= 1e-6)
+  expect_true(length(rownames(lap_1)) == 100)
+  expect_true(length(rownames(lap_2)) == 100)
+  expect_true(length(rownames(common_lap_1)) == 100)
+})
+
 

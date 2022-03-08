@@ -206,7 +206,7 @@
                            num_neigh = snn_num_neigh,
                            verbose = F)
   common_basis <- .compute_laplacian_basis(snn_mat, 
-                                           k = snn_k,
+                                           latent_k = snn_k,
                                            verbose = F)
   
   if(return_common_score_basis) {

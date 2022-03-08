@@ -57,17 +57,20 @@ create_multiSVD <- function(mat_1, mat_2,
                                   averaging_mat,
                                   normalize_row,
                                   recenter,
-                                  rescale, ...){
+                                  rescale, 
+                                  tol = 1e-4,
+                                  ...){
   if(recenter | rescale) {
     input_obj <- scale(input_obj, center = recenter, scale = rescale)
   }
   
   if(!all(is.null(averaging_mat))){
-    input_obj <- averaging_mat %*% input_obj
+    input_obj <- as.matrix(averaging_mat %*% input_obj)
   }
   
   if(normalize_row){
     l2_vec <- apply(input_obj, 1, function(x){.l2norm(x)})
+    l2_vec[l2_vec <= tol] <- tol
     input_obj <- .mult_vec_mat(1/l2_vec, input_obj)
   }
   

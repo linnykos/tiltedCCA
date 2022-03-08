@@ -172,6 +172,21 @@
     
   } else {
     lis <- input_obj$metacell_clustering_list
+    if(all(is.null(lis))) {
+      if(what %in% c("large_clustering_1", "large_clustering_2") & 
+         resolution == "metacell"){
+        if(what == "large_clustering_1"){
+          vec <- input_obj$large_clustering_1
+        } else {
+          vec <- input_obj$large_clustering_2
+        }
+        
+        if(type == "factor") return(vec) else return(.convert_factor2list(vec))
+      } else {
+        return(NULL)
+      }
+    }
+    
     if(what %in% c("large_clustering_1", "large_clustering_2")){
       if(what == "large_clustering_1"){
         source_vec <- input_obj$large_clustering_1
@@ -189,7 +204,7 @@
     } else {
       if(resolution == "metacell") {
         # trivial output
-        if(type == "factor") return(factor(1:length(lis))) else return(lapply(1:length(lis),function(x){x}))
+        if(type == "factor") return(factor(names(lis))) else return(lapply(names(lis),function(x){x}))
       } else {
         if(type == "factor") return(.convert_list2factor(lis, n = n)) else return(lis)
       }
@@ -208,15 +223,15 @@
 #############################
 
 #' @export
-.get_snn <- function(input_obj, ...) UseMethod(".get_snn")
+.get_SNN <- function(input_obj, ...) UseMethod(".get_SNN")
 
 #' @export
-.get_snn.default <- function(input_obj, ...){
-  stop("Class of input_obj not found, using .get_snn")
+.get_SNN.default <- function(input_obj, ...){
+  stop("Class of input_obj not found, using .get_SNN")
 }
 
 #' @export
-.get_snn.snn <- function(input_obj, 
+.get_SNN.snn <- function(input_obj, 
                          bool_common, ...){
   if(bool_common){
     input_obj$snn_list[["common_snn"]]
@@ -232,18 +247,18 @@
 ############################################
 
 #' @export
-.get_laplacian <- function(input_obj, ...) UseMethod(".get_laplacian")
+.get_Laplacian <- function(input_obj, ...) UseMethod(".get_Laplacian")
 
 #' @export
-.get_laplacian.default <- function(input_obj, ...){
-  stop("Class of input_obj not found, using .get_laplacian")
+.get_Laplacian.default <- function(input_obj, ...){
+  stop("Class of input_obj not found, using .get_Laplacian")
 }
 
 #' @export
-.get_laplacian.snn <- function(input_obj, 
+.get_Laplacian.snn <- function(input_obj, 
                                bool_common, ...){
   if(bool_common){
-    input_obj$laplacian_list[["common_snn"]]
+    input_obj$laplacian_list[["common_laplacian"]]
   } else {
     if(input_obj$default_assay == 1){
       input_obj$laplacian_list[["laplacian_1"]]
@@ -252,5 +267,6 @@
     }
   }
 }
+
 
 

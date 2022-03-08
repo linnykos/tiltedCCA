@@ -6,14 +6,20 @@ compute_snns <- function(input_obj,
                          min_deg = 1,
                          tol = 1e-4,
                          verbose = 0){
-  stopifnot(inherits(input_obj), "multiSVD")
+  stopifnot(inherits(input_obj, "multiSVD"))
+  param <- .get_param(input_obj)
+  if(param$svd_normalize_row != bool_cosine){
+    warning("Potential warning: normalize_row (in create_multiSVD) is not the same as bool_cosine (compute_snns)")
+  }
   
   metacell_clustering <- .get_metacell(input_obj,
                                        resolution = "cell", 
                                        type = "list", 
                                        what = "metacell_clustering")
+  n <- nrow(.get_SVD(input_obj)$u)
   if(!all(is.null(metacell_clustering))){
-    averaging_mat <- .generate_averaging_matrix(n, metacell_clustering)
+    averaging_mat <- .generate_averaging_matrix(metacell_clustering = metacell_clustering,
+                                                n = n)
   } else {
     averaging_mat <- NULL
   }
@@ -136,6 +142,7 @@ compute_snns <- function(input_obj,
   sparse_mat
 }
 
+## see https://arxiv.org/pdf/2202.01671v1.pdf
 .compute_laplacian_basis <- function(latent_k, # suggested: 50
                                      sparse_mat,
                                      verbose = 0){
@@ -151,7 +158,6 @@ compute_snns <- function(input_obj,
   diag_mat <- Matrix::Diagonal(x = 1/deg_vec)
   lap_mat <-  diag_mat %*% lap_mat
   
-  # [[note to self: Do I need to remove the first eigenvector?]]
   if(verbose >= 1) print("Extracting basis")
   eigen_res <- irlba::partial_eigen(lap_mat, n = latent_k, symmetric = F)
   dimred <- .mult_mat_vec(eigen_res$vectors, eigen_res$values)
