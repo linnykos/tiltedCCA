@@ -46,39 +46,37 @@
 #'
 #' @return list of class \code{dcca}
 #' @export
-tiltedCCA <- function(mat_1, mat_2, dims_1, dims_2, 
-                      target_dimred,
-                      center_1 = T, center_2 = T,
-                      scale_1 = T, scale_2 = T,
+tiltedCCA <- function(input_obj,
                       discretization_gridsize = 21, 
                       enforce_boundary = F,
                       fix_tilt_perc = F, 
-                      metacell_clustering = lapply(1:nrow(mat_1), function(i){i}),
-                      snn_bool_intersect = F,
-                      snn_k = 20,
-                      snn_min_deg = 0,
-                      snn_num_neigh = 30,
-                      verbose = T){
-  rank_1 <- max(dims_1); rank_2 <- max(dims_2)
-  stopifnot(nrow(mat_1) == nrow(mat_2), 
-            rank_1 <= min(dim(mat_1)), rank_2 <= min(dim(mat_2)))
+                      verbose = 0){
   
-  n <- nrow(mat_1)
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  svd_1 <- .get_SVD(input_obj)
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  svd_2 <- .get_SVD(input_obj)
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Starting matrix shrinkage"))
-  svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
-                          mean_vec = center_1, sd_vec = scale_1, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
-                          mean_vec = center_2, sd_vec = scale_2, K_full_rank = F)
+  metacell_clustering <- .get_metacell(input_obj,
+                                       resolution = "cell", 
+                                       type = "list", 
+                                       what = "metacell_clustering")
+  if(!all(is.null(metacell_clustering))){
+    averaging_mat <- .generate_averaging_matrix(n, metacell_clustering)
+  } else {
+    averaging_mat <- NULL
+  }
   
-  svd_1 <- .check_svd(svd_1, dims = dims_1)
-  svd_2 <- .check_svd(svd_2, dims = dims_2)
-  
-  msg <- " (all cells)"
-  if(verbose) print(paste0(Sys.time(),": D-CCA", msg, ": Computing CCA"))
-  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
-  averaging_mat <- .generate_averaging_matrix(n, metacell_clustering)
+  target_dimred <- .get_laplacian(input_obj, bool_common = T)
+  param <- .get_param(input_obj)
+  snn_k <- param$snn_latent_k
+  snn_min_deg <- param$snn_min_deg
+  snn_num_neigh <- param$snn_num_neigh
 
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing CCA"))
+  cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
+  
   res <- .tiltedCCA_common_score(averaging_mat = averaging_mat,
                                  cca_res = cca_res, 
                                  discretization_gridsize = discretization_gridsize,
@@ -184,23 +182,4 @@ tiltedCCA_decomposition <- function(tiltedCCA_res, rank_c = NA, verbose = T){
   distinct_score_2 <- cbind(distinct_score_2, score_2[,-(1:full_rank), drop = F])
   
   list(distinct_score_1 = distinct_score_1, distinct_score_2 = distinct_score_2)
-}
-
-.generate_averaging_matrix <- function(n, subcluster_list){
-  stopifnot(max(unlist(subcluster_list)) <= n)
-  
-  k <- length(subcluster_list)
-  i_vec <- unlist(lapply(1:k, function(i){
-    len <- length(subcluster_list[[i]]); rep(i, len)
-  }))
-  j_vec <- unlist(subcluster_list)
-  x_vec <- unlist(lapply(subcluster_list, function(vec){
-    len <- length(vec); rep(1/len, len)
-  }))
-  
-  Matrix::sparseMatrix(i = i_vec,
-                       j = j_vec,
-                       x = x_vec,
-                       dims = c(k,n),
-                       repr = "C")
 }

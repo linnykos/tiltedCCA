@@ -1,21 +1,21 @@
-.compute_common_snn <- function(snn_mat_1, snn_mat_2,
+.compute_common_snn <- function(snn_1, snn_2,
                                 clustering_1, clustering_2,
                                 num_neigh = 30,
-                                verbose = T){
+                                verbose = 0){
   stopifnot(is.factor(clustering_1), is.factor(clustering_2),
-            all(dim(snn_mat_1) == dim(snn_mat_2)),
-            ncol(snn_mat_1) == nrow(snn_mat_1))
+            all(dim(snn_1) == dim(snn_2)),
+            ncol(snn_1) == nrow(snn_1))
   
   if(any(table(clustering_1) == 0)) clustering_1 <- droplevels(clustering_1)
   if(any(table(clustering_2) == 0)) clustering_2 <- droplevels(clustering_2)
   
-  n <- nrow(snn_mat_1)
+  n <- nrow(snn_1)
   
   nn_list <- .l2_selection_nn(clustering_1 = clustering_1, 
                               clustering_2 = clustering_2,
                               num_neigh = num_neigh,
-                              snn_mat_1 = snn_mat_1, 
-                              snn_mat_2 = snn_mat_2,
+                              snn_1 = snn_1, 
+                              snn_2 = snn_2,
                               verbose = verbose)
   
   i_vec <- rep(1:n, times = sapply(nn_list, length))
@@ -29,8 +29,8 @@
   sparse_mat <- sparse_mat + Matrix::t(sparse_mat)
   sparse_mat@x <- rep(1, length(sparse_mat@x))
   
-  rownames(sparse_mat) <- rownames(snn_mat_1)
-  colnames(sparse_mat) <- rownames(snn_mat_1)
+  rownames(sparse_mat) <- rownames(snn_1)
+  colnames(sparse_mat) <- rownames(snn_1)
   sparse_mat
 }
 
@@ -38,17 +38,17 @@
 
 .l2_selection_nn <- function(clustering_1, clustering_2,
                              num_neigh,
-                             snn_mat_1, snn_mat_2,
-                             verbose = T){
-  n <- nrow(snn_mat_1)
+                             snn_1, snn_2,
+                             verbose = 0){
+  n <- nrow(snn_1)
   
   nn_list <- lapply(1:n, function(i){
-    if(verbose && n > 10 && i %% floor(n/10) == 0) cat('*')
+    if(verbose >= 2 && n > 10 && i %% floor(n/10) == 0) cat('*')
     
-    nn_1 <- .nonzero_col(snn_mat_1, 
+    nn_1 <- .nonzero_col(snn_1, 
                          col_idx = i,
                          bool_value = F)
-    nn_2 <- .nonzero_col(snn_mat_2, 
+    nn_2 <- .nonzero_col(snn_2, 
                          col_idx = i,
                          bool_value = F)
     
@@ -82,7 +82,7 @@
     }
   })
   
-  names(nn_list) <- rownames(snn_mat_1)
+  names(nn_list) <- rownames(snn_1)
   nn_list
 }
 

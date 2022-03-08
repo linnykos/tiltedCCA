@@ -192,7 +192,12 @@
                                              score_2,
                                              svd_1,
                                              svd_2)
-  avg_common_mat <- as.matrix(averaging_mat %*% common_mat)
+  if(!all(is.na(averaging_mat))){
+    avg_common_mat <- as.matrix(averaging_mat %*% common_mat)
+  } else {
+    avg_common_mat <- common_mat
+  }
+  
   
   snn_mat <- .form_snn_mat(bool_cosine = T,
                            bool_intersect = snn_bool_intersect,

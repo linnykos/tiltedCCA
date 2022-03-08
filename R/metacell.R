@@ -1,7 +1,52 @@
-intersect_clustering <- function(large_clustering_1, 
-                                 large_clustering_2,
-                                 min_size = 5,
-                                 n){
+form_metacells <- function(input_obj,
+                           large_clustering_1, 
+                           large_clustering_2,
+                           num_metacells = NULL,
+                           min_size = 5,
+                           verbose = 0){
+  stopifnot(inherits(input_obj), "multiSVD")
+  
+  if(verbose >= 1) print("Extracting SVD")
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  dimred_1 <- .get_postDimred(input_obj, averaging_mat = NULL)
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  dimred_2 <- .get_postDimred(input_obj, averaging_mat = NULL)
+  
+  stopifnot(nrow(dimred_1) == nrow(dimred_2))
+  n <- nrow(dimred_1)
+  
+  if(verbose >= 1) print("Computing intersection of clusterings")
+  res <- .intersect_clustering(large_clustering_1 = large_clustering_1, 
+                               large_clustering_2 = large_clustering_2,
+                               min_size = min_size,
+                               n = n)
+  
+  if(verbose >= 1) print("Computing metacells")
+  metacell_clustering <- .form_metacells(dimred_1 = dimred_1, 
+                                         dimred_2 = dimred_2,
+                                         large_clustering = res$large_clustering,
+                                         num_metacells = num_metacells, 
+                                         verbose = verbose)
+  
+  metacell_obj <- .create_metacell_obj(large_clustering_1 = large_clustering_1, 
+                                       large_clustering_2 = large_clustering_2,
+                                       metacell_clustering = metacell_clustering)
+  input_obj$metacell_obj <- metacell_obj
+  param <- .form_metacells_param(min_size = min_size,
+                                 num_metacells = num_metacells)
+  param <- .combine_two_named_lists(.get_param(input_obj), param)
+  input_obj$param <- param
+  
+  input_obj
+}
+
+
+##############################
+
+.intersect_clustering <- function(large_clustering_1, 
+                                  large_clustering_2,
+                                  min_size = 5,
+                                  n){
   stopifnot(n >= max(unlist(large_clustering_1)),
             n >= max(unlist(large_clustering_2)))
   total_1 <- length(large_clustering_1)
@@ -56,22 +101,24 @@ intersect_clustering <- function(large_clustering_1,
        clustering_hierarchy_2 = clustering_hierarchy_2)
 }
 
-form_subclusters <- function(mat_1, 
-                             mat_2,
-                             large_clustering, 
-                             target_k, 
-                             verbose = T){
-  stopifnot(nrow(mat_1) == nrow(mat_2))
-  
-  df <- .compute_subcluster_splits(clustering = large_clustering, 
-                                   n = nrow(mat_1), 
-                                   target_k = target_k)
+##############################
+
+.form_metacells <- function(dimred_1, dimred_2,
+                            large_clustering,
+                            num_metacells, 
+                            verbose = 0){
+  if(is.null(num_metacells)) return(NULL)
+  stopifnot(nrow(dimred_1) == nrow(dimred_1))
+  n <- nrow(dimred_1)
+  df <- .compute_metacell_splits(clustering = large_clustering, 
+                                 n = n, 
+                                 num_metacells = num_metacells)
   
   tmp <- lapply(1:length(large_clustering), function(k){
-    if(verbose) print(paste0("On cluster ", k))
-    lis <- .compute_metacells(k = df$num[k], 
-                              mat_1 = mat_1[large_clustering[[k]],,drop = F],
-                              mat_2 = mat_2[large_clustering[[k]],,drop = F],
+    if(verbose >= 1) print(paste0("On cluster ", k))
+    lis <- .compute_metacells(dimred_1 = dimred_1[large_clustering[[k]],,drop = F],
+                              dimred_2 = dimred_2[large_clustering[[k]],,drop = F],
+                              k = df$num[k], 
                               row_indices = large_clustering[[k]])
     
     num <- strsplit(names(large_clustering)[k], split = "_")[[1]][2]
@@ -79,17 +126,14 @@ form_subclusters <- function(mat_1,
     lis
   })
   
-  metacell_clustering <- do.call(c, tmp)
+  do.call(c, tmp)
 }
 
-
-#######################
-
-.compute_subcluster_splits <- function(clustering, n, target_k){
+.compute_metacell_splits <- function(clustering, n, num_metacells){
   stopifnot(is.list(clustering), 
             sum(sapply(clustering, length)) <= n,
             length(clustering) <= target_k,
-            target_k > 0, target_k %% 1 == 0)
+            num_metacells > 0, num_metacells %% 1 == 0)
   tmp <- unlist(clustering)
   stopifnot(all(tmp %% 1 == 0), table(tmp) == 1, all(tmp > 0))
   
@@ -102,7 +146,7 @@ form_subclusters <- function(mat_1,
     rownames(df) <- names(clustering)
   }
   
-  while(sum(df$num) < target_k){
+  while(sum(df$num) < num_metacells){
     idx <- which.max(df$size)
     df$num[idx] <- df$num[idx]+1
     df$size[idx] <- df$total_size[idx]/df$num[idx]
@@ -111,28 +155,11 @@ form_subclusters <- function(mat_1,
   df
 }
 
-.compute_metacells <- function(k, 
-                               mat_1, mat_2,
-                               row_indices,
-                               max_dim = 20){
+.compute_metacells <- function(dimred_1, dimred_2,
+                               k,
+                               row_indices){
   stopifnot(length(row_indices) == nrow(mat_1))
   if(k == 1) return(list(row_indices))
-  
-  svd_res_1 <- .svd_truncated(mat_1, K = min(c(k, ncol(mat_1), max_dim)), 
-                              symmetric = F, 
-                              rescale = F, 
-                              mean_vec = T, 
-                              sd_vec = F, 
-                              K_full_rank = F)
-  dimred_1 <- .mult_mat_vec(svd_res_1$u, svd_res_1$d/svd_res_1$d[1])
-  
-  svd_res_2 <- .svd_truncated(mat_2, K = min(c(k, ncol(mat_2), max_dim)), 
-                              symmetric = F, 
-                              rescale = F, 
-                              mean_vec = T, 
-                              sd_vec = F, 
-                              K_full_rank = F)
-  dimred_2 <- .mult_mat_vec(svd_res_2$u, svd_res_2$d/svd_res_2$d[1])
   
   dimred <- cbind(dimred_1, dimred_2)
   
@@ -143,3 +170,42 @@ form_subclusters <- function(mat_1,
   
   metacell_clustering
 }
+
+###########################
+
+.create_metacell_obj <- function(large_clustering_1, 
+                                 large_clustering_2,
+                                 metacell_clustering){
+  structure(list(large_clustering_1 = large_clustering_1, 
+                 large_clustering_2 = large_clustering_2,
+                 metacell_clustering = metacell_clustering),
+            class = "metacell")
+}
+
+.form_metacells_param <- function(min_size,
+                                  num_metacells){
+  list(mc_min_size = min_size, 
+       mc_num_metacells = num_metacells)
+}
+
+###########################
+
+.generate_averaging_matrix <- function(n, metacell_clustering){
+  stopifnot(max(unlist(metacell_clustering)) <= n)
+  
+  k <- length(metacell_clustering)
+  i_vec <- unlist(lapply(1:k, function(i){
+    len <- length(metacell_clustering[[i]]); rep(i, len)
+  }))
+  j_vec <- unlist(metacell_clustering)
+  x_vec <- unlist(lapply(metacell_clustering, function(vec){
+    len <- length(vec); rep(1/len, len)
+  }))
+  
+  Matrix::sparseMatrix(i = i_vec,
+                       j = j_vec,
+                       x = x_vec,
+                       dims = c(k,n),
+                       repr = "C")
+}
+
