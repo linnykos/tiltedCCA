@@ -97,16 +97,13 @@
 #' @export
 .get_Dimred.default <- function(input_obj, 
                                 normalize_singular_value, ...){
-  svd_obj <- .get_SVD(input_obj)
-  tmp <- .normalize_svd(averaging_mat = NULL,
-                        normalize_row = F,
-                        normalize_singular_value = normalize_singular_value,
-                        recenter = F,
-                        rescale = F,
-                        svd_obj = svd_obj,
-                        weigh_svd = T)
-  .append_rowcolnames(bool_colnames = T, bool_rownames = T,
-                      source_obj = input_obj,  target_obj = tmp)
+  svd_obj <- .get_SVD(input_obj, ...)
+  n <- nrow(svd_obj$u)
+  if(normalize_singular_value) svd_obj$d <- svd_obj$d*sqrt(n)/svd_obj$d[1]
+  dimred <- .mult_mat_vec(svd_obj$u, svd_obj$d)
+  
+  .append_rowcolnames(bool_colnames = F, bool_rownames = T,
+                      source_obj = input_obj,  target_obj = dimred)
 }
 
 ###############
@@ -139,12 +136,11 @@
     stop("Invalid default assay in .get_postDimred.multiSVD")
   }
   
-  .normalize_svd(averaging_mat = averaging_mat,
+  .normalize_svd(input_obj = svd_obj,
+                 averaging_mat = averaging_mat,
                  normalize_row = param$svd_normalize_row,
                  normalize_singular_value = param$svd_normalize_singular_value,
-                 recenter = recenter, rescale = rescale,
-                 svd_obj = svd_obj, 
-                 weigh_svd = param$svd_weigh_svd)
+                 recenter = recenter, rescale = rescale)
 }
 
 #############################

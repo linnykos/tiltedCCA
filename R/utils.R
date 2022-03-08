@@ -37,8 +37,6 @@ form_seurat_obj <- function(mat_1, mat_2){
 
 .l2norm <- function(x){sqrt(sum(x^2))}
 
-##############
-
 #######################
 
 # for diag(vec) %*% mat

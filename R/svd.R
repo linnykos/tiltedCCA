@@ -5,15 +5,14 @@ create_multiSVD <- function(mat_1, mat_2,
                             normalize_singular_value = T,
                             recenter_1 = F, recenter_2 = F,
                             rescale_1 = F, rescale_2 = F,
-                            scale_1 = T, scale_2 = T,
-                            weigh_svd = T){
+                            scale_1 = T, scale_2 = T){
   stopifnot(nrow(mat_1) == nrow(mat_2))
   
   n <- nrow(mat_1)
-  svd_1 <- .get_svd_data(center = center_1, input_obj = mat_1,
-                         dims = dims_1, scale = scale_1)
-  svd_2 <- .get_svd_data(center = center_2, input_obj = mat_2,
-                         dims = dims_2, scale = scale_2)
+  svd_1 <- .get_SVD(center = center_1, input_obj = mat_1,
+                    dims = dims_1, scale = scale_1)
+  svd_2 <- .get_SVD(center = center_2, input_obj = mat_2,
+                    dims = dims_2, scale = scale_2)
   
   param <- .form_multiSVD_param(center_1 = center_1, center_2 = center_2,
                                 n = n,
@@ -21,8 +20,7 @@ create_multiSVD <- function(mat_1, mat_2,
                                 normalize_singular_value = normalize_singular_value,
                                 recenter_1 = recenter_1, recenter_2 = recenter_2,
                                 rescale_1 = rescale_1, rescale_2 = rescale_2,
-                                scale_1 = scale_1, scale_2 = scale_2,
-                                weigh_svd = weigh_svd)
+                                scale_1 = scale_1, scale_2 = scale_2)
   
   structure(list(svd_1 = svd_1, svd_2 = svd_2,
                  default_assay = 1,
@@ -31,42 +29,51 @@ create_multiSVD <- function(mat_1, mat_2,
 }
 
 ###############
+#' @export
+.normalize_svd <- function(input_obj, ...) UseMethod(".normalize_svd")
 
-.normalize_svd <- function(averaging_mat,
-                           normalize_row,
-                           normalize_singular_value,
-                           recenter,
-                           rescale,
-                           svd_obj,
-                           weigh_svd){
-  stopifnot(inherits(svd_obj, "svd"))
+#' @export
+.normalize_svd.svd <- function(input_obj,
+                               averaging_mat,
+                               normalize_row,
+                               normalize_singular_value,
+                               recenter,
+                               rescale, ...){
+  stopifnot(inherits(input_obj, "svd"))
   
-  n <- nrow(svd_obj$u)
-  if(weigh_svd){
-    if(normalize_singular_value) svd_obj$d <- svd_obj$d*sqrt(n)/svd_obj$d[1]
-    tmp <- .mult_mat_vec(svd_obj$u, svd_obj$d)
-  } else {
-    tmp <- svd_obj$u
-  }
+  n <- nrow(input_obj$u)
+  dimred <- .get_Dimred(input_obj = input_obj, 
+                        normalize_singular_value = normalize_singular_value)
   
+  .normalize_svd(input_obj = dimred,
+                 averaging_mat = averaging_mat,
+                 normalize_row = normalize_row,
+                 recenter = recenter,
+                 rescale = rescale)
+}
+
+#' @export
+.normalize_svd.matrix <- function(input_obj,
+                                  averaging_mat,
+                                  normalize_row,
+                                  recenter,
+                                  rescale, ...){
   if(recenter | rescale) {
-    tmp <- sapply(1:ncol(tmp), function(k){scale(tmp, 
-                                                 center = recenter,
-                                                 scale = rescale)})
+    input_obj <- sapply(1:ncol(input_obj), function(k){scale(input_obj, 
+                                                             center = recenter,
+                                                             scale = rescale)})
   }
   
   if(!all(is.null(averaging_mat))){
-    tmp <- averaging_mat %*% tmp
+    input_obj <- averaging_mat %*% input_obj
   }
   
   if(normalize_row){
-    l2_vec <- apply(tmp, 1, function(x){.l2norm(x)})
-    .mult_vec_mat(1/l2_vec, tmp)
+    l2_vec <- apply(input_obj, 1, function(x){.l2norm(x)})
+    .mult_vec_mat(1/l2_vec, input_obj)
   }
   
-  tmp <- .append_rowcolnames(bool_colnames = T, bool_rownames = T,
-                             source_obj = svd_obj, target_obj = tmp)
-  tmp
+  input_obj
 }
 
 ####################################
@@ -170,14 +177,12 @@ create_multiSVD <- function(mat_1, mat_2,
                                  normalize_singular_value,
                                  recenter_1, recenter_2,
                                  rescale_1, rescale_2,
-                                 scale_1, scale_2,
-                                 weigh_svd){
+                                 scale_1, scale_2){
   list(svd_center_1 = center_1, svd_center_2 = center_2,
        svd_n = n,
        svd_normalize_row = normalize_row,
        svd_normalize_singular_value = normalize_singular_value,
        svd_recenter_1 = recenter_1, svd_recenter_2 = recenter_2,
        svd_rescale_1 = rescale_1, svd_rescale_2 = rescale_2,
-       svd_scale_1 = scale_1, svd_scale_2 = scale_2,
-       svd_weigh_svd = weigh_svd)
+       svd_scale_1 = scale_1, svd_scale_2 = scale_2)
 }

@@ -80,3 +80,100 @@ test_that(".matching_idx is correct", {
   
   expect_true(all(bool_vec))
 })
+
+###############################
+
+## .append_rowcolnames is correct
+
+test_that(".append_rowcolnames works for two matrices", {
+  mat1 <- matrix(1:30, nrow = 6, ncol = 5)
+  mat2 <- matrix(1:30, nrow = 6, ncol = 5)
+  rownames(mat2) <- paste0("c", 1:6)
+  colnames(mat2) <- paste0("g", 1:5)
+  
+  res <- .append_rowcolnames(bool_colnames = T,
+                             bool_rownames = T,
+                             source_obj = mat2,
+                             target_obj = mat1)
+  
+  expect_true(all(rownames(res) == rownames(mat2)) & length(rownames(res)) == 6)
+  expect_true(all(colnames(res) == colnames(mat2)) & length(colnames(res)) == 5)
+})
+
+
+test_that(".append_rowcolnames works for svd from matrix", {
+  mat1 <- matrix(1:30, nrow = 6, ncol = 5)
+  svd1 <- irlba::irlba(mat1, nv = 2)
+  class(svd1) <- "svd"
+  mat2 <- matrix(1:30, nrow = 6, ncol = 5)
+  rownames(mat2) <- paste0("c", 1:6)
+  colnames(mat2) <- paste0("g", 1:5)
+  
+  res <- .append_rowcolnames(bool_colnames = T,
+                             bool_rownames = T,
+                             source_obj = mat2,
+                             target_obj = svd1)
+  
+  expect_true(all(rownames(res$u) == rownames(mat2)) & length(rownames(res$u)) == 6)
+  expect_true(all(rownames(res$v) == colnames(mat2)) & length(rownames(res$v)) == 5)
+})
+
+
+test_that(".append_rowcolnames works for matrix from svd", {
+  mat1 <- matrix(1:30, nrow = 6, ncol = 5)
+  mat2 <- matrix(1:30, nrow = 6, ncol = 5)
+  svd2 <- irlba::irlba(mat1, nv = 2)
+  class(svd2) <- "svd"
+  rownames(svd2$u) <- paste0("c", 1:6)
+  rownames(svd2$v) <- paste0("g", 1:5)
+  
+  res <- .append_rowcolnames(bool_colnames = T,
+                             bool_rownames = T,
+                             source_obj = svd2,
+                             target_obj = mat1)
+  
+  expect_true(all(rownames(res) == rownames(svd2$u)) & length(rownames(res)) == 6)
+  expect_true(all(colnames(res) == rownames(svd2$v)) & length(colnames(res)) == 5)
+})
+
+
+test_that(".append_rowcolnames works for two svds", {
+  mat1 <- matrix(1:30, nrow = 6, ncol = 5)
+  svd1 <- irlba::irlba(mat1, nv = 2)
+  class(svd1) <- "svd"
+  mat2 <- matrix(1:30, nrow = 6, ncol = 5)
+  svd2 <- irlba::irlba(mat1, nv = 2)
+  class(svd2) <- "svd"
+  rownames(svd2$u) <- paste0("c", 1:6)
+  rownames(svd2$v) <- paste0("g", 1:5)
+  
+  res <- .append_rowcolnames(bool_colnames = T,
+                             bool_rownames = T,
+                             source_obj = svd2,
+                             target_obj = svd1)
+  
+  expect_true(all(rownames(res$u) == rownames(svd2$u)) & length(rownames(res$u)) == 6)
+  expect_true(all(rownames(res$v) == rownames(svd2$v)) & length(rownames(res$v)) == 5)
+})
+
+##############################
+
+## .combine_two_named_lists is correct
+
+test_that(".combine_two_named_lists works", {
+  list1 <- list(a = 1, b = 1:5, c = 3)
+  list2 <- list(d = 2, e = 1:10)
+  res <- .combine_two_named_lists(list1, list2)
+  
+  expect_true(all(names(res) == c("a", "b", "c", "d", "e")))
+})
+
+
+test_that(".combine_two_named_lists respects the first named conflict", {
+  list1 <- list(a = 1, b = 1:5, c = 3)
+  list2 <- list(d = 2, a = 1:10)
+  res <- .combine_two_named_lists(list1, list2)
+  
+  expect_true(all(names(res) == c("a", "b", "c", "d")))
+  expect_true(res$a == 1)
+})

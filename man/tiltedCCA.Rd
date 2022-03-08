@@ -5,43 +5,14 @@
 \title{Tilted-CCA Factorization}
 \usage{
 tiltedCCA(
-  mat_1,
-  mat_2,
-  dims_1,
-  dims_2,
-  target_dimred,
-  center_1 = T,
-  center_2 = T,
-  scale_1 = T,
-  scale_2 = T,
+  input_obj,
   discretization_gridsize = 21,
   enforce_boundary = F,
   fix_tilt_perc = F,
-  metacell_clustering = lapply(1:nrow(mat_1), function(i) {     i }),
-  snn_bool_intersect = F,
-  snn_k = 20,
-  snn_min_deg = 0,
-  snn_num_neigh = 30,
-  verbose = T
+  verbose = 0
 )
 }
 \arguments{
-\item{mat_1}{data matrix 1}
-
-\item{mat_2}{data matrix 2}
-
-\item{dims_1}{desired latent dimensions of data matrix 1 (increasing integer vector of length 2)}
-
-\item{dims_2}{desired latent dimensions of data matrix 2 (increasing integer vector of length 2)}
-
-\item{center_1}{boolean, on whether or not to center \code{mat_1} prior to SVD}
-
-\item{center_2}{boolean, on whether or not to center \code{mat_2} prior to SVD}
-
-\item{scale_1}{boolean, on whether or not to rescale \code{mat_1} prior to SVD}
-
-\item{scale_2}{boolean, on whether or not to rescale \code{mat_2} prior to SVD}
-
 \item{discretization_gridsize}{positive integer for how many values between 0 and 1 (inclusive) to search the 
 appropriate amount of tilt over}
 
@@ -76,6 +47,22 @@ each cell's NNs' factor proportions. These are all done in \code{.determine_clus
 for \code{mat_1} and \code{mat_2}
 as well as in \code{.determine_cluster} (to call \code{.form_snns} to construct
 the analogous Shared NN graph for the common space).}
+
+\item{mat_1}{data matrix 1}
+
+\item{mat_2}{data matrix 2}
+
+\item{dims_1}{desired latent dimensions of data matrix 1 (increasing integer vector of length 2)}
+
+\item{dims_2}{desired latent dimensions of data matrix 2 (increasing integer vector of length 2)}
+
+\item{center_1}{boolean, on whether or not to center \code{mat_1} prior to SVD}
+
+\item{center_2}{boolean, on whether or not to center \code{mat_2} prior to SVD}
+
+\item{scale_1}{boolean, on whether or not to rescale \code{mat_1} prior to SVD}
+
+\item{scale_2}{boolean, on whether or not to rescale \code{mat_2} prior to SVD}
 
 \item{cell_max}{positive integer for how many cells to subsample (useful if
 \code{nrow(mat_1) is too large})}
