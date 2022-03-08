@@ -18,19 +18,18 @@ form_metacells <- function(input_obj,
   if(verbose >= 1) print("Computing intersection of clusterings")
   res <- .intersect_clustering(large_clustering_1 = large_clustering_1, 
                                large_clustering_2 = large_clustering_2,
-                               min_size = min_size,
-                               n = n)
+                               min_size = min_size)
   
   if(verbose >= 1) print("Computing metacells")
-  metacell_clustering <- .form_metacells(dimred_1 = dimred_1, 
+  metacell_clustering_list <- .form_metacells(dimred_1 = dimred_1, 
                                          dimred_2 = dimred_2,
-                                         large_clustering = res$large_clustering,
+                                         large_clustering_list = res$large_clustering_list,
                                          num_metacells = num_metacells, 
                                          verbose = verbose)
   
   metacell_obj <- .create_metacell_obj(large_clustering_1 = large_clustering_1, 
                                        large_clustering_2 = large_clustering_2,
-                                       metacell_clustering = metacell_clustering)
+                                       metacell_clustering_list = metacell_clustering_list)
   input_obj$metacell_obj <- metacell_obj
   param <- .form_metacells_param(min_size = min_size,
                                  num_metacells = num_metacells)
@@ -45,12 +44,16 @@ form_metacells <- function(input_obj,
 
 .intersect_clustering <- function(large_clustering_1, 
                                   large_clustering_2,
-                                  min_size = 5,
-                                  n){
-  stopifnot(n >= max(unlist(large_clustering_1)),
-            n >= max(unlist(large_clustering_2)))
-  total_1 <- length(large_clustering_1)
-  total_2 <- length(large_clustering_2)
+                                  min_size = 5){
+  stopifnot(is.factor(large_clustering_1), is.factor(large_clustering_2),
+            length(large_clustering_1) == length(large_clustering_2))
+  
+  n <- length(large_clustering_1)
+  large_clustering_1_list <- .convert_factor2list(large_clustering_1)
+  large_clustering_2_list <- .convert_factor2list(large_clustering_2)
+  
+  total_1 <- length(large_clustering_1_list)
+  total_2 <- length(large_clustering_2_list)
   
   idx_df <- data.frame(modality_1 = rep(1:total_1, each = total_2),
                        modality_2 = rep(1:total_2, times = total_1))
@@ -59,10 +62,10 @@ form_metacells <- function(input_obj,
   idx <- matrix(NA, nrow = n, ncol = 2)
   rownames(idx) <- 1:n
   for(i in 1:total_1){
-    idx[large_clustering_1[[i]],1] <- i
+    idx[large_clustering_1_list[[i]],1] <- i
   }
   for(i in 1:total_2){
-    idx[large_clustering_2[[i]],2] <- i
+    idx[large_clustering_2_list[[i]],2] <- i
   }
   na_idx <- which(apply(idx, 1, function(vec){any(is.na(vec))}))
   if(length(na_idx) > 0) idx <- idx[-na_idx,]
@@ -73,30 +76,30 @@ form_metacells <- function(input_obj,
   stopifnot(length(idx_df$total_idx) == length(uniq_vec))
   uniq_vec <- idx_df$total_idx
   
-  large_clustering <- lapply(uniq_vec, function(i){
+  large_clustering_list <- lapply(uniq_vec, function(i){
     as.numeric(which(total_idx == i))
   })
-  names(large_clustering) <- paste0("large_", uniq_vec)
-  large_clustering <- large_clustering[sapply(large_clustering, length) >= min_size]
-  uniq_vec <- names(large_clustering)
+  names(large_clustering_list) <- paste0("large_", uniq_vec)
+  large_clustering_list <- large_clustering_list[sapply(large_clustering_list, length) >= min_size]
+  uniq_vec <- names(large_clustering_list)
   total_vec <- paste0("large_", idx_df$total_idx)
   
-  clustering_hierarchy_1 <- sapply(1:total_1, function(i){
+  clustering_hierarchy_1 <- lapply(1:total_1, function(i){
     idx <- which(idx_df$modality_1 == i)
     if(length(idx) > 0){
       uniq_vec[which(uniq_vec %in% total_vec[idx])]
     } else NA
   })
-  names(clustering_hierarchy_1) <- names(large_clustering_1)
-  clustering_hierarchy_2 <- sapply(1:total_2, function(i){
+  names(clustering_hierarchy_1) <- names(large_clustering_1_list)
+  clustering_hierarchy_2 <- lapply(1:total_2, function(i){
     idx <- which(idx_df$modality_2 == i)
     if(length(idx) > 0){
       uniq_vec[which(uniq_vec %in% total_vec[idx])]
     } else NA
   })
-  names(clustering_hierarchy_2) <- names(large_clustering_2)
+  names(clustering_hierarchy_2) <- names(large_clustering_2_list)
   
-  list(large_clustering = large_clustering,
+  list(large_clustering_list = large_clustering_list,
        clustering_hierarchy_1 = clustering_hierarchy_1,
        clustering_hierarchy_2 = clustering_hierarchy_2)
 }
@@ -104,24 +107,24 @@ form_metacells <- function(input_obj,
 ##############################
 
 .form_metacells <- function(dimred_1, dimred_2,
-                            large_clustering,
+                            large_clustering_list,
                             num_metacells, 
                             verbose = 0){
   if(is.null(num_metacells)) return(NULL)
   stopifnot(nrow(dimred_1) == nrow(dimred_1))
   n <- nrow(dimred_1)
-  df <- .compute_metacell_splits(clustering = large_clustering, 
+  df <- .compute_metacell_splits(clustering = large_clustering_list, 
                                  n = n, 
                                  num_metacells = num_metacells)
   
-  tmp <- lapply(1:length(large_clustering), function(k){
+  tmp <- lapply(1:length(large_clustering_list), function(k){
     if(verbose >= 1) print(paste0("On cluster ", k))
-    lis <- .compute_metacells(dimred_1 = dimred_1[large_clustering[[k]],,drop = F],
-                              dimred_2 = dimred_2[large_clustering[[k]],,drop = F],
+    lis <- .compute_metacells(dimred_1 = dimred_1[large_clustering_list[[k]],,drop = F],
+                              dimred_2 = dimred_2[large_clustering_list[[k]],,drop = F],
                               k = df$num[k], 
-                              row_indices = large_clustering[[k]])
+                              row_indices = large_clustering_list[[k]])
     
-    num <- strsplit(names(large_clustering)[k], split = "_")[[1]][2]
+    num <- strsplit(names(large_clustering_list)[k], split = "_")[[1]][2]
     names(lis) <- paste0("metacell_", num, "_", 1:length(lis))
     lis
   })
@@ -132,7 +135,7 @@ form_metacells <- function(input_obj,
 .compute_metacell_splits <- function(clustering, n, num_metacells){
   stopifnot(is.list(clustering), 
             sum(sapply(clustering, length)) <= n,
-            length(clustering) <= target_k,
+            length(clustering) <= num_metacells,
             num_metacells > 0, num_metacells %% 1 == 0)
   tmp <- unlist(clustering)
   stopifnot(all(tmp %% 1 == 0), table(tmp) == 1, all(tmp > 0))
@@ -158,7 +161,8 @@ form_metacells <- function(input_obj,
 .compute_metacells <- function(dimred_1, dimred_2,
                                k,
                                row_indices){
-  stopifnot(length(row_indices) == nrow(mat_1))
+  stopifnot(length(row_indices) == nrow(dimred_1),
+            nrow(dimred_1) == nrow(dimred_2))
   if(k == 1) return(list(row_indices))
   
   dimred <- cbind(dimred_1, dimred_2)
@@ -175,10 +179,10 @@ form_metacells <- function(input_obj,
 
 .create_metacell_obj <- function(large_clustering_1, 
                                  large_clustering_2,
-                                 metacell_clustering){
+                                 metacell_clustering_list){
   structure(list(large_clustering_1 = large_clustering_1, 
                  large_clustering_2 = large_clustering_2,
-                 metacell_clustering = metacell_clustering),
+                 metacell_clustering_list = metacell_clustering_list),
             class = "metacell")
 }
 
@@ -190,15 +194,15 @@ form_metacells <- function(input_obj,
 
 ###########################
 
-.generate_averaging_matrix <- function(n, metacell_clustering){
-  stopifnot(max(unlist(metacell_clustering)) <= n)
+.generate_averaging_matrix <- function(metacell_clustering_list, n){
+  stopifnot(max(unlist(metacell_clustering_list)) <= n)
   
-  k <- length(metacell_clustering)
+  k <- length(metacell_clustering_list)
   i_vec <- unlist(lapply(1:k, function(i){
-    len <- length(metacell_clustering[[i]]); rep(i, len)
+    len <- length(metacell_clustering_list[[i]]); rep(i, len)
   }))
-  j_vec <- unlist(metacell_clustering)
-  x_vec <- unlist(lapply(metacell_clustering, function(vec){
+  j_vec <- unlist(metacell_clustering_list)
+  x_vec <- unlist(lapply(metacell_clustering_list, function(vec){
     len <- length(vec); rep(1/len, len)
   }))
   

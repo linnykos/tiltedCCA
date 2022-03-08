@@ -159,6 +159,7 @@
   stopifnot(what %in% c("large_clustering_1", "large_clustering_2", "metacell_clustering"),
             type %in% c("list", "factor"),
             resolution %in% c("cell", "metacell"))
+  n <- length(input_obj$large_clustering_1)
   if(what %in% c("large_clustering_1", "large_clustering_2") & 
      resolution == "cell"){
     if(what == "large_clustering_1"){
@@ -170,7 +171,7 @@
     if(type == "factor") return(vec) else return(.convert_factor2list(vec))
     
   } else {
-    lis <- input_obj$metacell_clustering
+    lis <- input_obj$metacell_clustering_list
     if(what %in% c("large_clustering_1", "large_clustering_2")){
       if(what == "large_clustering_1"){
         source_vec <- input_obj$large_clustering_1
@@ -190,7 +191,7 @@
         # trivial output
         if(type == "factor") return(factor(1:length(lis))) else return(lapply(1:length(lis),function(x){x}))
       } else {
-        if(type == "factor") return(.convert_list2factor(lis)) else return(lis)
+        if(type == "factor") return(.convert_list2factor(lis, n = n)) else return(lis)
       }
     }
   }

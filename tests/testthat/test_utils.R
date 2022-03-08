@@ -177,3 +177,46 @@ test_that(".combine_two_named_lists respects the first named conflict", {
   expect_true(all(names(res) == c("a", "b", "c", "d")))
   expect_true(res$a == 1)
 })
+
+##########################
+
+## .convert_factor2list is correct
+
+test_that(".convert_factor2list works", {
+  vec <- factor(rep(c("a","b","c","d","e"), each = 5))
+  res <- .convert_factor2list(vec)
+  
+  expect_true(all(names(res) == c("a","b","c","d","e")))
+  expect_true(is.list(res))
+  for(i in 1:length(res)){
+    all(sort(which(vec == names(res)[i])) == sort(res[[i]]))
+  }
+})
+
+test_that(".convert_factor2list works with NAs", {
+  vec <- factor(rep(c("a","b","c","d","e"), each = 5))
+  vec[sample(length(vec), 10)] <- NA
+  vec <- droplevels(vec)
+  res <- .convert_factor2list(vec)
+  
+  expect_true(all(sort(names(res)) == sort(levels(vec))))
+  expect_true(is.list(res))
+  for(i in 1:length(res)){
+    all(sort(which(vec == names(res)[i])) == sort(res[[i]]))
+  }
+})
+
+#######################
+
+## .convert_list2factor is correct
+
+test_that(".convert_list2factor works", {
+  vec <- factor(rep(c("a","b","c","d","e"), each = 5))
+  vec[sample(length(vec), 10)] <- NA
+  vec <- droplevels(vec)
+  lis <- .convert_factor2list(vec)
+  res <- .convert_list2factor(lis, n = length(vec))
+  
+  expect_true(all(vec[!is.na(vec)] == res[!is.na(res)]))
+  expect_true(all(is.na(vec) == is.na(res)))
+})

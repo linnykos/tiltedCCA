@@ -90,7 +90,7 @@ form_seurat_obj <- function(mat_1, mat_2){
 # first transposing via Matrix::t()
 .nonzero_col <- function(mat, col_idx, bool_value){
   stopifnot(inherits(mat, "dgCMatrix"), col_idx %% 1 == 0,
-            col_idx > 0, col_idx <= nrow(mat))
+            col_idx > 0, col_idx <= ncol(mat))
   
   val1 <- mat@p[col_idx]
   val2 <- mat@p[col_idx+1]
@@ -165,4 +165,32 @@ form_seurat_obj <- function(mat_1, mat_2){
   }
   
   target_obj
+}
+
+.convert_factor2list <- function(vec){
+  stopifnot(is.factor(vec))
+  vec <- droplevels(vec)
+  level_vec <- levels(vec)
+  lis <- lapply(level_vec, function(level_val){
+    which(vec == level_val)
+  })
+  names(lis) <- level_vec
+  lis
+}
+  
+.convert_list2factor <- function(lis, n){
+  stopifnot(is.list(lis), n >= max(unlist(lis)))
+  vec <- rep(NA, n)
+  if(length(names(lis)) != length(lis)){
+    name_vec <- as.character(1:length(lis))
+  } else {
+    name_vec <- names(lis)
+  }
+  
+  for(i in 1:length(lis)){
+    vec[lis[[i]]] <- name_vec[i]
+  }
+  vec <- as.factor(vec)
+  
+  vec
 }

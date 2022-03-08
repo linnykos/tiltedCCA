@@ -32,7 +32,7 @@ test_that(".get_SVD works for dgCMatrix", {
 
 
 test_that(".get_SVD works for multiSVD", {
-  load(paste0("../assets/test_data", i, ".RData"))
+  load(paste0("../assets/test_data1.RData"))
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
@@ -87,7 +87,7 @@ test_that(".get_Dimred works for svd", {
 ## .get_postDimred is correct
 
 test_that(".get_postDimred works", {
-  load(paste0("../assets/test_data", i, ".RData"))
+  load(paste0("../assets/test_data1.RData"))
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
@@ -102,7 +102,7 @@ test_that(".get_postDimred works", {
 
 
 test_that(".get_postDimred can differentiate between centering and not", {
-  load(paste0("../assets/test_data", i, ".RData"))
+  load(paste0("../assets/test_data1.RData"))
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2; mat_2 <- mat_2 + 2
   multiSVD_obj1 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
@@ -140,7 +140,7 @@ test_that(".get_postDimred can differentiate between centering and not", {
 
 
 test_that(".get_postDimred respects normalize_row", {
-  load(paste0("../assets/test_data", i, ".RData"))
+  load(paste0("../assets/test_data1.RData"))
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2; mat_2 <- mat_2 + 2
   multiSVD_obj1 <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
