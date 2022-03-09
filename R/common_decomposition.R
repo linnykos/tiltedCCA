@@ -86,8 +86,11 @@
   common_score <- tmp$common_score
   common_basis <- tmp$common_basis
   
-  if(length(rownames(score_1)) != 0) {
-    rownames(common_score) <- rownames(score_1)
+  if(length(rownames(score_1)) != 0) rownames(common_score) <- rownames(score_1)
+  if(!all(is.null(averaging_mat)) & length(rownames(averaging_mat)) > 0) {
+    rownames(common_basis) <- rownames(averaging_mat)
+  }
+  if(all(is.null(averaging_mat)) & length(rownames(score_1)) > 0) {
     rownames(common_basis) <- rownames(score_1)
   }
   

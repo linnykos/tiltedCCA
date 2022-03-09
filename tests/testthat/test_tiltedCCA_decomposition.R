@@ -7,78 +7,44 @@ test_that("(Basic) tiltedCCA_decomposition works", {
   load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
-  target_dimred <- test_data$target_dimred
-  K <- 2
-  
-  tilted_res <- tiltedCCA(mat_1, mat_2, 
-                          dims_1 = 1:K, dims_2 = 1:K, 
-                          target_dimred = target_dimred,
-                          snn_k = 2,
-                          snn_min_deg = 1,
-                          snn_num_neigh = 10,
-                          verbose = F)
-  res <- tiltedCCA_decomposition(tilted_res, rank_c = K, verbose = F)
-  
   n <- nrow(mat_1)
-  expect_true(class(res) == "tiltedCCA_decomp")
-  expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("common_score", 
-                                             "cca_obj", 
-                                             "distinct_score_1", 
-                                             "distinct_score_2",
-                                             "common_mat_1", 
-                                             "common_mat_2",
-                                             "distinct_mat_1", 
-                                             "distinct_mat_2", 
-                                             "tilt_perc",
-                                             "df_percentage",
-                                             "svd_1", "svd_2", 
-                                             "score_1", "score_2",
-                                             "common_basis",
-                                             "target_dimred", "param_list"))))
-  expect_true(all(dim(res$common_score) == c(n, K)))
-})
-
-test_that("(Coding) tiltedCCA_decomposition preserves rownames and colnames", {
-  # load("tests/assets/test_data1.RData")
-  load("../assets/test_data1.RData")
-  mat_1 <- test_data$mat_1
-  mat_2 <- test_data$mat_2
-  target_dimred <- test_data$target_dimred
-  K <- 2
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2,
+                                  center_1 = F, center_2 = F,
+                                  normalize_row = T,
+                                  normalize_singular_value = F,
+                                  recenter_1 = F, recenter_2 = F,
+                                  rescale_1 = F, rescale_2 = F,
+                                  scale_1 = F, scale_2 = F)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = NULL)
+  multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                               latent_k = 2,
+                               num_neigh = 10,
+                               bool_cosine = T,
+                               bool_intersect = T,
+                               min_deg = 1)
+  multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
+                            verbose = F)
+  res <- tiltedCCA_decomposition(multiSVD_obj)
   
-  tilted_res <- tiltedCCA(mat_1, mat_2, 
-                          dims_1 = 1:K, dims_2 = 1:K, 
-                          target_dimred = target_dimred,
-                          snn_k = 2,
-                          snn_min_deg = 1,
-                          snn_num_neigh = 10,
-                          verbose = F)
-  res <- tiltedCCA_decomposition(tilted_res, rank_c = K, verbose = F)
+  expect_true(inherits(res, "multiSVD"))
+  expect_true(all(names(multiSVD_obj) %in% names(res)))
+  expect_true(all(c("common_mat_1", "common_mat_2", "distinct_mat_1", "distinct_mat_2") %in% names(res)))
+  expect_true(all(dim(res$common_mat_1) == dim(mat_1)))
+  expect_true(all(rownames(res$common_mat_1) == rownames(mat_1)) & length(rownames(res$common_mat_1)) > 0)
+  expect_true(all(rownames(res$common_mat_2) == rownames(mat_2)) & length(rownames(res$common_mat_2)) > 0)
+  expect_true(all(colnames(res$common_mat_1) == colnames(mat_1)) & length(colnames(res$common_mat_1)) > 0)
+  expect_true(all(colnames(res$common_mat_2) == colnames(mat_2)) & length(colnames(res$common_mat_2)) > 0)
   
-  expect_true(length(rownames(res$common_score)) > 1)
-  expect_true(length(rownames(res$distinct_score_1)) > 1)
-  expect_true(length(rownames(res$distinct_score_2)) > 1)
-  expect_true(all(rownames(mat_1) == rownames(res$common_score)))
-  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_1)))
-  expect_true(all(rownames(mat_1) == rownames(res$distinct_score_2)))
-  
-  expect_true(length(rownames(res$common_mat_1)) > 1)
-  expect_true(length(rownames(res$common_mat_2)) > 1)
-  expect_true(length(rownames(res$distinct_mat_1)) > 1)
-  expect_true(length(rownames(res$distinct_mat_2)) > 1)
-  expect_true(length(colnames(res$common_mat_1)) > 1)
-  expect_true(length(colnames(res$common_mat_2)) > 1)
-  expect_true(length(colnames(res$distinct_mat_1)) > 1)
-  expect_true(length(colnames(res$distinct_mat_2)) > 1)
-  expect_true(all(rownames(mat_1) == rownames(res$common_mat_1)))
-  expect_true(all(rownames(mat_1) == rownames(res$common_mat_2)))
-  expect_true(all(rownames(mat_1) == rownames(res$distinct_mat_1)))
-  expect_true(all(rownames(mat_1) == rownames(res$distinct_mat_2)))
-  expect_true(all(colnames(mat_1) == colnames(res$common_mat_1)))
-  expect_true(all(colnames(mat_1) == colnames(res$distinct_mat_1)))
-  expect_true(all(colnames(mat_2) == colnames(res$common_mat_2)))
-  expect_true(all(colnames(mat_2) == colnames(res$distinct_mat_2)))
+  expect_true(all(rownames(res$distinct_mat_1) == rownames(mat_1)) & length(rownames(res$distinct_mat_1)) > 0)
+  expect_true(all(rownames(res$distinct_mat_2) == rownames(mat_2)) & length(rownames(res$distinct_mat_2)) > 0)
+  expect_true(all(colnames(res$distinct_mat_1) == colnames(mat_1)) & length(colnames(res$distinct_mat_1)) > 0)
+  expect_true(all(colnames(res$distinct_mat_2) == colnames(mat_2)) & length(colnames(res$distinct_mat_2)) > 0)
 })
 
 test_that("(Math) tiltedCCA_decomposition yields uncorrelated distinct matrices", {
@@ -88,24 +54,41 @@ test_that("(Math) tiltedCCA_decomposition yields uncorrelated distinct matrices"
     load(paste0("../assets/test_data", i, ".RData"))
     mat_1 <- test_data$mat_1
     mat_2 <- test_data$mat_2
-    target_dimred <- test_data$target_dimred
-    K <- 2
+    n <- nrow(mat_1)
+    large_clustering_1 <- test_data$clustering_1
+    large_clustering_2 <- test_data$clustering_2
+    multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                    dims_1 = 1:2, dims_2 = 1:2,
+                                    center_1 = F, center_2 = F,
+                                    normalize_row = T,
+                                    normalize_singular_value = F,
+                                    recenter_1 = F, recenter_2 = F,
+                                    rescale_1 = F, rescale_2 = F,
+                                    scale_1 = F, scale_2 = F)
+    multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                   large_clustering_1 = large_clustering_1, 
+                                   large_clustering_2 = large_clustering_2,
+                                   num_metacells = NULL)
+    multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                                 latent_k = 2,
+                                 num_neigh = 10,
+                                 bool_cosine = T,
+                                 bool_intersect = T,
+                                 min_deg = 1)
+    multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
+                              verbose = F)
+    res <- tiltedCCA_decomposition(multiSVD_obj)
     
-    tilted_res <- tiltedCCA(mat_1, mat_2, 
-                            dims_1 = 1:K, dims_2 = 1:K, 
-                            target_dimred = target_dimred,
-                            snn_k = 2,
-                            snn_min_deg = 1,
-                            snn_num_neigh = 10,
-                            verbose = F)
-    res <- tiltedCCA_decomposition(tilted_res, rank_c = K, verbose = F)
+    res <- .set_defaultAssay(res, assay = 1)
+    distinct_mat_1 <- .get_tCCAobj(res, apply_postDimred = F, what = "distinct_mat")
+    res <- .set_defaultAssay(res, assay = 2)
+    distinct_mat_2 <- .get_tCCAobj(res, apply_postDimred = F, what = "distinct_mat")
     
-    
-    tmp <- crossprod(res$distinct_mat_1, res$distinct_mat_2)
+    tmp <- crossprod(distinct_mat_1, distinct_mat_2)
     
     sum(abs(tmp)) <= 1e-4
   })
-
+  
   expect_true(all(bool_vec))
 })
 
@@ -116,18 +99,32 @@ test_that("(Math) tiltedCCA_decomposition yields a low-rank matrix", {
     load(paste0("../assets/test_data", i, ".RData"))
     mat_1 <- test_data$mat_1
     mat_2 <- test_data$mat_2
-    target_dimred <- test_data$target_dimred
+    n <- nrow(mat_1)
+    large_clustering_1 <- test_data$clustering_1
+    large_clustering_2 <- test_data$clustering_2
+    multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                    dims_1 = 1:2, dims_2 = 1:2,
+                                    center_1 = F, center_2 = F,
+                                    normalize_row = T,
+                                    normalize_singular_value = F,
+                                    recenter_1 = F, recenter_2 = F,
+                                    rescale_1 = F, rescale_2 = F,
+                                    scale_1 = F, scale_2 = F)
+    multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                   large_clustering_1 = large_clustering_1, 
+                                   large_clustering_2 = large_clustering_2,
+                                   num_metacells = NULL)
+    multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                                 latent_k = 2,
+                                 num_neigh = 10,
+                                 bool_cosine = T,
+                                 bool_intersect = T,
+                                 min_deg = 1)
+    multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
+                              verbose = F)
+    res <- tiltedCCA_decomposition(multiSVD_obj)
+    
     K <- 2
-    
-    tilted_res <- tiltedCCA(mat_1, mat_2, 
-                            dims_1 = 1:K, dims_2 = 1:K, 
-                            target_dimred = target_dimred,
-                            snn_k = 2,
-                            snn_min_deg = 1,
-                            snn_num_neigh = 10,
-                            verbose = F)
-    res <- tiltedCCA_decomposition(tilted_res, rank_c = K, verbose = F)
-    
     bool1 <- Matrix::rankMatrix(res$common_mat_1) == K
     bool2 <- Matrix::rankMatrix(res$common_mat_2) == K
     bool3 <- Matrix::rankMatrix(res$distinct_mat_1) == K
@@ -148,17 +145,30 @@ test_that("(Math) tiltedCCA_decomposition yields common matrices with the same c
     load(paste0("../assets/test_data", i, ".RData"))
     mat_1 <- test_data$mat_1
     mat_2 <- test_data$mat_2
-    target_dimred <- test_data$target_dimred
-    K <- 2
-    
-    tilted_res <- tiltedCCA(mat_1, mat_2, 
-                            dims_1 = 1:K, dims_2 = 1:K, 
-                            target_dimred = target_dimred,
-                            snn_k = 2,
-                            snn_min_deg = 1,
-                            snn_num_neigh = 10,
-                            verbose = F)
-    res <- tiltedCCA_decomposition(tilted_res, rank_c = K, verbose = F)
+    n <- nrow(mat_1)
+    large_clustering_1 <- test_data$clustering_1
+    large_clustering_2 <- test_data$clustering_2
+    multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                    dims_1 = 1:2, dims_2 = 1:2,
+                                    center_1 = F, center_2 = F,
+                                    normalize_row = T,
+                                    normalize_singular_value = F,
+                                    recenter_1 = F, recenter_2 = F,
+                                    rescale_1 = F, rescale_2 = F,
+                                    scale_1 = F, scale_2 = F)
+    multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                   large_clustering_1 = large_clustering_1, 
+                                   large_clustering_2 = large_clustering_2,
+                                   num_metacells = NULL)
+    multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                                 latent_k = 2,
+                                 num_neigh = 10,
+                                 bool_cosine = T,
+                                 bool_intersect = T,
+                                 min_deg = 1)
+    multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
+                              verbose = F)
+    res <- tiltedCCA_decomposition(multiSVD_obj)
     
     svd_1 <- svd(res$common_mat_1)$u[,1:K]
     svd_2 <- svd(res$common_mat_2)$u[,1:K]
@@ -174,27 +184,53 @@ test_that("(Math) tiltedCCA_decomposition can obtain the same result when fed in
   load("../assets/test_data1.RData")
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
-  target_dimred <- test_data$target_dimred
-  K <- 2
+  n <- nrow(mat_1)
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2,
+                                  center_1 = F, center_2 = F,
+                                  normalize_row = T,
+                                  normalize_singular_value = F,
+                                  recenter_1 = F, recenter_2 = F,
+                                  rescale_1 = F, rescale_2 = F,
+                                  scale_1 = F, scale_2 = F)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = NULL)
+  multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                               latent_k = 2,
+                               num_neigh = 10,
+                               bool_cosine = T,
+                               bool_intersect = T,
+                               min_deg = 1)
+  multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
+                            verbose = F)
+  res <- tiltedCCA_decomposition(multiSVD_obj)
   
-  tilted_res <- tiltedCCA(mat_1, mat_2, 
-                          dims_1 = 1:K, dims_2 = 1:K, 
-                          target_dimred = target_dimred,
-                          snn_k = 2,
-                          snn_min_deg = 1,
-                          snn_num_neigh = 10,
-                          verbose = F)
-  res <- tiltedCCA_decomposition(tilted_res, rank_c = K, verbose = F)
-  
-  tilted_res2 <- tiltedCCA(res$common_mat_1 + res$distinct_mat_1, 
-                           res$common_mat_2 + res$distinct_mat_2,
-                         dims_1 = 1:K, dims_2 = 1:K, 
-                         target_dimred = target_dimred,
-                         snn_k = 2,
-                         snn_min_deg = 1,
-                         snn_num_neigh = 10,
-                         verbose = F)
-  res2 <- tiltedCCA_decomposition(tilted_res2, rank_c = K, verbose = F)
+  multiSVD_obj2 <- create_multiSVD(mat_1 = res$common_mat_1 + res$distinct_mat_1, 
+                                   mat_2 = res$common_mat_2 + res$distinct_mat_2, 
+                                   dims_1 = 1:2, dims_2 = 1:2,
+                                   center_1 = F, center_2 = F,
+                                   normalize_row = T,
+                                   normalize_singular_value = F,
+                                   recenter_1 = F, recenter_2 = F,
+                                   rescale_1 = F, rescale_2 = F,
+                                   scale_1 = F, scale_2 = F)
+  multiSVD_obj2 <- form_metacells(input_obj = multiSVD_obj2,
+                                  large_clustering_1 = large_clustering_1, 
+                                  large_clustering_2 = large_clustering_2,
+                                  num_metacells = NULL)
+  multiSVD_obj2 <- compute_snns(input_obj = multiSVD_obj2,
+                                latent_k = 2,
+                                num_neigh = 10,
+                                bool_cosine = T,
+                                bool_intersect = T,
+                                min_deg = 1)
+  multiSVD_obj2 <- tiltedCCA(input_obj = multiSVD_obj2,
+                             verbose = F)
+  res2 <- tiltedCCA_decomposition(multiSVD_obj2)
   
   expect_true(sum(abs(res$common_mat_1 - res2$common_mat_1)) <= 1e-6)
   expect_true(sum(abs(res$common_mat_2 - res2$common_mat_2)) <= 1e-6)

@@ -15,6 +15,7 @@ create_multiSVD <- function(mat_1, mat_2,
                     dims = dims_2, scale = scale_2)
   
   param <- .form_multiSVD_param(center_1 = center_1, center_2 = center_2,
+                                dims_1 = dims_1, dims_2 = dims_2,
                                 n = n,
                                 normalize_row = normalize_row,
                                 normalize_singular_value = normalize_singular_value,
@@ -29,52 +30,36 @@ create_multiSVD <- function(mat_1, mat_2,
 }
 
 ###############
-#' @export
-.normalize_svd <- function(input_obj, ...) UseMethod(".normalize_svd")
 
-#' @export
-.normalize_svd.svd <- function(input_obj,
-                               averaging_mat,
-                               normalize_row,
-                               normalize_singular_value,
-                               recenter,
-                               rescale, ...){
-  stopifnot(inherits(input_obj, "svd"))
-  
-  n <- nrow(input_obj$u)
+.normalize_svd <- function(input_obj,
+                           averaging_mat,
+                           normalize_row,
+                           normalize_singular_value,
+                           recenter,
+                           rescale, 
+                           tol = 1e-4,
+                           ...){
+
   dimred <- .get_Dimred(input_obj = input_obj, 
-                        normalize_singular_value = normalize_singular_value)
+                        normalize_singular_value = normalize_singular_value,
+                        ...)
+  n <- nrow(dimred)
   
-  .normalize_svd(input_obj = dimred,
-                 averaging_mat = averaging_mat,
-                 normalize_row = normalize_row,
-                 recenter = recenter,
-                 rescale = rescale)
-}
-
-#' @export
-.normalize_svd.matrix <- function(input_obj,
-                                  averaging_mat,
-                                  normalize_row,
-                                  recenter,
-                                  rescale, 
-                                  tol = 1e-4,
-                                  ...){
   if(recenter | rescale) {
-    input_obj <- scale(input_obj, center = recenter, scale = rescale)
+    dimred <- scale(dimred, center = recenter, scale = rescale)
   }
   
   if(!all(is.null(averaging_mat))){
-    input_obj <- as.matrix(averaging_mat %*% input_obj)
+    dimred <- as.matrix(averaging_mat %*% dimred)
   }
   
   if(normalize_row){
-    l2_vec <- apply(input_obj, 1, function(x){.l2norm(x)})
+    l2_vec <- apply(dimred, 1, function(x){.l2norm(x)})
     l2_vec[l2_vec <= tol] <- tol
-    input_obj <- .mult_vec_mat(1/l2_vec, input_obj)
+    dimred <- .mult_vec_mat(1/l2_vec, dimred)
   }
   
-  input_obj
+  dimred
 }
 
 ####################################
@@ -89,7 +74,7 @@ create_multiSVD <- function(mat_1, mat_2,
   mean_vec <- .compute_matrix_mean(mat, mean_vec)
   sd_vec <- .compute_matrix_sd(mat, sd_vec)
   
-  if(min(dim(mat)) > 2*(K+2)){
+  if(min(dim(mat)) > max(c(2*(K+2), 3))){
     res <- tryCatch({
       # ask for more singular values than needed to ensure stability
       if(symmetric){
@@ -173,6 +158,7 @@ create_multiSVD <- function(mat_1, mat_2,
 #########################################
 
 .form_multiSVD_param <- function(center_1, center_2,
+                                 dims_1, dims_2,
                                  n,
                                  normalize_row,
                                  normalize_singular_value,
@@ -180,6 +166,7 @@ create_multiSVD <- function(mat_1, mat_2,
                                  rescale_1, rescale_2,
                                  scale_1, scale_2){
   list(svd_center_1 = center_1, svd_center_2 = center_2,
+       svd_dims_1 = dims_1, svd_dims_2 = dims_2,
        svd_n = n,
        svd_normalize_row = normalize_row,
        svd_normalize_singular_value = normalize_singular_value,

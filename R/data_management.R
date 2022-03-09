@@ -91,12 +91,8 @@
 
 ###############
 
-#' @export
-.get_Dimred <- function(input_obj, ...) UseMethod(".get_Dimred")
-
-#' @export
-.get_Dimred.default <- function(input_obj, 
-                                normalize_singular_value, ...){
+.get_Dimred <- function(input_obj, 
+                        normalize_singular_value, ...){
   svd_obj <- .get_SVD(input_obj, ...)
   n <- nrow(svd_obj$u)
   if(normalize_singular_value) svd_obj$d <- svd_obj$d*sqrt(n)/svd_obj$d[1]
@@ -108,18 +104,10 @@
 
 ###############
 
-#' @export
-.get_postDimred <- function(input_obj, ...) UseMethod(".get_postDimred")
-
-#' @export
-.get_postDimred.default <- function(input_obj, ...){
-  warning("Class of input_obj not found, using .get_Dimred")
-  .get_Dimred(input_obj, ...)
-}
-
-#' @export
-.get_postDimred.multiSVD <- function(input_obj, 
-                                     averaging_mat, ...){
+.get_postDimred <- function(input_obj, 
+                            averaging_mat, ...){
+  stopifnot(inherits(input_obj, "multiSVD"))
+  
   if(input_obj$default_assay == 1){
     svd_obj <- input_obj$svd_1
   } else {
@@ -140,7 +128,8 @@
                  averaging_mat = averaging_mat,
                  normalize_row = param$svd_normalize_row,
                  normalize_singular_value = param$svd_normalize_singular_value,
-                 recenter = recenter, rescale = rescale)
+                 recenter = recenter, rescale = rescale,
+                 ...)
 }
 
 #############################
@@ -222,17 +211,10 @@
 
 #############################
 
-#' @export
-.get_SNN <- function(input_obj, ...) UseMethod(".get_SNN")
-
-#' @export
-.get_SNN.default <- function(input_obj, ...){
-  stop("Class of input_obj not found, using .get_SNN")
-}
-
-#' @export
-.get_SNN.multiSVD <- function(input_obj, 
-                         bool_common, ...){
+.get_SNN <- function(input_obj, 
+                     bool_common){
+  stopifnot(inherits(input_obj, "multiSVD"))
+  
   if(bool_common){
     input_obj$snn_list[["common_snn"]]
   } else {
@@ -246,17 +228,10 @@
 
 ############################################
 
-#' @export
-.get_Laplacian <- function(input_obj, ...) UseMethod(".get_Laplacian")
-
-#' @export
-.get_Laplacian.default <- function(input_obj, ...){
-  stop("Class of input_obj not found, using .get_Laplacian")
-}
-
-#' @export
-.get_Laplacian.multiSVD <- function(input_obj, 
-                               bool_common, ...){
+.get_Laplacian <- function(input_obj, 
+                           bool_common){
+  stopifnot(inherits(input_obj, "multiSVD"))
+  
   if(bool_common){
     input_obj$laplacian_list[["common_laplacian"]]
   } else {
@@ -268,5 +243,94 @@
   }
 }
 
+############################################
 
+.get_tCCAobj <- function(input_obj, 
+                         apply_postDimred,
+                         what){
+  stopifnot(inherits(input_obj, "multiSVD"),
+            is.logical(apply_postDimred),
+            what %in% c("score", "common_basis", "common_score",
+                        "distinct_score", "common_mat", "distinct_mat"))
+  if(what == "common_basis" & apply_postDimred){
+    warning(paste0("apply_postDimred=T and what=", what," is possibly nonsensical"))
+  }
+  default_assay <- .get_defaultAssay(input_obj)
+  
+  if(what == "score"){
+    stopifnot("cca_obj" %in% names(input_obj))
+    if(default_assay == 1){
+      tmp <- input_obj$cca_obj$score_1
+    } else {
+      tmp <- input_obj$cca_obj$score_2
+    }
+    
+  } else if(what == "common_basis"){
+    stopifnot("tcca_obj" %in% names(input_obj))
+    tmp <- input_obj$tcca_obj$common_basis
+    
+  } else if(what == "common_score"){
+    stopifnot("tcca_obj" %in% names(input_obj))
+    tmp <- input_obj$tcca_obj$common_score
+    
+  } else if(what == "distinct_score"){
+    stopifnot("tcca_obj" %in% names(input_obj))
+    if(default_assay == 1){
+      tmp <- input_obj$tcca_obj$distinct_score_1
+    } else {
+      tmp <- input_obj$tcca_obj$distinct_score_2
+    }
+    
+  } else if(what == "common_mat"){
+    if(default_assay == 1){
+      stopifnot("common_mat_1" %in% names(input_obj))
+      tmp <- input_obj$common_mat_1
+    } else {
+      stopifnot("common_mat_2" %in% names(input_obj))
+      tmp <- input_obj$common_mat_2
+    }
+    
+  } else if(what == "distinct_mat"){
+    if(default_assay == 1){
+      stopifnot("distinct_mat_1" %in% names(input_obj))
+      tmp <- input_obj$distinct_mat_1
+    } else {
+      stopifnot("distinct_mat_2" %in% names(input_obj))
+      tmp <- input_obj$distinct_mat_2
+    }
+  } else {
+    stop(".get_tCCAobj does not have a valid argument")
+  }
+  
+  if(apply_postDimred){
+    param <- .get_param(input_obj)
+    normalize_row <- param$svd_normalize_row
+    normalize_singular_value <- param$svd_normalize_singular_value
+    if(default_assay == 1){
+      recenter <- param$svd_recenter_1
+      rescale <- param$svd_rescale_1
+      center <- param$svd_center_1
+      dims <- param$svd_dims_1
+      scale <- param$svd_scale_1
+    } else {
+      recenter <- param$svd_recenter_2
+      rescale <- param$svd_rescale_2
+      center <- param$svd_center_2
+      dims <- param$svd_dims_2
+      scale <- param$svd_scale_2
+    }
+    
+    tmp <- .normalize_svd(input_obj = tmp,
+                          averaging_mat = NULL,
+                          center = center,
+                          dims = dims,
+                          normalize_row = normalize_row,
+                          normalize_singular_value = normalize_singular_value,
+                          recenter = recenter,
+                          rescale = rescale,
+                          scale = scale)
+  } 
+  
+  tmp
+}
 

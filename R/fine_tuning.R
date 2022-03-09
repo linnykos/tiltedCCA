@@ -1,17 +1,45 @@
-fine_tuning <- function(dcca_res, 
+fine_tuning <- function(input_obj, 
                         max_iter = 5,
                         fix_tilt_perc = NA,
                         temp_path = NULL,
                         tol = 1e-5,
-                        verbose = T){
-  score_1 <- dcca_res$score_1
-  score_2 <- dcca_res$score_2
-  averaging_mat <- .generate_averaging_matrix(nrow(score_1), 
-                                              dcca_res$metacell_clustering)
+                        verbose = 0){
+
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))
   
-  rank_c <- min(ncol(score_1), ncol(score_2))
+  metacell_clustering <- .get_metacell(input_obj,
+                                       resolution = "cell", 
+                                       type = "list", 
+                                       what = "metacell_clustering")
+  if(!all(is.null(metacell_clustering))){
+    averaging_mat <- .generate_averaging_matrix(metacell_clustering = metacell_clustering,
+                                                n = n)
+  } else {
+    averaging_mat <- NULL
+  }
+  
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  svd_1 <- .get_SVD(input_obj)
+  score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+  distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
+  
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  svd_2 <- .get_SVD(input_obj)
+  score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+  distinct_score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
+  
+  target_dimred <- .get_Laplacian(input_obj, bool_common = T)
+  common_score <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_score")
+  rank_c <- ncol(common_score)
+  n <- nrow(svd_1$u)
+  param <- .get_param(input_obj)
+  snn_bool_cosine <- param$snn_bool_cosine
+  snn_bool_intersect <- param$snn_bool_intersect
+  snn_k <- param$snn_latent_k
+  snn_min_deg <- param$snn_min_deg
+  snn_num_neigh <- param$snn_num_neigh
+  
   stopifnot(all(is.na(fix_tilt_perc)) || length(fix_tilt_perc) == rank_c)
-  
   stopifnot(all(sapply(1:rank_c, function(k){
     val <- score_1[,k] %*% score_2[,k]; val >= 0 
   }))) # ensures score matrices contain pair of acute vectors
@@ -26,14 +54,12 @@ fine_tuning <- function(dcca_res,
     .construct_circle(vec1, vec2)
   })
   
-  # [[TODO: Format metacell_clustering_1 and metacell_clustering_2 from factor to list]]
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Starting optimization"))
   iter <- 1
-  percentage_grid <- seq(0, 1, length.out = dcca_res$param_list$discretization_gridsize)
-  common_score <- dcca_res$common_score
+  percentage_grid <- seq(0, 1, length.out = param$tcca_discretization_gridsize)
   common_score_prev <- common_score
-  n <- nrow(dcca_res$common_score)
   if(all(is.na(fix_tilt_perc))) {
-    tilt_perc <- rep(dcca_res$tilt_perc[1], rank_c)
+    tilt_perc <- rep(input_obj$tcca_obj$tilt_perc[1], rank_c)
   } else {
     tilt_perc <- fix_tilt_perc
   }
@@ -54,13 +80,14 @@ fine_tuning <- function(dcca_res,
                                     percentage_grid = tmp,
                                     score_1 = score_1,
                                     score_2 = score_2,
-                                    snn_bool_intersect = dcca_res$snn_bool_intersect,
-                                    snn_k = dcca_res$snn_k,
-                                    snn_min_deg = dcca_res$snn_min_deg,
-                                    snn_num_neigh = dcca_res$snn_num_neigh,
-                                    svd_1 = dcca_res$svd_1, 
-                                    svd_2 = dcca_res$svd_2,
-                                    target_dimred = dcca_res$target_dimred,
+                                    snn_bool_cosine = snn_bool_cosine,
+                                    snn_bool_intersect = snn_bool_intersect,
+                                    snn_k = snn_k,
+                                    snn_min_deg = snn_min_deg,
+                                    snn_num_neigh = snn_num_neigh,
+                                    svd_1 = svd_1, 
+                                    svd_2 = svd_2,
+                                    target_dimred = target_dimred,
                                     verbose = verbose)
       if(verbose) {
         print(paste0("On iteration ", iter, " for latent dimension ", k))
@@ -79,7 +106,7 @@ fine_tuning <- function(dcca_res,
                   distinct_score_1 = distinct_score_1,
                   distinct_score_2 = distinct_score_2,
                   score_1 = score_1, score_2 = score_2, 
-                  svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
+                  svd_1 = svd_1, svd_2 = svd_2, 
                   tilt_perc = tilt_perc)
       save(res, file = temp_path)
     }
@@ -91,23 +118,16 @@ fine_tuning <- function(dcca_res,
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
-  param_list <- dcca_res$param_list
-  param_list[["fine_tuning_max_iter"]] <- max_iter
+  tcca_obj <- .create_tcca_obj(common_basis = res$common_basis,
+                               common_score = res$common_score, 
+                               distinct_score_1 = distinct_score_1,
+                               distinct_score_2 = distinct_score_2,
+                               df_percentage = res$df,
+                               tilt_perc = res$percentage)
+  input_obj$tcca_obj <- tcca_obj
+  input_obj$param$ft_max_tier <- max_iter
   
-  res <- list(common_score = common_score, 
-              distinct_score_1 = distinct_score_1,
-              distinct_score_2 = distinct_score_2,
-              score_1 = score_1, score_2 = score_2, 
-              svd_1 = dcca_res$svd_1, svd_2 = dcca_res$svd_2, 
-              cca_obj = dcca_res$cca_obj, 
-              df_percentage = NA,
-              param_list = dcca_res$param_list,
-              target_dimred = dcca_res$target_dimred,
-              tilt_perc = tilt_perc
-  )
-  
-  class(res) <- "dcca"
-  res
+  input_obj
 }
 
 ##############################
@@ -173,7 +193,8 @@ fine_tuning <- function(dcca_res,
   common_score[,latent_dim] <- value_list[[idx_min]]$common_vec
   print(sum(abs(prev_vec - common_score[,latent_dim])))
   
-  list(common_score = common_score,
+  list(common_basis = common_basis,
+       common_score = common_score,
        df = df, 
        percentage = percentage_grid[idx_min])
 }

@@ -120,51 +120,50 @@ tiltedCCA <- function(input_obj,
 #' Tilted-CCA Decomposition
 #'
 #' @param tiltedCCA_res output from \code{dcca_factor}
-#' @param rank_c desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}
 #' @param verbose boolean
 #'
 #' @return list of class \code{dcca_decomp}
 #' @export
-tiltedCCA_decomposition <- function(tiltedCCA_res, rank_c = NA, verbose = T){
-  stopifnot(class(tiltedCCA_res) == "tiltedCCA")
+tiltedCCA_decomposition <- function(input_obj, rank_c = NA, verbose = 0){
+  stopifnot(inherits(input_obj, "multiSVD"))
   
-  if(is.na(rank_c)) rank_c <- min(c(ncol(tiltedCCA_res$distinct_score_1), ncol(tiltedCCA_res$distinct_score_2)))
-  stopifnot( rank_c <= min(c(ncol(tiltedCCA_res$distinct_score_1), ncol(tiltedCCA_res$distinct_score_2))))
-  n <- nrow(tiltedCCA_res$svd_1$u)
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  svd_1 <- .get_SVD(input_obj)
+  score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+  distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Form denoised observation matrices"))
-  mat_1 <- tcrossprod(.mult_mat_vec(tiltedCCA_res$svd_1$u, tiltedCCA_res$svd_1$d) , tiltedCCA_res$svd_1$v)
-  mat_2 <- tcrossprod(.mult_mat_vec(tiltedCCA_res$svd_2$u, tiltedCCA_res$svd_2$d) , tiltedCCA_res$svd_2$v)
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  svd_2 <- .get_SVD(input_obj)
+  score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+  distinct_score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Computing common matrices"))
-  coef_mat_1 <- crossprod(tiltedCCA_res$score_1, mat_1)/n
-  coef_mat_2 <- crossprod(tiltedCCA_res$score_2, mat_2)/n
+  common_score <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_score")
+  rank_c <- ncol(common_score)
+  n <- nrow(svd_1$u)
   
-  common_mat_1 <- tiltedCCA_res$common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
-  common_mat_2 <- tiltedCCA_res$common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Form denoised observation matrices"))
+  mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
+  mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v)
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Computing distinctive matrices"))
-  distinct_mat_1 <- tiltedCCA_res$distinct_score_1 %*% coef_mat_1
-  distinct_mat_2 <- tiltedCCA_res$distinct_score_2 %*% coef_mat_2
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing common matrices"))
+  coef_mat_1 <- crossprod(score_1, mat_1)/n
+  coef_mat_2 <- crossprod(score_2, mat_2)/n
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Done"))
-  structure(list(cca_obj = tiltedCCA_res$cca_obj, 
-                 common_basis = tiltedCCA_res$common_basis,
-                 common_mat_1 = common_mat_1, 
-                 common_mat_2 = common_mat_2, 
-                 common_score = tiltedCCA_res$common_score[,1:rank_c, drop = F],
-                 df_percentage = tiltedCCA_res$df_percentage,
-                 distinct_mat_1 = distinct_mat_1, 
-                 distinct_mat_2 = distinct_mat_2,
-                 distinct_score_1 = tiltedCCA_res$distinct_score_1,
-                 distinct_score_2 = tiltedCCA_res$distinct_score_2,
-                 param_list = tiltedCCA_res$param_list,
-                 score_1 = tiltedCCA_res$score_1, 
-                 score_2 = tiltedCCA_res$score_2, 
-                 svd_1 = tiltedCCA_res$svd_1, 
-                 svd_2 = tiltedCCA_res$svd_2, 
-                 target_dimred = tiltedCCA_res$target_dimred,
-                 tilt_perc = tiltedCCA_res$tilt_perc), class = "tiltedCCA_decomp")
+  common_mat_1 <- common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
+  common_mat_2 <- common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
+  
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing distinctive matrices"))
+  distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
+  distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
+  
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Done"))
+  input_obj$common_mat_1 <- common_mat_1
+  input_obj$common_mat_2 <- common_mat_2
+  input_obj$distinct_mat_1 <- distinct_mat_1
+  input_obj$distinct_mat_2 <- distinct_mat_2
+  
+  input_obj
 }
 
 

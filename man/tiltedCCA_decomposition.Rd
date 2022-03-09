@@ -4,14 +4,14 @@
 \alias{tiltedCCA_decomposition}
 \title{Tilted-CCA Decomposition}
 \usage{
-tiltedCCA_decomposition(tiltedCCA_res, rank_c = NA, verbose = T)
+tiltedCCA_decomposition(input_obj, rank_c = NA, verbose = 0)
 }
 \arguments{
-\item{tiltedCCA_res}{output from \code{dcca_factor}}
-
 \item{rank_c}{desired rank of cross-correlation matrix between \code{mat_1} and \code{mat_2} when running \code{dcca_factor}}
 
 \item{verbose}{boolean}
+
+\item{tiltedCCA_res}{output from \code{dcca_factor}}
 }
 \value{
 list of class \code{dcca_decomp}

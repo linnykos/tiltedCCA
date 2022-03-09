@@ -29,8 +29,7 @@ test_that("(Basic) tiltedCCA works", {
                                bool_intersect = T,
                                min_deg = 1)
   
-  res <- tiltedCCA(input_obj = multiSVD_obj,
-                   verbose = F)
+  res <- tiltedCCA(input_obj = multiSVD_obj)
   
   expect_true(is.list(res))
   expect_true(inherits(res, "multiSVD"))
@@ -83,8 +82,7 @@ test_that("(Basic) tiltedCCA works with variable dimensions", {
                                bool_intersect = T,
                                min_deg = 1)
   
-  res <- tiltedCCA(input_obj = multiSVD_obj,
-                   verbose = F)
+  res <- tiltedCCA(input_obj = multiSVD_obj)
   
   expect_true(inherits(res, "multiSVD"))
   expect_true(all(names(multiSVD_obj) %in% names(res)))
@@ -126,8 +124,7 @@ test_that("(Basic) tiltedCCA works with a sparse matrix", {
                                bool_intersect = T,
                                min_deg = 1)
   
-  res <- tiltedCCA(input_obj = multiSVD_obj,
-                   verbose = F)
+  res <- tiltedCCA(input_obj = multiSVD_obj)
   
   
   expect_true(inherits(res, "multiSVD"))
@@ -165,8 +162,7 @@ test_that("(Coding) tiltedCCA preserves rownames and colnames", {
                                bool_intersect = T,
                                min_deg = 1)
   
-  res <- tiltedCCA(input_obj = multiSVD_obj,
-                   verbose = F)
+  res <- tiltedCCA(input_obj = multiSVD_obj)
   
   expect_true(length(res$tcca_obj$common_score) > 1)
   expect_true(length(res$tcca_obj$distinct_score_1) > 1)
@@ -206,8 +202,7 @@ test_that("(Math) tiltedCCA is symmetric if the arguments are flipped", {
                                 bool_cosine = T,
                                 bool_intersect = T,
                                 min_deg = 1)
-  res1 <- tiltedCCA(input_obj = multiSVD_obj1,
-                    verbose = F)
+  res1 <- tiltedCCA(input_obj = multiSVD_obj1)
   
   ####
   
@@ -229,8 +224,7 @@ test_that("(Math) tiltedCCA is symmetric if the arguments are flipped", {
                                 bool_cosine = T,
                                 bool_intersect = T,
                                 min_deg = 1)
-  res2 <- tiltedCCA(input_obj = multiSVD_obj2,
-                    verbose = F)
+  res2 <- tiltedCCA(input_obj = multiSVD_obj2)
   
   expect_true(abs(res1$tcca_obj$tilt_perc - (1-res2$tcca_obj$tilt_perc)) <= 1e-6)
   
@@ -247,4 +241,42 @@ test_that("(Math) tiltedCCA is symmetric if the arguments are flipped", {
   expect_true(sum(abs(tmp1 - tmp2)) <= 1e-6)
   expect_true(sum(abs(res1$distinct_score_1 - res2$distinct_score_2)) <= 1e-6)
   expect_true(sum(abs(res1$distinct_score_2 - res2$distinct_score_1)) <= 1e-6)
+})
+
+test_that("(Basic) tiltedCCA works with num_metacells", {
+  # load("tests/assets/test_data1.RData")
+  load("../assets/test_data1.RData")
+  mat_1 <- test_data$mat_1
+  mat_2 <- test_data$mat_2
+  n <- nrow(mat_1)
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2,
+                                  center_1 = F, center_2 = F,
+                                  normalize_row = T,
+                                  normalize_singular_value = F,
+                                  recenter_1 = F, recenter_2 = F,
+                                  rescale_1 = F, rescale_2 = F,
+                                  scale_1 = F, scale_2 = F)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = 100)
+  multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                               latent_k = 2,
+                               num_neigh = 10,
+                               bool_cosine = T,
+                               bool_intersect = T,
+                               min_deg = 1)
+  res <- tiltedCCA(input_obj = multiSVD_obj)
+  
+  expect_true(inherits(res, "multiSVD"))
+  expect_true(all(names(multiSVD_obj) %in% names(res)))
+  expect_true(all(c("tcca_obj", "cca_obj") %in% names(res)))
+  expect_true(all(dim(res$tcca_obj$common_score) == c(n,2)))
+  expect_true(all(dim(res$tcca_obj$distinct_score_1) == c(n,2)))
+  expect_true(all(dim(res$tcca_obj$distinct_score_2) == c(n,2)))
+  expect_true(all(rownames(res$tcca_obj$common_score) == rownames(mat_1)) & length(rownames(res$tcca_obj$common_score)) > 0)
+  expect_true(length(rownames(res$tcca_obj$common_basis)) == res$param$mc_num_metacells)
 })

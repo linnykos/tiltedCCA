@@ -335,4 +335,60 @@ test_that(".get_Laplacian works", {
   expect_true(length(rownames(common_lap_1)) == 100)
 })
 
+######################
+
+## .get_tCCAobj is correct
+test_that(".get_tCCAobj works", {
+  # load("tests/assets/test_data1.RData")
+  load("../assets/test_data1.RData")
+  mat_1 <- test_data$mat_1
+  mat_2 <- test_data$mat_2
+  n <- nrow(mat_1)
+  large_clustering_1 <- test_data$clustering_1
+  large_clustering_2 <- test_data$clustering_2
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2,
+                                  center_1 = F, center_2 = F,
+                                  normalize_row = T,
+                                  normalize_singular_value = F,
+                                  recenter_1 = F, recenter_2 = F,
+                                  rescale_1 = F, rescale_2 = F,
+                                  scale_1 = F, scale_2 = F)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = NULL)
+  multiSVD_obj <- compute_snns(input_obj = multiSVD_obj,
+                               latent_k = 2,
+                               num_neigh = 10,
+                               bool_cosine = T,
+                               bool_intersect = T,
+                               min_deg = 1)
+  multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
+                            verbose = F)
+  
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  res <- .get_tCCAobj(multiSVD_obj, apply_postDimred = F, what = "score")
+  expect_true(sum(abs(res - multiSVD_obj$cca_obj$score_1)) <= 1e-6)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  res <- .get_tCCAobj(multiSVD_obj, apply_postDimred = F, what = "score")
+  expect_true(sum(abs(res - multiSVD_obj$cca_obj$score_2)) <= 1e-6)
+  
+  res <- .get_tCCAobj(multiSVD_obj, apply_postDimred = F, what = "common_score")
+  expect_true(sum(abs(res - multiSVD_obj$tcca_obj$common_score)) <= 1e-6)
+  
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  res <- .get_tCCAobj(multiSVD_obj, apply_postDimred = F, what = "distinct_score")
+  expect_true(sum(abs(res - multiSVD_obj$tcca_obj$distinct_score_1)) <= 1e-6)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  res <- .get_tCCAobj(multiSVD_obj, apply_postDimred = F, what = "distinct_score")
+  expect_true(sum(abs(res - multiSVD_obj$tcca_obj$distinct_score_2)) <= 1e-6)
+  
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  res <- .get_tCCAobj(multiSVD_obj, apply_postDimred = T, what = "distinct_score")
+  l2_vec <- apply(res, 1, .l2norm)
+  expect_true(all(dim(res) == dim(multiSVD_obj$tcca_obj$distinct_score_1)))
+  expect_true(sum(abs(l2_vec - 1)) <= 1e-6)
+})
+
 
