@@ -75,7 +75,7 @@ compute_snns <- function(input_obj,
                            num_neigh = num_neigh)
   param <- .combine_two_named_lists(.get_param(input_obj), param)
   input_obj$param <- param
-  class(input_obj) <- c("snn", "multiSVD")
+  class(input_obj) <- "multiSVD"
   
   input_obj
 }

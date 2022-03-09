@@ -10,6 +10,7 @@
   discretization_gridsize,
   enforce_boundary,
   fix_tilt_perc,
+  snn_bool_cosine,
   snn_bool_intersect,
   snn_k,
   snn_min_deg,
@@ -17,8 +18,7 @@
   svd_1,
   svd_2,
   target_dimred,
-  verbose = T,
-  msg = ""
+  verbose = 0
 )
 }
 \arguments{
@@ -41,8 +41,6 @@ which the tilt will be set to.}
 
 \item{verbose}{boolean}
 
-\item{msg}{additional print character}
-
 \item{cell_max}{positive integer for how many cells to subsample (useful if
 \code{nrow(mat_1) is too large})}
 
@@ -58,6 +56,8 @@ conform to a hard clustering structure).}
 
 \item{num_neigh}{number of neighbors to consider to computed the common percentage
 (when calling \code{.determine_cluster})}
+
+\item{msg}{additional print character}
 }
 \value{
 list

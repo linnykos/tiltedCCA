@@ -231,7 +231,7 @@
 }
 
 #' @export
-.get_SNN.snn <- function(input_obj, 
+.get_SNN.multiSVD <- function(input_obj, 
                          bool_common, ...){
   if(bool_common){
     input_obj$snn_list[["common_snn"]]
@@ -255,7 +255,7 @@
 }
 
 #' @export
-.get_Laplacian.snn <- function(input_obj, 
+.get_Laplacian.multiSVD <- function(input_obj, 
                                bool_common, ...){
   if(bool_common){
     input_obj$laplacian_list[["common_laplacian"]]

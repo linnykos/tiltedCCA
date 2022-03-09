@@ -29,12 +29,7 @@
     
     svd_1 <- .check_svd(svd_1, dims_1); svd_2 <- .check_svd(svd_2, dims_2)
   } else {
-    stopifnot(is.list(input_1), is.list(input_2), 
-              all(c("u","d","v") %in% names(input_1)),
-              all(c("u","d","v") %in% names(input_2)),
-              all(input_1$d >= 0), all(input_2$d >= 0), 
-              all(diff(input_1$d) <= 1e-6), all(diff(input_2$d) <= 1e-6),
-              nrow(input_1$u) == nrow(input_2$u), all(is.na(dims_1)), all(is.na(dims_2)))
+    stopifnot(inherits(input_1, "svd"), inherits(input_2, "svd"))
     
     rank_1 <- length(which(input_1$d >= 1e-6)); rank_2 <- length(which(input_2$d >= 1e-6))
     svd_1 <- input_1; svd_2 <- input_2

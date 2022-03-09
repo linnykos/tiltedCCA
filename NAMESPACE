@@ -2,9 +2,9 @@
 
 S3method(.get_Dimred,default)
 S3method(.get_Laplacian,default)
-S3method(.get_Laplacian,snn)
+S3method(.get_Laplacian,multiSVD)
 S3method(.get_SNN,default)
-S3method(.get_SNN,snn)
+S3method(.get_SNN,multiSVD)
 S3method(.get_SVD,Seurat)
 S3method(.get_SVD,default)
 S3method(.get_SVD,dgCMatrix)

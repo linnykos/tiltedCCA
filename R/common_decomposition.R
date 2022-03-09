@@ -6,6 +6,7 @@
                                   fix_tilt_perc,
                                   score_1,
                                   score_2,
+                                  snn_bool_cosine,
                                   snn_bool_intersect,
                                   snn_k,
                                   snn_min_deg,
@@ -13,7 +14,7 @@
                                   svd_1, 
                                   svd_2,
                                   target_dimred,
-                                  tol = 1e-6, verbose = F){
+                                  tol = 1e-6, verbose = 0){
   
   rank_c <- min(ncol(score_1), ncol(score_2))
   stopifnot(all(sapply(1:rank_c, function(k){
@@ -30,7 +31,7 @@
     .construct_circle(vec1, vec2)
   })
   
-  if(verbose) print(paste0(Sys.time(),": D-CCA: (Inner) Computing distinct percentage"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: (Inner) Computing distinct percentage"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
       averaging_mat = averaging_mat,
@@ -40,6 +41,7 @@
       discretization_gridsize = discretization_gridsize,
       score_1 = score_1,
       score_2 = score_2,
+      snn_bool_cosine = snn_bool_cosine,
       snn_bool_intersect = snn_bool_intersect,
       snn_k = snn_k,
       snn_min_deg = snn_min_deg,
@@ -61,7 +63,7 @@
     }
   }
   
-  if(verbose) print(paste0(Sys.time(),": D-CCA : (Inner) Computing common score"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: (Inner) Computing common score"))
   
   tmp <- .evaluate_radian(
     averaging_mat = averaging_mat,
@@ -72,6 +74,7 @@
     return_common_score_basis = T,
     score_1 = score_1,
     score_2 = score_2,
+    snn_bool_cosine = snn_bool_cosine,
     snn_bool_intersect = snn_bool_intersect,
     snn_k = snn_k,
     snn_min_deg = snn_min_deg,
@@ -103,6 +106,7 @@
                               enforce_boundary,
                               score_1,
                               score_2,
+                              snn_bool_cosine,
                               snn_bool_intersect,
                               snn_k,
                               snn_min_deg,
@@ -124,7 +128,7 @@
   value_vec <- rep(NA, discretization_gridsize)
   
   for(i in which(is.na(value_vec))){
-    if(verbose) print(paste0(Sys.time(),": D-CCA : Evaluating percentage ", percentage_grid[i]))
+    if(verbose >= 2) print(paste0(Sys.time(),": Tilted-CCA: Evaluating percentage ", percentage_grid[i]))
     value_vec[i] <- .evaluate_radian(averaging_mat = averaging_mat,
                                      basis_list = basis_list, 
                                      circle_list = circle_list,
@@ -133,6 +137,7 @@
                                      return_common_score = F,
                                      score_1 = score_1,
                                      score_2 = score_2,
+                                     snn_bool_cosine = snn_bool_cosine,
                                      snn_bool_intersect = snn_bool_intersect,
                                      snn_k = snn_k,
                                      snn_min_deg = snn_min_deg,
@@ -147,7 +152,7 @@
   idx_min <- .select_minimum(minimum = T,
                              x_val = percentage_grid,
                              y_val = value_vec)
-  if(verbose) print(paste0(Sys.time(),": D-CCA : Selected tilt-percentage to be: ", percentage_grid[idx_min]))
+  if(verbose) print(paste0(Sys.time(),": Tilted-CCA: Selected tilt-percentage to be: ", percentage_grid[idx_min]))
   
   list(df = df, percentage = percentage_grid[idx_min])
 }
@@ -162,6 +167,7 @@
                              return_common_score_basis,
                              score_1,
                              score_2,
+                             snn_bool_cosine,
                              snn_bool_intersect,
                              snn_k,
                              snn_min_deg,
@@ -192,14 +198,13 @@
                                              score_2,
                                              svd_1,
                                              svd_2)
-  if(!all(is.na(averaging_mat))){
+  if(!all(is.null(averaging_mat))){
     avg_common_mat <- as.matrix(averaging_mat %*% common_mat)
   } else {
     avg_common_mat <- common_mat
   }
   
-  
-  snn_mat <- .form_snn_mat(bool_cosine = T,
+  snn_mat <- .form_snn_mat(bool_cosine = snn_bool_cosine,
                            bool_intersect = snn_bool_intersect,
                            mat = avg_common_mat, 
                            min_deg = snn_min_deg,

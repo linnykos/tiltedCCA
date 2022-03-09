@@ -37,6 +37,7 @@
                                     discretization_gridsize,
                                     enforce_boundary,
                                     fix_tilt_perc, 
+                                    snn_bool_cosine,
                                     snn_bool_intersect,
                                     snn_k,
                                     snn_min_deg,
@@ -44,26 +45,27 @@
                                     svd_1, 
                                     svd_2, 
                                     target_dimred,
-                                    verbose = T, msg = ""){
+                                    verbose = 0){
   full_rank <- length(cca_res$obj_vec)
   n <- nrow(svd_1$u)
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Computing unnormalized scores"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing unnormalized scores"))
   tmp <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)
   score_1 <- tmp$score_1; score_2 <- tmp$score_2
   stopifnot(ncol(score_1) == length(svd_1$d), ncol(score_2) == length(svd_2$d),
             nrow(score_1) == nrow(score_2))
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Computing common factors"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing common factors"))
   obj_vec <- cca_res$obj_vec
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Computing discrete tilt"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing discrete tilt"))
   tmp <- .common_decomposition(averaging_mat = averaging_mat,
                                discretization_gridsize = discretization_gridsize,
                                enforce_boundary = enforce_boundary,
                                fix_tilt_perc = fix_tilt_perc,
                                score_1 = score_1,
                                score_2 = score_2,
+                               snn_bool_cosine = snn_bool_cosine,
                                snn_bool_intersect = snn_bool_intersect,
                                snn_k = snn_k,
                                snn_min_deg = snn_min_deg,
@@ -81,7 +83,7 @@
   tmp <- .compute_distinct_score(score_1, score_2, common_score)
   distinct_score_1 <- tmp$distinct_score_1; distinct_score_2 <- tmp$distinct_score_2
   
-  if(verbose) print(paste0(Sys.time(),": Tilted-CCA", msg, ": Done"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Done"))
   list(common_basis = common_basis,
        common_score = common_score, 
        distinct_score_1 = distinct_score_1,
