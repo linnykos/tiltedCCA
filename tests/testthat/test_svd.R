@@ -20,18 +20,18 @@ test_that(".svd_truncated works", {
 ## create_multiSVD is correct
 
 test_that("create_multiSVD works", {
-  load(paste0("../assets/test_data", i, ".RData"))
+  load(paste0("../assets/test_data1.RData"))
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   res <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
                          dims_1 = 1:2, dims_2 = 1:2)
   
   expect_true(inherits(res, "multiSVD"))
-  expect_true(sort(names(res)) == sort(c("svd_1", "svd_2", "default_assay", "param")))
+  expect_true(all(sort(names(res)) == sort(c("svd_1", "svd_2", "default_assay", "param"))))
 })
 
 test_that("create_multiSVD respects scale and center", {
-  load(paste0("../assets/test_data", i, ".RData"))
+  load(paste0("../assets/test_data1.RData"))
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2 + 2
   res <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,

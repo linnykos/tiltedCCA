@@ -63,7 +63,6 @@ test_that("compute_snns works", {
                       min_deg = 5)
   
   expect_true(length(grep("^snn*", names(.get_param(res)))) == 5)
-  expect_true(inherits(res, "snn"))
   expect_true(all(names(multiSVD_obj) %in% names(res)))
   expect_true(all(c("snn_list", "laplacian_list") %in% names(res)))
   expect_true(all(sort(names(res$snn_list)) == sort(c("snn_1", "snn_2", "common_snn"))))
@@ -109,7 +108,6 @@ test_that("compute_snns works with metacells", {
                       min_deg = 5)
   
   expect_true(length(grep("^snn*", names(.get_param(res)))) == 5)
-  expect_true(inherits(res, "snn"))
   expect_true(all(names(multiSVD_obj) %in% names(res)))
   expect_true(all(c("snn_list", "laplacian_list") %in% names(res)))
   expect_true(all(sort(names(res$snn_list)) == sort(c("snn_1", "snn_2", "common_snn"))))

@@ -59,6 +59,7 @@ tiltedCCA <- function(input_obj,
   input_obj <- .set_defaultAssay(input_obj, assay = 2)
   svd_2 <- .get_SVD(input_obj)
   
+  n <- nrow(svd_1$u)
   metacell_clustering <- .get_metacell(input_obj,
                                        resolution = "cell", 
                                        type = "list", 

@@ -170,6 +170,7 @@ test_that("(Math) tiltedCCA_decomposition yields common matrices with the same c
                               verbose = F)
     res <- tiltedCCA_decomposition(multiSVD_obj)
     
+    K <- 2
     svd_1 <- svd(res$common_mat_1)$u[,1:K]
     svd_2 <- svd(res$common_mat_2)$u[,1:K]
     
@@ -228,6 +229,8 @@ test_that("(Math) tiltedCCA_decomposition can obtain the same result when fed in
                                 bool_cosine = T,
                                 bool_intersect = T,
                                 min_deg = 1)
+  # [[need to make sure they have the same target]]
+  multiSVD_obj2$laplacian_list$common_laplacian <- multiSVD_obj$laplacian_list$common_laplacian
   multiSVD_obj2 <- tiltedCCA(input_obj = multiSVD_obj2,
                              verbose = F)
   res2 <- tiltedCCA_decomposition(multiSVD_obj2)

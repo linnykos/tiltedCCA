@@ -180,7 +180,7 @@
                              svd_1, 
                              svd_2,
                              target_dimred,
-                             verbose){
+                             verbose = 0){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){

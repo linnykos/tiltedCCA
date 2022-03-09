@@ -11,6 +11,7 @@ test_that("(Basic) .cca works", {
   svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
   svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
   svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
+  class(svd_1) <- "svd"; class(svd_2) <- "svd"
   
   res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
   
@@ -156,6 +157,7 @@ test_that("(Math) .cca yields empirically uncorrelated canoncical scores", {
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
     svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
     svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
+    class(svd_1) <- "svd"; class(svd_2) <- "svd"
     
     res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     

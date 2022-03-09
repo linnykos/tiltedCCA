@@ -20,6 +20,7 @@ test_that("(Math) .compute_unnormalized_scores computes the correct scores", {
     svd_1 <- svd(mat_1); svd_2 <- svd(mat_2)
     svd_1 <- .check_svd(svd_1, dims = 1:min(dim(mat_1)))
     svd_2 <- .check_svd(svd_2, dims = 1:min(dim(mat_2)))
+    class(svd_1) <- "svd"; class(svd_2) <- "svd"
     
     cca_res <- .cca(svd_1, svd_2, dims_1 = NA, dims_2 = NA, return_scores = F)
     res <- .compute_unnormalized_scores(svd_1, svd_2, cca_res)

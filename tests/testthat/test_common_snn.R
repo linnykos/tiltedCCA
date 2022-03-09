@@ -19,10 +19,10 @@ test_that(".compute_common_snn works", {
                                  large_clustering_2 = large_clustering_2,
                                  num_metacells = NULL)
   
-  input_obj <- .set_defaultAssay(input_obj, assay = 1)
-  dimred_1 <- .get_postDimred(input_obj, averaging_mat = NULL)
-  input_obj <- .set_defaultAssay(input_obj, assay = 2)
-  dimred_2 <- .get_postDimred(input_obj, averaging_mat = NULL)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
+  dimred_1 <- .get_postDimred(multiSVD_obj, averaging_mat = NULL)
+  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
+  dimred_2 <- .get_postDimred(multiSVD_obj, averaging_mat = NULL)
   
   num_neigh <- 10; bool_cosine <- T; bool_intersect <- T; min_deg <- 5
   snn_1 <- .form_snn_mat(mat = dimred_1,

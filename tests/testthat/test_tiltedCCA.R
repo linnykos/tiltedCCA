@@ -179,6 +179,8 @@ test_that("(Coding) tiltedCCA preserves rownames and colnames", {
 test_that("(Math) tiltedCCA is symmetric if the arguments are flipped", {
   # load("tests/assets/test_data1.RData")
   load("../assets/test_data1.RData")
+  
+  set.seed(10)
   mat_1 <- test_data$mat_1
   mat_2 <- test_data$mat_2
   n <- nrow(mat_1)
@@ -224,6 +226,8 @@ test_that("(Math) tiltedCCA is symmetric if the arguments are flipped", {
                                 bool_cosine = T,
                                 bool_intersect = T,
                                 min_deg = 1)
+  # [[need to make sure they have the same target]]
+  multiSVD_obj2$laplacian_list$common_laplacian <- multiSVD_obj1$laplacian_list$common_laplacian
   res2 <- tiltedCCA(input_obj = multiSVD_obj2)
   
   expect_true(abs(res1$tcca_obj$tilt_perc - (1-res2$tcca_obj$tilt_perc)) <= 1e-6)
