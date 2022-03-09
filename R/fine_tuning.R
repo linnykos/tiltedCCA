@@ -4,7 +4,7 @@ fine_tuning <- function(input_obj,
                         temp_path = NULL,
                         tol = 1e-5,
                         verbose = 0){
-
+  
   if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))
   
   metacell_clustering <- .get_metacell(input_obj,
@@ -89,7 +89,7 @@ fine_tuning <- function(input_obj,
                                     svd_2 = svd_2,
                                     target_dimred = target_dimred,
                                     verbose = verbose)
-      if(verbose) {
+      if(verbose >= 1) {
         print(paste0("On iteration ", iter, " for latent dimension ", k))
         print(res$df)
         print("=======")
@@ -122,8 +122,8 @@ fine_tuning <- function(input_obj,
                                common_score = res$common_score, 
                                distinct_score_1 = distinct_score_1,
                                distinct_score_2 = distinct_score_2,
-                               df_percentage = res$df,
-                               tilt_perc = res$percentage)
+                               df_percentage = NA,
+                               tilt_perc = tilt_perc)
   input_obj$tcca_obj <- tcca_obj
   input_obj$param$ft_max_tier <- max_iter
   
@@ -140,6 +140,7 @@ fine_tuning <- function(input_obj,
                                    percentage_grid,
                                    score_1,
                                    score_2,
+                                   snn_bool_cosine,
                                    snn_bool_intersect,
                                    snn_k,
                                    snn_min_deg,
@@ -147,7 +148,7 @@ fine_tuning <- function(input_obj,
                                    svd_1, 
                                    svd_2,
                                    target_dimred,
-                                   verbose = T){
+                                   verbose = 0){
   r <- length(basis_list)
   
   value_list <- lapply(percentage_grid, function(percentage){
@@ -165,21 +166,28 @@ fine_tuning <- function(input_obj,
                                                score_2,
                                                svd_1,
                                                svd_2)
-    avg_common_mat <- averaging_mat %*% common_mat
+    if(!all(is.null(averaging_mat))){
+      avg_common_mat <- as.matrix(averaging_mat %*% common_mat)
+    } else {
+      avg_common_mat <- common_mat
+    }
     
-    snn_mat <- .form_snn_mat(bool_intersect = snn_bool_intersect,
+    snn_mat <- .form_snn_mat(bool_cosine = snn_bool_cosine,
+                             bool_intersect = snn_bool_intersect,
                              mat = avg_common_mat, 
                              min_deg = snn_min_deg,
                              num_neigh = snn_num_neigh,
-                             verbose = F)
-    common_basis <- compute_laplacian_basis(snn_mat, 
-                                            k = snn_k,
-                                            verbose = F)
+                             verbose = verbose)
+    common_basis <- .compute_laplacian_basis(snn_mat, 
+                                             latent_k = snn_k,
+                                             verbose = verbose)
     
     value <- .grassmann_distance(orthonormal_1 = common_basis, 
                                  orthonormal_2 = target_dimred)
     
-    list(value = value, common_vec = common_score[,latent_dim])
+    list(value = value, 
+         common_vec = common_score[,latent_dim],
+         common_basis = common_basis)
   })
   names(value_list) <- percentage_grid
   value_vec <- sapply(value_list, function(x){x$value})
@@ -191,7 +199,7 @@ fine_tuning <- function(input_obj,
                    ratio_val = value_vec)
   prev_vec <- common_score[,latent_dim]
   common_score[,latent_dim] <- value_list[[idx_min]]$common_vec
-  print(sum(abs(prev_vec - common_score[,latent_dim])))
+  common_basis <- value_list[[idx_min]]$common_basis
   
   list(common_basis = common_basis,
        common_score = common_score,

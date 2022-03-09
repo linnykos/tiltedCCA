@@ -81,7 +81,8 @@
     snn_num_neigh = snn_num_neigh,
     svd_1 = svd_1, 
     svd_2 = svd_2,
-    target_dimred = target_dimred
+    target_dimred = target_dimred,
+    verbose = verbose
   )
   common_score <- tmp$common_score
   common_basis <- tmp$common_basis
@@ -118,7 +119,7 @@
                               svd_2,
                               target_dimred,
                               tol = 1e-3,
-                              verbose = F){
+                              verbose = 0){
   r <- length(basis_list)
   
   # handle corner case
@@ -147,7 +148,8 @@
                                      snn_num_neigh = snn_num_neigh,
                                      svd_1 = svd_1, 
                                      svd_2 = svd_2,
-                                     target_dimred = target_dimred)
+                                     target_dimred = target_dimred,
+                                     verbose = verbose)
   }
   
   df <- data.frame(percentage = percentage_grid,
@@ -177,7 +179,8 @@
                              snn_num_neigh,
                              svd_1, 
                              svd_2,
-                             target_dimred){
+                             target_dimred,
+                             verbose){
   r <- length(basis_list)
   
   radian_vec <- sapply(1:r, function(k){
@@ -212,10 +215,10 @@
                            mat = avg_common_mat, 
                            min_deg = snn_min_deg,
                            num_neigh = snn_num_neigh,
-                           verbose = F)
+                           verbose = verbose)
   common_basis <- .compute_laplacian_basis(snn_mat, 
                                            latent_k = snn_k,
-                                           verbose = F)
+                                           verbose = verbose)
   
   if(return_common_score_basis) {
     return(list(common_score = common_score,
