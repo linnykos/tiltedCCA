@@ -52,12 +52,20 @@ compute_snns <- function(input_obj,
                                 resolution = "metacell", 
                                 type = "factor",
                                 what = "large_clustering_2")
-  common_snn <- .compute_common_snn(snn_1 = snn_1, 
-                                    snn_2 = snn_2,
-                                    clustering_1 = clustering_1, 
-                                    clustering_2 = clustering_2,
-                                    num_neigh = num_neigh,
-                                    verbose = verbose)
+  
+  if(all(is.null(clustering_1)) & all(is.null(clustering_2))){
+    common_snn <- .compute_common_snn_softclustering(snn_1 = snn_1, 
+                                                     snn_2 = snn_2,
+                                                     num_neigh = num_neigh,
+                                                     verbose = verbose)
+  } else {
+    common_snn <- .compute_common_snn_hardclustering(snn_1 = snn_1, 
+                                                     snn_2 = snn_2,
+                                                     clustering_1 = clustering_1, 
+                                                     clustering_2 = clustering_2,
+                                                     num_neigh = num_neigh,
+                                                     verbose = verbose)
+  }
   snn_list <- list(snn_1 = snn_1, snn_2 = snn_2, common_snn = common_snn)
   laplacian_list <- lapply(snn_list, function(snn_mat){
     .compute_laplacian_basis(latent_k = latent_k,

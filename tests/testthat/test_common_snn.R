@@ -1,8 +1,8 @@
 context("Test common SNN")
 
-## .compute_common_snn is correct
+## .compute_common_snn_hardclustering is correct
 
-test_that(".compute_common_snn works", {
+test_that(".compute_common_snn_hardclustering works", {
   load(paste0("../assets/test_data3.RData"))
   mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
   svd_1 <- test_data$svd_1; svd_2 <- test_data$svd_2
@@ -36,7 +36,7 @@ test_that(".compute_common_snn works", {
                          bool_intersect = bool_intersect, 
                          min_deg = min_deg)
   
-  res <- .compute_common_snn(snn_1 = snn_1,
+  res <- .compute_common_snn_hardclustering(snn_1 = snn_1,
                              snn_2 = snn_2,
                              clustering_1 = large_clustering_1,
                              clustering_2 = large_clustering_2,

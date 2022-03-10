@@ -125,7 +125,7 @@ tiltedCCA <- function(input_obj,
 #'
 #' @return list of class \code{dcca_decomp}
 #' @export
-tiltedCCA_decomposition <- function(input_obj, rank_c = NA, verbose = 0){
+tiltedCCA_decomposition <- function(input_obj, verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"))
   
   if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))

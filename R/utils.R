@@ -112,56 +112,40 @@ form_seurat_obj <- function(mat_1, mat_2){
                                 target_obj){
   stopifnot(bool_colnames | bool_rownames)
   
-  if(inherits(target_obj, "svd")){
+  if(bool_rownames){
     if(inherits(source_obj, "svd")){
-      if(bool_rownames) {
-        stopifnot(nrow(source_obj$u) == nrow(target_obj$u))
-        rownames(target_obj$u) <- rownames(source_obj$u)
-      }
-      if(bool_colnames){
-        stopifnot(nrow(source_obj$v) == nrow(target_obj$v))
-        rownames(target_obj$v) <- rownames(source_obj$v)
-      }
-      
+      rowname_vec <- rownames(source_obj$u)
     } else if(inherits(source_obj, c("matrix", "dgCMatrix"))){
-      if(bool_rownames) {
-        stopifnot(nrow(source_obj) == nrow(target_obj$u))
-        rownames(target_obj$u) <- rownames(source_obj)
-      }
-      if(bool_colnames){
-        stopifnot(ncol(source_obj) == nrow(target_obj$v))
-        rownames(target_obj$v) <- colnames(source_obj)
-      }
+      rowname_vec <- rownames(source_obj)
+    } else if(inherits(source_obj, "multiSVD")){
+      rowname_vec <- rownames(.get_SVD(source_obj)$u)
     } else {
-      stop("Cannot identify class of source_obj")
+      stop("Not valid class for source_obj")
     }
     
-  } else if(inherits(target_obj, c("matrix", "dgCMatrix"))){
+    if(inherits(target_obj, "svd") & length(rowname_vec) > 0){
+      rownames(target_obj$u) <- rowname_vec
+    } else if(inherits(target_obj, c("matrix", "dgCMatrix")) & length(rowname_vec) > 0){
+      rownames(target_obj) <- rowname_vec
+    } 
+  }
+  
+  if(bool_colnames){
     if(inherits(source_obj, "svd")){
-      if(bool_rownames) {
-        stopifnot(nrow(source_obj$u) == nrow(target_obj))
-        rownames(target_obj) <- rownames(source_obj$u)
-      }
-      if(bool_colnames){
-        stopifnot(nrow(source_obj$v) == ncol(target_obj))
-        colnames(target_obj) <- rownames(source_obj$v)
-      }
-      
+      colname_vec <- rownames(source_obj$v)
     } else if(inherits(source_obj, c("matrix", "dgCMatrix"))){
-      if(bool_rownames) {
-        stopifnot(nrow(source_obj) == nrow(target_obj))
-        rownames(target_obj) <- rownames(source_obj)
-      }
-      if(bool_colnames){
-        stopifnot(ncol(source_obj) == ncol(target_obj))
-        colnames(target_obj) <- colnames(source_obj)
-      }
+      colname_vec <- colnames(source_obj)
+    } else if(inherits(source_obj, "multiSVD")){
+      colname_vec <- rownames(.get_SVD(source_obj)$v)
     } else {
-      stop("Cannot identify class of source_obj")
+      stop("Cannot identify class for target_obj")
     }
     
-  } else {
-    stop("Cannot identify class of target_obj")
+    if(inherits(target_obj, "svd") & length(colname_vec) > 0){
+      rownames(target_obj$v) <- colname_vec
+    } else if(inherits(target_obj, c("matrix", "dgCMatrix")) & length(colname_vec) > 0){
+      colnames(target_obj) <- colname_vec
+    } 
   }
   
   target_obj

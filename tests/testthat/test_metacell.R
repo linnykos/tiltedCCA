@@ -151,3 +151,29 @@ test_that("form_metacells works", {
   expect_true(max(table(unlist(res$metacell_obj$metacell_clustering_list))) == 1)
   expect_true(all(sort(unlist(res$metacell_obj$metacell_clustering_list)) == 1:n))
 })
+
+
+test_that("form_metacells works", {
+  load(paste0("../assets/test_data1.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- NULL
+  large_clustering_2 <- NULL
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  res <- form_metacells(input_obj = multiSVD_obj,
+                        large_clustering_1 = large_clustering_1, 
+                        large_clustering_2 = large_clustering_2,
+                        num_metacells = NULL)
+  
+  expect_true(all(names(multiSVD_obj) %in% names(res)))
+  expect_true(all("metacell_obj" %in% names(res)))
+  expect_true(inherits(res$metacell_obj, "metacell"))
+  expect_true(all(sort(names(res$metacell_obj)) == sort(c("large_clustering_1",
+                                                          "large_clustering_2",
+                                                          "metacell_clustering_list"))))
+  expect_true(is.null(res$metacell_obj$large_clustering_1))
+  expect_true(is.null(res$metacell_obj$large_clustering_1))
+  expect_true(is.null(res$metacell_obj$metacell_clustering_list))
+})
+

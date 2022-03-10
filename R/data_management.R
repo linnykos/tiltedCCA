@@ -90,14 +90,26 @@
 }
 
 ###############
+#' @export
+.get_Dimred <- function(input_obj, ...) UseMethod(".get_Dimred")
 
-.get_Dimred <- function(input_obj, 
-                        normalize_singular_value, ...){
+#' @export
+.get_Dimred.default <- function(input_obj, 
+                                normalize_singular_value, ...){
   svd_obj <- .get_SVD(input_obj, ...)
   n <- nrow(svd_obj$u)
   if(normalize_singular_value) svd_obj$d <- svd_obj$d*sqrt(n)/svd_obj$d[1]
+  .mult_mat_vec(svd_obj$u, svd_obj$d)
+}
+
+#' @export
+.get_Dimred.multiSVD <- function(input_obj, ...){
+  svd_obj <- .get_SVD(input_obj, ...)
+  n <- nrow(svd_obj$u)
+  param <- .get_param(input_obj)
+  if(param$svd_normalize_singular_value) svd_obj$d <- svd_obj$d*sqrt(n)/svd_obj$d[1]
   dimred <- .mult_mat_vec(svd_obj$u, svd_obj$d)
-  
+
   .append_rowcolnames(bool_colnames = F, bool_rownames = T,
                       source_obj = input_obj,  target_obj = dimred)
 }
@@ -330,6 +342,9 @@
                           rescale = rescale,
                           scale = scale)
   } 
+  if(any(dim(tmp) == 0)){
+    warning("Output incomplete, possibly since the requested matrix is all-0's")
+  }
   
   tmp
 }

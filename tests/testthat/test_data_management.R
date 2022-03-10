@@ -1,4 +1,4 @@
-context("Test svd")
+context("Test data management")
 
 ## .get_SVD is correct
 
@@ -223,7 +223,7 @@ test_that(".get_metacell works", {
 })
 
 
-test_that(".get_metacell works with num_metacells = NA", {
+test_that(".get_metacell works with num_metacells = NULL", {
   load(paste0("../assets/test_data3.RData"))
   mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
   large_clustering_1 <- test_data$clustering_1
@@ -246,6 +246,32 @@ test_that(".get_metacell works with num_metacells = NA", {
   res1 <- .get_metacell(multiSVD_obj, resolution = "metacell", 
                         type = "factor", what = "large_clustering_1")
   expect_true(all(res1 == large_clustering_1))
+})
+
+
+test_that(".get_metacell works with num_metacells = NULL and no large clusterings", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- NULL
+  large_clustering_2 <- NULL
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = NULL)
+  expect_true(is.null(multiSVD_obj$metacell_obj$metacell_clustering_list))
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(all(res1 == large_clustering_1))
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "metacell_clustering")
+  expect_true(is.null(res1))
+  res1 <- .get_metacell(multiSVD_obj, resolution = "metacell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(is.null(res1))
 })
 
 #####################

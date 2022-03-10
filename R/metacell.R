@@ -6,26 +6,31 @@ form_metacells <- function(input_obj,
                            verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"))
   
-  if(verbose >= 1) print("Extracting SVD")
-  input_obj <- .set_defaultAssay(input_obj, assay = 1)
-  dimred_1 <- .get_postDimred(input_obj, averaging_mat = NULL)
-  input_obj <- .set_defaultAssay(input_obj, assay = 2)
-  dimred_2 <- .get_postDimred(input_obj, averaging_mat = NULL)
-  
-  stopifnot(nrow(dimred_1) == nrow(dimred_2))
-  n <- nrow(dimred_1)
-  
-  if(verbose >= 1) print("Computing intersection of clusterings")
-  res <- .intersect_clustering(large_clustering_1 = large_clustering_1, 
-                               large_clustering_2 = large_clustering_2,
-                               min_size = min_size)
-  
-  if(verbose >= 1) print("Computing metacells")
-  metacell_clustering_list <- .form_metacells(dimred_1 = dimred_1, 
-                                              dimred_2 = dimred_2,
-                                              large_clustering_list = res$large_clustering_list,
-                                              num_metacells = num_metacells, 
-                                              verbose = verbose)
+  if(all(is.null(large_clustering_1)) & all(is.null(large_clustering_2))){
+    if(!is.null(num_metacells)) warning("num_metacells is not NULL depsite no large_clustering's provided.")
+    metacell_clustering_list <- NULL
+  } else {
+    if(verbose >= 1) print("Extracting SVD")
+    input_obj <- .set_defaultAssay(input_obj, assay = 1)
+    dimred_1 <- .get_postDimred(input_obj, averaging_mat = NULL)
+    input_obj <- .set_defaultAssay(input_obj, assay = 2)
+    dimred_2 <- .get_postDimred(input_obj, averaging_mat = NULL)
+    
+    stopifnot(nrow(dimred_1) == nrow(dimred_2))
+    n <- nrow(dimred_1)
+    
+    if(verbose >= 1) print("Computing intersection of clusterings")
+    res <- .intersect_clustering(large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 min_size = min_size)
+    
+    if(verbose >= 1) print("Computing metacells")
+    metacell_clustering_list <- .form_metacells(dimred_1 = dimred_1, 
+                                                dimred_2 = dimred_2,
+                                                large_clustering_list = res$large_clustering_list,
+                                                num_metacells = num_metacells, 
+                                                verbose = verbose)
+  }
   
   metacell_obj <- .create_metacell_obj(large_clustering_1 = large_clustering_1, 
                                        large_clustering_2 = large_clustering_2,

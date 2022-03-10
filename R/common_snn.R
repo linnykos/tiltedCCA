@@ -1,7 +1,48 @@
-.compute_common_snn <- function(snn_1, snn_2,
-                                clustering_1, clustering_2,
-                                num_neigh = 30,
-                                verbose = 0){
+.compute_common_snn_softclustering <- function(snn_1, snn_2,
+                                               num_neigh,
+                                               verbose = 0){
+  stopifnot(all(dim(snn_1) == dim(snn_2)),
+            ncol(snn_1) == nrow(snn_1))
+  
+  n <- nrow(snn_1)
+  if(verbose >= 1) print("Getting NN information")
+  nn_list <- lapply(1:n, function(i){
+    if(verbose >= 2 && n > 10 && i %% floor(n/10) == 0) cat('*')
+    nn_1 <- .nonzero_col(snn_1, 
+                         col_idx = i,
+                         bool_value = F)
+    nn_2 <- .nonzero_col(snn_2, 
+                         col_idx = i,
+                         bool_value = F)
+    
+    list(common = intersect(nn_1, nn_2),
+         distinct_1 = setdiff(nn_1, nn_2),
+         distinct_2 = setdiff(nn_2, nn_1))
+  })
+  
+  if(verbose >= 1) print("Determining common NN's")
+  nn_common_list <- lapply(1:n, function(i){
+    beta <- .compute_quadratic(common_val = length(nn_list[[i]]$common),
+                               distinct_val_1 = length(nn_list[[i]]$distinct_1),
+                               distinct_val_2 = length(nn_list[[i]]$distinct_2))
+    if(length(nn_list[[i]]$distinct_1) <= length(nn_list[[i]]$distinct_2)){
+      tmp <- nn_list[[i]]$distinct_2
+      return(c(nn_list[[i]]$common, nn_list[[i]]$distinct_1, sample(tmp, size = ceiling(beta*length(tmp)))))
+    } else {
+      tmp <- nn_list[[i]]$distinct_1
+      return(c(nn_list[[i]]$common, nn_list[[i]]$distinct_2, sample(tmp, size = ceiling(beta*length(tmp)))))
+    }
+  })
+  
+  .convert_list2sparse(n = n,
+                       nn_list = nn_common_list,
+                       rowname_vec = rownames(snn_1))
+}
+
+.compute_common_snn_hardclustering <- function(snn_1, snn_2,
+                                               clustering_1, clustering_2,
+                                               num_neigh,
+                                               verbose = 0){
   stopifnot(is.factor(clustering_1), is.factor(clustering_2),
             all(dim(snn_1) == dim(snn_2)),
             ncol(snn_1) == nrow(snn_1))
@@ -18,23 +59,30 @@
                               snn_2 = snn_2,
                               verbose = verbose)
   
-  i_vec <- rep(1:n, times = sapply(nn_list, length))
-  j_vec <- unlist(nn_list)
-  
-  sparse_mat <- Matrix::sparseMatrix(i = i_vec,
-                                     j = j_vec,
-                                     x = rep(1, length(i_vec)),
-                                     dims = c(n,n),
-                                     repr = "C")
-  sparse_mat <- sparse_mat + Matrix::t(sparse_mat)
-  sparse_mat@x <- rep(1, length(sparse_mat@x))
-  
-  rownames(sparse_mat) <- rownames(snn_1)
-  colnames(sparse_mat) <- rownames(snn_1)
-  sparse_mat
+  .convert_list2sparse(n = n,
+                       nn_list = nn_list,
+                       rowname_vec = rownames(snn_1))
 }
 
 #######################
+
+.compute_quadratic <- function(common_val,
+                               distinct_val_1,
+                               distinct_val_2){
+  if(distinct_val_1 == distinct_val_2) return(1)
+  if(distinct_val_1 <= distinct_val_2){
+    d1 <- distinct_val_1; d2 <- distinct_val_2
+  } else {
+    d2 <- distinct_val_1; d1 <- distinct_val_2
+  }
+  c <- common_val
+  
+  za <- d2^2
+  zb <- d1*d2 + 2*d2*c
+  zc <- -(d1^2 + d1*d2 + d1*c + d2*c)
+  
+  return(pmax(pmin(-zb + sqrt(zb^2-4*za*zc))/(2*za), 1), 0)
+}
 
 .l2_selection_nn <- function(clustering_1, clustering_2,
                              num_neigh,
@@ -65,7 +113,7 @@
     }
     idx_all <- idx_df$idx
     if(length(idx_all) < num_neigh) return(idx_df$idx)
-   
+    
     obs_tab <- table(clustering_1[idx_all], clustering_2[idx_all])
     obs_tab <- .remove_all_zeros_rowcol(obs_tab)
     
@@ -245,5 +293,30 @@
   mat[,(total_len+2):(2*total_len+1)] <- -diag(total_len)
   
   list(mat = mat, vec = vec)
+}
+
+###################################
+
+
+.convert_list2sparse <- function(n, nn_list,
+                                 rowname_vec){
+  if(length(rowname_vec) > 0) stopifnot(length(rowname_vec) == n)
+  
+  i_vec <- rep(1:n, times = sapply(nn_list, length))
+  j_vec <- unlist(nn_list)
+  
+  sparse_mat <- Matrix::sparseMatrix(i = i_vec,
+                                     j = j_vec,
+                                     x = rep(1, length(i_vec)),
+                                     dims = c(n,n),
+                                     repr = "C")
+  sparse_mat <- sparse_mat + Matrix::t(sparse_mat)
+  sparse_mat@x <- rep(1, length(sparse_mat@x))
+  
+  if(length(rowname_vec) > 0){
+    rownames(sparse_mat) <- rowname_vec
+    colnames(sparse_mat) <- rowname_vec
+  }
+  sparse_mat
 }
 

@@ -26,8 +26,8 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
     # setting 2 is where both modalities are the same
     n_each <- 100
     true_membership_vec <- rep(1:3, each = n_each)
-    clustering_1 <- factor(rep(1:3, n_each))
-    clustering_2 <- factor(rep(1:3, n_each))
+    clustering_1 <- factor(rep(1:3, each = n_each))
+    clustering_2 <- factor(rep(1:3, each = n_each))
     mat_1 <- do.call(rbind, lapply(1:3, function(i){
       if(i == 1){
         MASS::mvrnorm(n = n_each, mu = c(0,0), Sigma = diag(2)) 
@@ -156,12 +156,12 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
                                      verbose = F)
   
   set.seed(10)
-  common_mat <- tiltedCCA:::.compute_common_snn(snn_1 = snn_1, 
-                                                snn_2 = snn_2,
-                                                clustering_1 = clustering_1, 
-                                                clustering_2 = clustering_2,
-                                                num_neigh = 10,
-                                                verbose = F)
+  common_mat <- tiltedCCA:::.compute_common_snn_hardclustering(snn_1 = snn_1, 
+                                                               snn_2 = snn_2,
+                                                               clustering_1 = clustering_1, 
+                                                               clustering_2 = clustering_2,
+                                                               num_neigh = 10,
+                                                               verbose = F)
   
   target_dimred <- tiltedCCA:::.compute_laplacian_basis(common_mat, 
                                                         latent_k = 2, 
@@ -187,6 +187,7 @@ compute_tiltedCCA_ingredients <- function(setting = 1){
                                            fix_tilt_perc = 0.5,
                                            score_1 = score_1,
                                            score_2 = score_2,
+                                           snn_bool_cosine = T,
                                            snn_bool_intersect = T,
                                            snn_k = 2,
                                            snn_min_deg = 1,
