@@ -107,7 +107,7 @@ compute_snns <- function(input_obj,
   
   if(verbose >= 1) print("Compute NNs")
   n <- nrow(mat)
-  nn_mat <- RANN::nn2(mat, k = num_neigh)$nn.idx
+  nn_mat <- RANN::nn2(mat, k = num_neigh+1)$nn.idx
   if(all(nn_mat[,1] == 1:n)){
     nn_mat <- nn_mat[,-1,drop = F]
   }

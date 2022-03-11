@@ -47,3 +47,36 @@ test_that(".compute_common_snn_hardclustering works", {
   expect_true(all(rownames(res) == rownames(dimred_1)) && length(rownames(res)) == nrow(res))
   expect_true(all(colnames(res) == rownames(dimred_1)) && length(colnames(res)) == nrow(res))
 })
+
+############################
+
+## .l2_selection_qp is correct
+
+test_that(".l2_selection_qp works", {
+  num_neigh <- 30
+  obs_tab <- as.table(matrix(c(10,10,5, 5,5,10), nrow = 3, ncol = 2))
+  prior_1 <- c(1/3,1/3,1/3)
+  prior_2 <- c(1/2, 1/2)
+  res <- .l2_selection_qp(num_neigh = num_neigh,
+                          obs_tab = obs_tab,
+                          prior_1 = prior_1,
+                          prior_2 = prior_2)
+  expect_true(is.table(res))
+  expect_true(sum(res) == num_neigh)
+  expect_true(all(dim(res) == dim(obs_tab)))
+})
+
+test_that(".l2_selection_qp works when the requested number is too small", {
+  obs_tab <- as.table(matrix(c(10,10,5, 5,5,10), nrow = 3, ncol = 2))
+  num_neigh <- 2*sum(obs_tab)
+  prior_1 <- c(1/3,1/3,1/3)
+  prior_2 <- c(1/2, 1/2)
+  res <- .l2_selection_qp(num_neigh = num_neigh,
+                          obs_tab = obs_tab,
+                          prior_1 = prior_1,
+                          prior_2 = prior_2)
+  expect_true(is.table(res))
+  expect_true(sum(res) == num_neigh)
+  expect_true(all(res == obs_tab))
+})
+

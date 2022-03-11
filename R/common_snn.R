@@ -123,7 +123,7 @@
     if(all(dim(obs_tab) == c(1,1))){
       sample(idx_df$idx, num_neigh)
     } else {
-      desired_tab <- .l2_selection_lp(num_neigh = num_neigh,
+      desired_tab <- .l2_selection_qp(num_neigh = num_neigh,
                                       obs_tab = obs_tab,
                                       prior_1 = prior_1[names(prior_1) %in% rownames(obs_tab)],
                                       prior_2 = prior_2[names(prior_2) %in% colnames(obs_tab)])
@@ -145,7 +145,7 @@
   mat[row_idx, col_idx, drop = F]
 }
 
-.l2_selection_lp <- function(num_neigh,
+.l2_selection_qp <- function(num_neigh,
                              obs_tab,
                              prior_1,
                              prior_2,
@@ -156,6 +156,7 @@
             abs(sum(prior_1) - 1) <= tol,
             abs(sum(prior_2) - 1) <= tol)
   p1 <- nrow(obs_tab); p2 <- ncol(obs_tab)
+  if(sum(obs_tab) <= num_neigh) return(obs_tab)
   
   obj_mat <- .generate_objmat_l2(obs_tab)
   diag(obj_mat) <- diag(obj_mat) + tol_diag 

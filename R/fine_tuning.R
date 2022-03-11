@@ -7,6 +7,7 @@ fine_tuning <- function(input_obj,
   
   if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))
   
+  n <- nrow(.get_SVD(input_obj)$u)
   metacell_clustering <- .get_metacell(input_obj,
                                        resolution = "cell", 
                                        type = "list", 

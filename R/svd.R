@@ -5,7 +5,8 @@ create_multiSVD <- function(mat_1, mat_2,
                             normalize_singular_value = T,
                             recenter_1 = F, recenter_2 = F,
                             rescale_1 = F, rescale_2 = F,
-                            scale_1 = T, scale_2 = T){
+                            scale_1 = T, scale_2 = T,
+                            verbose = 0){
   stopifnot(nrow(mat_1) == nrow(mat_2))
   
   n <- nrow(mat_1)
