@@ -44,6 +44,8 @@
                                                num_neigh,
                                                verbose = 0){
   stopifnot(is.factor(clustering_1), is.factor(clustering_2),
+            length(clustering_1) == nrow(snn_1),
+            length(clustering_1) == nrow(snn_2),
             all(dim(snn_1) == dim(snn_2)),
             ncol(snn_1) == nrow(snn_1))
   
@@ -91,7 +93,8 @@
   n <- nrow(snn_1)
   
   nn_list <- lapply(1:n, function(i){
-    if(verbose >= 2 && n > 10 && i %% floor(n/10) == 0) cat('*')
+    if(verbose == 2 && n > 10 && i %% floor(n/10) == 0) cat('*')
+    if(verbose == 3) print(paste0("On node ", i))
     
     nn_1 <- .nonzero_col(snn_1, 
                          col_idx = i,

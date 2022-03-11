@@ -143,6 +143,7 @@ compute_snns <- function(input_obj,
   }
   
   if(length(rownames(mat)) > 0){
+    if(verbose >= 1) print(paste0("Adding row/column names"))
     rownames(sparse_mat) <- rownames(mat)
     colnames(sparse_mat) <- rownames(mat)
   }

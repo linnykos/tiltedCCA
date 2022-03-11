@@ -122,8 +122,11 @@ form_metacells <- function(input_obj,
                                  n = n, 
                                  num_metacells = num_metacells)
   
+  if(verbose >= 2) print(paste0("Intersection of two clusterings yielded ",
+                                length(large_clustering_list), " clusters, splitting in ",
+                                num_metacells, " metacells"))
   tmp <- lapply(1:length(large_clustering_list), function(k){
-    if(verbose >= 1) print(paste0("On cluster ", k))
+    if(verbose >= 2) print(paste0("On cluster ", k))
     lis <- .compute_metacells(dimred_1 = dimred_1[large_clustering_list[[k]],,drop = F],
                               dimred_2 = dimred_2[large_clustering_list[[k]],,drop = F],
                               k = df$num[k], 
