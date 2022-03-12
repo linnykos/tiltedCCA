@@ -153,6 +153,7 @@ fine_tuning <- function(input_obj,
   r <- length(basis_list)
   
   value_list <- lapply(percentage_grid, function(percentage){
+    if(verbose >= 2) print(paste0("Working on percentage ", percentage))
     radian_val <- .compute_radian(circle = circle_list[[latent_dim]],
                                   enforce_boundary = T,
                                   percentage_val = percentage, 

@@ -83,7 +83,7 @@
   zb <- d1*d2 + 2*d2*c
   zc <- -(d1^2 + d1*d2 + d1*c + d2*c)
   
-  return(pmax(pmin(-zb + sqrt(zb^2-4*za*zc))/(2*za), 1), 0)
+  return(max(c(min(c(-zb + sqrt(zb^2-4*za*zc))/(2*za), 1)), 0))
 }
 
 .l2_selection_nn <- function(clustering_1, clustering_2,

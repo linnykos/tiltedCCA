@@ -29,6 +29,7 @@ compute_snns <- function(input_obj,
   input_obj <- .set_defaultAssay(input_obj, assay = 2)
   dimred_2 <- .get_postDimred(input_obj, averaging_mat = averaging_mat)
   
+  if(verbose >= 1) print(paste0("Constructin SNN 1"))
   snn_1 <- .form_snn_mat(mat = dimred_1,
                          num_neigh = num_neigh,
                          bool_cosine = bool_cosine, 
@@ -36,6 +37,7 @@ compute_snns <- function(input_obj,
                          min_deg = min_deg,
                          tol = tol,
                          verbose = verbose)
+  if(verbose >= 1) print(paste0("Constructin SNN 2"))
   snn_2 <- .form_snn_mat(mat = dimred_2,
                          num_neigh = num_neigh,
                          bool_cosine = bool_cosine, 
@@ -53,6 +55,7 @@ compute_snns <- function(input_obj,
                                 type = "factor",
                                 what = "large_clustering_2")
   
+  if(verbose >= 1) print(paste0("Constructin common SNN"))
   if(all(is.null(clustering_1)) & all(is.null(clustering_2))){
     common_snn <- .compute_common_snn_softclustering(snn_1 = snn_1, 
                                                      snn_2 = snn_2,
@@ -105,14 +108,14 @@ compute_snns <- function(input_obj,
     mat <- .mult_vec_mat(1/l2_vec, mat)
   }
   
-  if(verbose >= 1) print("Compute NNs")
+  if(verbose >= 3) print("Compute NNs")
   n <- nrow(mat)
   nn_mat <- RANN::nn2(mat, k = num_neigh+1)$nn.idx
   if(all(nn_mat[,1] == 1:n)){
     nn_mat <- nn_mat[,-1,drop = F]
   }
   
-  if(verbose >= 1) print("Forming NN matrix")
+  if(verbose >= 3) print("Forming NN matrix")
   i_vec <- rep(1:n, times = ncol(nn_mat))
   j_vec <- as.numeric(nn_mat)
   
@@ -133,7 +136,7 @@ compute_snns <- function(input_obj,
     deg_vec <- sparseMatrixStats::rowSums2(sparse_mat)
     if(min(deg_vec) < min_deg) {
       idx <- which(deg_vec < min_deg)
-      if(verbose >= 1) print(paste0("Joining the ", length(idx), " nodes with too few neighbors"))
+      if(verbose >= 3) print(paste0("Joining the ", length(idx), " nodes with too few neighbors"))
       
       for(i in idx) sparse_mat[i,nn_mat[i,1:min_deg]] <- 1
       
@@ -143,7 +146,7 @@ compute_snns <- function(input_obj,
   }
   
   if(length(rownames(mat)) > 0){
-    if(verbose >= 1) print(paste0("Adding row/column names"))
+    if(verbose >= 3) print(paste0("Adding row/column names"))
     rownames(sparse_mat) <- rownames(mat)
     colnames(sparse_mat) <- rownames(mat)
   }

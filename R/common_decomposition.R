@@ -31,7 +31,7 @@
     .construct_circle(vec1, vec2)
   })
   
-  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: (Inner) Computing distinct percentage"))
+  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: (Inner) Computing best tilt"))
   if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
     tmp <- .search_tilt_perc(
       averaging_mat = averaging_mat,
