@@ -125,44 +125,45 @@ tiltedCCA <- function(input_obj,
 #'
 #' @return list of class \code{dcca_decomp}
 #' @export
-tiltedCCA_decomposition <- function(input_obj, verbose = 0){
+tiltedCCA_decomposition <- function(input_obj, 
+                                    modality_1 = T,
+                                    modality_2 = T,
+                                    verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"))
-  
-  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Gathering relevant objects"))
-  input_obj <- .set_defaultAssay(input_obj, assay = 1)
-  svd_1 <- .get_SVD(input_obj)
-  score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
-  distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
-  
-  input_obj <- .set_defaultAssay(input_obj, assay = 2)
-  svd_2 <- .get_SVD(input_obj)
-  score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
-  distinct_score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
   
   common_score <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_score")
   rank_c <- ncol(common_score)
-  n <- nrow(svd_1$u)
+  n <- nrow(common_score)
   
-  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Form denoised observation matrices"))
-  mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
-  mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v)
+  if(modality_1){
+    input_obj <- .set_defaultAssay(input_obj, assay = 1)
+    svd_1 <- .get_SVD(input_obj)
+    score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+    distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
+    
+    mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
+    coef_mat_1 <- crossprod(score_1, mat_1)/n
+    common_mat_1 <- common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
+    distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
+    
+    input_obj$common_mat_1 <- common_mat_1
+    input_obj$distinct_mat_1 <- distinct_mat_1
+  }
   
-  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing common matrices"))
-  coef_mat_1 <- crossprod(score_1, mat_1)/n
-  coef_mat_2 <- crossprod(score_2, mat_2)/n
-  
-  common_mat_1 <- common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
-  common_mat_2 <- common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
-  
-  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Computing distinctive matrices"))
-  distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
-  distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
-  
-  if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: Done"))
-  input_obj$common_mat_1 <- common_mat_1
-  input_obj$common_mat_2 <- common_mat_2
-  input_obj$distinct_mat_1 <- distinct_mat_1
-  input_obj$distinct_mat_2 <- distinct_mat_2
+  if(modality_2){
+    input_obj <- .set_defaultAssay(input_obj, assay = 2)
+    svd_2 <- .get_SVD(input_obj)
+    score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+    distinct_score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
+    
+    mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v)
+    coef_mat_2 <- crossprod(score_2, mat_2)/n
+    common_mat_2 <- common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
+    distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
+    
+    input_obj$common_mat_2 <- common_mat_2
+    input_obj$distinct_mat_2 <- distinct_mat_2
+  }
   
   input_obj
 }
