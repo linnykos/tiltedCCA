@@ -263,7 +263,8 @@
   stopifnot(inherits(input_obj, "multiSVD"),
             is.logical(apply_postDimred),
             what %in% c("score", "common_basis", "common_score",
-                        "distinct_score", "common_mat", "distinct_mat"))
+                        "distinct_score", "common_mat", "distinct_mat",
+                        "common_dimred", "distinct_dimred"))
   if(what == "common_basis" & apply_postDimred){
     warning(paste0("apply_postDimred=T and what=", what," is possibly nonsensical"))
   }
@@ -309,6 +310,23 @@
     } else {
       stopifnot("distinct_mat_2" %in% names(input_obj))
       tmp <- input_obj$distinct_mat_2
+    }
+  } else if(what == "common_dimred"){
+    if(default_assay == 1){
+      stopifnot("common_dimred_1" %in% names(input_obj))
+      tmp <- input_obj$common_dimred_1
+    } else {
+      stopifnot("common_dimred_2" %in% names(input_obj))
+      tmp <- input_obj$common_dimred_2
+    }
+    
+  } else if(what == "distinct_dimred"){
+    if(default_assay == 1){
+      stopifnot("distinct_dimred_1" %in% names(input_obj))
+      tmp <- input_obj$distinct_dimred_1
+    } else {
+      stopifnot("distinct_dimred_2" %in% names(input_obj))
+      tmp <- input_obj$distinct_dimred_2
     }
   } else {
     stop(".get_tCCAobj does not have a valid argument")

@@ -126,8 +126,8 @@ tiltedCCA <- function(input_obj,
 #' @return list of class \code{dcca_decomp}
 #' @export
 tiltedCCA_decomposition <- function(input_obj, 
-                                    modality_1 = T,
-                                    modality_2 = T,
+                                    bool_modality_1_full = T,
+                                    bool_modality_2_full = T,
                                     verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"))
   
@@ -135,34 +135,49 @@ tiltedCCA_decomposition <- function(input_obj,
   rank_c <- ncol(common_score)
   n <- nrow(common_score)
   
-  if(modality_1){
-    input_obj <- .set_defaultAssay(input_obj, assay = 1)
-    svd_1 <- .get_SVD(input_obj)
-    score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
-    distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
-    
-    mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
-    coef_mat_1 <- crossprod(score_1, mat_1)/n
-    common_mat_1 <- common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
-    distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
-    
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  svd_1 <- .get_SVD(input_obj)
+  score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+  distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
+ 
+   if(bool_modality_1_full){
+     mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
+     coef_mat_1 <- crossprod(score_1, mat_1)/n
+   } else {
+     coef_mat_1 <- crossprod(score_1, .mult_mat_vec(svd_1$u, svd_1$d))/n
+   }
+  common_mat_1 <- common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
+  distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
+     
+  if(bool_modality_1_full){
     input_obj$common_mat_1 <- common_mat_1
     input_obj$distinct_mat_1 <- distinct_mat_1
+  } else {
+    input_obj$common_dimred_1 <- common_mat_1
+    input_obj$distinct_dimred_1 <- distinct_mat_1
   }
   
-  if(modality_2){
-    input_obj <- .set_defaultAssay(input_obj, assay = 2)
-    svd_2 <- .get_SVD(input_obj)
-    score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
-    distinct_score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
-    
+  ####
+  
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  svd_2 <- .get_SVD(input_obj)
+  score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
+  distinct_score_2 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
+  if(bool_modality_2_full){
     mat_2 <- tcrossprod(.mult_mat_vec(svd_2$u, svd_2$d), svd_2$v)
     coef_mat_2 <- crossprod(score_2, mat_2)/n
-    common_mat_2 <- common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
-    distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
-    
+  } else {
+    coef_mat_2 <- crossprod(score_2, .mult_mat_vec(svd_2$u, svd_2$d))/n
+  }
+  common_mat_2 <- common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
+  distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
+  
+  if(bool_modality_2_full){
     input_obj$common_mat_2 <- common_mat_2
     input_obj$distinct_mat_2 <- distinct_mat_2
+  } else {
+    input_obj$common_dimred_2 <- common_mat_2
+    input_obj$distinct_dimred_2 <- distinct_mat_2
   }
   
   input_obj

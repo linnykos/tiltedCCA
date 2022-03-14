@@ -14,19 +14,42 @@ create_SeuratDim <- function(input_obj,
     }
     
     input_obj <- .set_defaultAssay(input_obj, assay = 1)
-    dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
+    if("common_mat_1" %in% names(input_obj)){
+      dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
+    } else if("common_dimred_1" %in% names(input_obj)){
+      dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
+    } else {
+      stop("Cannot find the appropriate common matrix for modality 1")
+    }
     input_obj <- .set_defaultAssay(input_obj, assay = 2)
-    dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
+    if("common_mat_2" %in% names(input_obj)){
+      dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
+    } else if("common_dimred_2" %in% names(input_obj)){
+      dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
+    } else {
+      stop("Cannot find the appropriate common matrix for modality 2")
+    }
     dimred <- cbind(dimred_1, dimred_2)
     
   } else if(what == "distinct_1"){
     input_obj <- .set_defaultAssay(input_obj, assay = 1)
-    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
+    if("distinct_mat_1" %in% names(input_obj)){
+      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
+    } else if("distinct_dimred_1" %in% names(input_obj)){
+      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
+    } else {
+      stop("Cannot find the appropriate distinct matrix for modality 1")
+    }
     
   } else {
     input_obj <- .set_defaultAssay(input_obj, assay = 2)
-    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
-    
+    if("distinct_mat_2" %in% names(input_obj)){
+      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
+    } else if("distinct_dimred_2" %in% names(input_obj)){
+      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
+    } else {
+      stop("Cannot find the appropriate distinct matrix for modality 2")
+    }
   } 
   
   seurat_umap <- Seurat::RunUMAP(dimred, 
