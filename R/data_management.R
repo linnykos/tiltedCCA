@@ -340,13 +340,15 @@
       recenter <- param$svd_recenter_1
       rescale <- param$svd_rescale_1
       center <- param$svd_center_1
-      dims <- param$svd_dims_1
+      dims <- param$svd_dims_1; dims <- dims - min(dims) + 1
+      dims <- pmin(dims, ncol(tmp))
       scale <- param$svd_scale_1
     } else {
       recenter <- param$svd_recenter_2
       rescale <- param$svd_rescale_2
       center <- param$svd_center_2
-      dims <- param$svd_dims_2
+      dims <- param$svd_dims_2; dims <- dims - min(dims) + 1
+      dims <- pmin(dims, ncol(tmp))
       scale <- param$svd_scale_2
     }
     
