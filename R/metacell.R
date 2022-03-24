@@ -6,34 +6,49 @@ form_metacells <- function(input_obj,
                            verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"))
   
-  if(all(is.null(large_clustering_1)) & all(is.null(large_clustering_2))){
-    if(!is.null(num_metacells)) warning("num_metacells is not NULL depsite no large_clustering's provided.")
-    metacell_clustering_list <- NULL
-  } else {
-    if(verbose >= 1) print("Extracting SVD")
-    input_obj <- .set_defaultAssay(input_obj, assay = 1)
-    dimred_1 <- .get_postDimred(input_obj, averaging_mat = NULL)
-    input_obj <- .set_defaultAssay(input_obj, assay = 2)
-    dimred_2 <- .get_postDimred(input_obj, averaging_mat = NULL)
-    
-    stopifnot(nrow(dimred_1) == nrow(dimred_2))
-    n <- nrow(dimred_1)
+  if(verbose >= 1) print("Extracting SVD")
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  dimred_1 <- .get_postDimred(input_obj, averaging_mat = NULL)
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  dimred_2 <- .get_postDimred(input_obj, averaging_mat = NULL)
+  
+  stopifnot(nrow(dimred_1) == nrow(dimred_2))
+  n <- nrow(dimred_1)
+  large_clustering_1_original <- NULL
+  large_clustering_2_original <- NULL
+  
+  if(!is.null(num_metacells)){
+    if(all(is.null(large_clustering_1)) & all(is.null(large_clustering_2))){
+      num_cluster <- floor(sqrt(num_metacells))
+
+      if(verbose >= 1) print(paste0("Computing large clusterings with ", num_cluster, " clusters"))
+      large_clustering_1_list <- .compute_metacells(dimred_1 = dimred_1, 
+                                                    dimred_2 = NULL,
+                                                    k = num_cluster, 
+                                                    row_indices = 1:n)
+      large_clustering_1 <- .convert_list2factor(large_clustering_1_list, n=n)
+      
+      large_clustering_2_list <- .compute_metacells(dimred_1 = dimred_2, 
+                                                    dimred_2 = NULL,
+                                                    k = num_cluster, 
+                                                    row_indices = 1:n)
+      large_clustering_2 <- .convert_list2factor(large_clustering_2_list, n=n)
+    }  
     
     if(verbose >= 1) print("Computing intersection of clusterings")
     res <- .intersect_clustering(large_clustering_1 = large_clustering_1, 
                                  large_clustering_2 = large_clustering_2,
                                  min_size = min_size)
-    
-    if(verbose >= 1) print("Computing metacells")
-    metacell_clustering_list <- .form_metacells(dimred_1 = dimred_1, 
-                                                dimred_2 = dimred_2,
-                                                large_clustering_list = res$large_clustering_list,
-                                                num_metacells = num_metacells, 
-                                                verbose = verbose)
-  }
+  } 
   
-  metacell_obj <- .create_metacell_obj(large_clustering_1 = large_clustering_1, 
-                                       large_clustering_2 = large_clustering_2,
+  if(verbose >= 1) print("Computing metacells")
+  metacell_clustering_list <- .form_metacells(dimred_1 = dimred_1, 
+                                              dimred_2 = dimred_2,
+                                              large_clustering_list = res$large_clustering_list,
+                                              num_metacells = num_metacells, 
+                                              verbose = verbose)
+  metacell_obj <- .create_metacell_obj(large_clustering_1 = large_clustering_1_original, 
+                                       large_clustering_2 = large_clustering_2_original,
                                        metacell_clustering_list = metacell_clustering_list)
   input_obj$metacell_obj <- metacell_obj
   param <- .form_metacells_param(min_size = min_size,
@@ -169,11 +184,15 @@ form_metacells <- function(input_obj,
 .compute_metacells <- function(dimred_1, dimred_2,
                                k,
                                row_indices){
-  stopifnot(length(row_indices) == nrow(dimred_1),
-            nrow(dimred_1) == nrow(dimred_2))
+  stopifnot(length(row_indices) == nrow(dimred_1))
   if(k == 1) return(list(row_indices))
   
-  dimred <- cbind(dimred_1, dimred_2)
+  if(!all(is.null(dimred_2))){
+    stopifnot(nrow(dimred_1) == nrow(dimred_2))
+    dimred <- cbind(dimred_1, dimred_2)
+  } else {
+    dimred <- dimred_1
+  }
   
   kmeans_res <- stats::kmeans(dimred, centers = k)
   metacell_clustering <- lapply(1:k, function(kk){

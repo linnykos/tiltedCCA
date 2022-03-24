@@ -79,6 +79,23 @@ test_that(".compute_metacells works", {
   expect_true(max(table(unlist(res))) == 1)
 })
 
+
+test_that(".compute_metacells works with one modality as NULL", {
+  load(paste0("../assets/test_data3.RData"))
+  svd_1 <- test_data$svd_1; svd_2 <- test_data$svd_2
+  dimred_1 <- .mult_mat_vec(svd_1$u, svd_1$d)
+  dimred_2 <- .mult_mat_vec(svd_2$u, svd_2$d)
+  n <- nrow(dimred_1)
+  
+  res <- .compute_metacells(dimred_1 = dimred_1,
+                            dimred_2 = NULL,
+                            k = 10,
+                            row_indices = 1:n)
+  
+  expect_true(all(sort(unlist(res)) == sort(1:n)))
+  expect_true(max(table(unlist(res))) == 1)
+})
+
 ###############################
 
 ## .form_metacells is correct
@@ -176,4 +193,33 @@ test_that("form_metacells works", {
   expect_true(is.null(res$metacell_obj$large_clustering_1))
   expect_true(is.null(res$metacell_obj$metacell_clustering_list))
 })
+
+
+test_that("form_metacells works without large clusters", {
+  load(paste0("../assets/test_data1.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- NULL
+  large_clustering_2 <- NULL
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  res <- form_metacells(input_obj = multiSVD_obj,
+                        large_clustering_1 = large_clustering_1, 
+                        large_clustering_2 = large_clustering_2,
+                        num_metacells = 10)
+  
+  expect_true(all(names(multiSVD_obj) %in% names(res)))
+  expect_true(all("metacell_obj" %in% names(res)))
+  expect_true(inherits(res$metacell_obj, "metacell"))
+  expect_true(all(sort(names(res$metacell_obj)) == sort(c("large_clustering_1",
+                                                          "large_clustering_2",
+                                                          "metacell_clustering_list"))))
+  expect_true(is.null(res$metacell_obj$large_clustering_1))
+  expect_true(is.null(res$metacell_obj$large_clustering_1))
+  expect_true(max(table(unlist(res$metacell_obj$metacell_clustering_list))) == 1)
+  expect_true(length(res$metacell_obj$metacell_clustering_list) == 10)
+  expect_true(all(sort(unlist(res$metacell_obj$metacell_clustering_list)) == 1:n))
+})
+
+
 

@@ -146,7 +146,7 @@ tiltedCCA_decomposition <- function(input_obj,
    } else {
      coef_mat_1 <- crossprod(score_1, .mult_mat_vec(svd_1$u, svd_1$d))/n
    }
-  common_mat_1 <- common_score[,1:rank_c, drop = F] %*% coef_mat_1[1:rank_c,,drop = F]
+  common_mat_1 <- common_score %*% coef_mat_1[1:rank_c,,drop = F]
   distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
      
   if(bool_modality_1_full){
@@ -169,7 +169,7 @@ tiltedCCA_decomposition <- function(input_obj,
   } else {
     coef_mat_2 <- crossprod(score_2, .mult_mat_vec(svd_2$u, svd_2$d))/n
   }
-  common_mat_2 <- common_score[,1:rank_c, drop = F] %*% coef_mat_2[1:rank_c,,drop = F]
+  common_mat_2 <- common_score %*% coef_mat_2[1:rank_c,,drop = F]
   distinct_mat_2 <- distinct_score_2 %*% coef_mat_2
   
   if(bool_modality_2_full){

@@ -76,7 +76,6 @@ test_that(".l2_selection_qp works when the requested number is too small", {
                           prior_1 = prior_1,
                           prior_2 = prior_2)
   expect_true(is.table(res))
-  expect_true(sum(res) == num_neigh)
   expect_true(all(res == obs_tab))
 })
 
