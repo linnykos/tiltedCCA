@@ -155,12 +155,16 @@
 }
 
 #' @export
-.get_metacell.metacell <- function(input_obj,
+.get_metacell.metacell <- function(input_obj, n,
                                    resolution, type, what, ...){
   stopifnot(what %in% c("large_clustering_1", "large_clustering_2", "metacell_clustering"),
             type %in% c("list", "factor"),
             resolution %in% c("cell", "metacell"))
-  n <- length(input_obj$large_clustering_1)
+  if(!all(is.null(input_obj$large_clustering_1))) 
+    stopifnot(length(input_obj$large_clustering_1) <= n)
+  if(!all(is.null(input_obj$metacell_clustering_list))) 
+    stopifnot(length(unlist(input_obj$metacell_clustering_list)) <= n)
+    
   if(what %in% c("large_clustering_1", "large_clustering_2") & 
      resolution == "cell"){
     if(what == "large_clustering_1"){
@@ -194,6 +198,8 @@
       } else {
         source_vec <- input_obj$large_clustering_2
       }
+      if(all(is.null(source_vec))) return(source_vec)
+      
       target_vec <- rep(NA, length(lis))
       for(i in 1:length(target_vec)){
         tab <- table(source_vec[lis[[i]]])
@@ -218,7 +224,9 @@
 #' @export
 .get_metacell.multiSVD <- function(input_obj, ...){
   stopifnot("metacell_obj" %in% names(input_obj))
-  .get_metacell(input_obj$metacell_obj, ...)
+  n <- nrow(input_obj$svd_1$u)
+  .get_metacell(input_obj$metacell_obj, n = n,
+                ...)
 }
 
 #############################

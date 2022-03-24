@@ -14,8 +14,8 @@ form_metacells <- function(input_obj,
   
   stopifnot(nrow(dimred_1) == nrow(dimred_2))
   n <- nrow(dimred_1)
-  large_clustering_1_original <- NULL
-  large_clustering_2_original <- NULL
+  large_clustering_1_original <- large_clustering_1
+  large_clustering_2_original <- large_clustering_2
   
   if(!is.null(num_metacells)){
     if(all(is.null(large_clustering_1)) & all(is.null(large_clustering_2))){

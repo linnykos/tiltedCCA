@@ -274,6 +274,34 @@ test_that(".get_metacell works with num_metacells = NULL and no large clustering
   expect_true(is.null(res1))
 })
 
+
+test_that(".get_metacell works with no large clusterings but some number of metacells", {
+  load(paste0("../assets/test_data3.RData"))
+  mat_1 <- test_data$mat_1; mat_2 <- test_data$mat_2
+  large_clustering_1 <- NULL
+  large_clustering_2 <- NULL
+  n <- nrow(mat_1)
+  multiSVD_obj <- create_multiSVD(mat_1 = mat_1, mat_2 = mat_2,
+                                  dims_1 = 1:2, dims_2 = 1:2)
+  multiSVD_obj <- form_metacells(input_obj = multiSVD_obj,
+                                 large_clustering_1 = large_clustering_1, 
+                                 large_clustering_2 = large_clustering_2,
+                                 num_metacells = 50,
+                                 min_size = 0)
+  expect_true(length(multiSVD_obj$metacell_obj$metacell_clustering_list) == 50)
+  
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(is.null(res1))
+  res1 <- .get_metacell(multiSVD_obj, resolution = "cell", 
+                        type = "factor", what = "metacell_clustering")
+  expect_true(is.factor(res1))
+  expect_true(length(res1) == n)
+  res1 <- .get_metacell(multiSVD_obj, resolution = "metacell", 
+                        type = "factor", what = "large_clustering_1")
+  expect_true(is.null(res1))
+})
+
 #####################
 
 ## .get_SNN is correct

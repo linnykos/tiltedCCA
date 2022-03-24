@@ -206,7 +206,8 @@ test_that("form_metacells works without large clusters", {
   res <- form_metacells(input_obj = multiSVD_obj,
                         large_clustering_1 = large_clustering_1, 
                         large_clustering_2 = large_clustering_2,
-                        num_metacells = 10)
+                        num_metacells = 10,
+                        min_size = 0)
   
   expect_true(all(names(multiSVD_obj) %in% names(res)))
   expect_true(all("metacell_obj" %in% names(res)))
