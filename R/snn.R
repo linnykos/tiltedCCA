@@ -12,13 +12,13 @@ compute_snns <- function(input_obj,
     warning("Potential warning: normalize_row (in create_multiSVD) is not the same as bool_cosine (compute_snns)")
   }
   
-  metacell_clustering <- .get_metacell(input_obj,
+  metacell_clustering_list <- .get_metacell(input_obj,
                                        resolution = "cell", 
                                        type = "list", 
                                        what = "metacell_clustering")
   n <- nrow(.get_SVD(input_obj)$u)
-  if(!all(is.null(metacell_clustering))){
-    averaging_mat <- .generate_averaging_matrix(metacell_clustering = metacell_clustering,
+  if(!all(is.null(metacell_clustering_list))){
+    averaging_mat <- .generate_averaging_matrix(metacell_clustering_list = metacell_clustering_list,
                                                 n = n)
   } else {
     averaging_mat <- NULL
@@ -182,6 +182,15 @@ compute_snns <- function(input_obj,
 }
 
 #######################
+.symmetrize_sparse <- function(g_mat, set_ones){
+  stopifnot(inherits(g_mat, "dgCMatrix"))
+  
+  tmp <- Matrix::t(g_mat)
+  g_mat <- g_mat + tmp - sqrt(g_mat * tmp)
+  if(set_ones) g_mat@x <- rep(1, length(g_mat@x))
+  
+  g_mat
+}
 
 .form_snn_param <- function(bool_cosine,
                             bool_intersect,

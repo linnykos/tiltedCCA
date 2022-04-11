@@ -66,10 +66,16 @@ form_seurat_obj <- function(mat_1, mat_2){
 
 ###########################
 
+# see https://stackoverflow.com/questions/7944809/assigning-null-to-a-list-element-in-r
 .combine_two_named_lists <- function(list1, list2){
   idx <- which(!names(list2) %in% names(list1))
   for(i in idx){
-    list1[[names(list2)[i]]] <- list2[[i]]
+    if(all(is.null(list2[[i]]))){
+      list1 <- c(list1, list(TEMP_NAME = NULL))
+      names(list1)[which(names(list1) == "TEMP_NAME")] <- names(list2)[i]
+    } else {
+      list1[[names(list2)[i]]] <- list2[[i]]
+    }
   }
   
   list1

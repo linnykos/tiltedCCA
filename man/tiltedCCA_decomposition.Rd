@@ -4,15 +4,24 @@
 \alias{tiltedCCA_decomposition}
 \title{Tilted-CCA Decomposition}
 \usage{
-tiltedCCA_decomposition(input_obj, verbose = 0)
+tiltedCCA_decomposition(
+  input_obj,
+  bool_modality_1_full = T,
+  bool_modality_2_full = T,
+  verbose = 0
+)
 }
 \arguments{
-\item{verbose}{boolean}
+\item{input_obj}{output from \code{tiltedCCA}}
 
-\item{tiltedCCA_res}{output from \code{dcca_factor}}
+\item{bool_modality_1_full}{boolean}
+
+\item{bool_modality_2_full}{boolean}
+
+\item{verbose}{non-negative integer}
 }
 \value{
-list of class \code{dcca_decomp}
+object of class \code{multiSVD}
 }
 \description{
 Tilted-CCA Decomposition

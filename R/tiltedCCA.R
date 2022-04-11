@@ -1,15 +1,6 @@
 #' Tilted-CCA Factorization
 #'
-#' @param mat_1 data matrix 1
-#' @param mat_2 data matrix 2
-#' @param dims_1 desired latent dimensions of data matrix 1 (increasing integer vector of length 2)
-#' @param dims_2 desired latent dimensions of data matrix 2 (increasing integer vector of length 2)
-#' @param center_1 boolean, on whether or not to center \code{mat_1} prior to SVD
-#' @param center_2 boolean, on whether or not to center \code{mat_2} prior to SVD
-#' @param scale_1 boolean, on whether or not to rescale \code{mat_1} prior to SVD
-#' @param scale_2 boolean, on whether or not to rescale \code{mat_2} prior to SVD
-#' @param cell_max positive integer for how many cells to subsample (useful if  
-#'                 \code{nrow(mat_1) is too large})
+#' @param input_obj \code{multiSVD} object
 #' @param discretization_gridsize positive integer for how many values between 0 and 1 (inclusive) to search the 
 #'                                appropriate amount of tilt over
 #' @param enforce_boundary boolean, on whether or not the tilt is required to stay between
@@ -18,33 +9,13 @@
 #'                     determined, and if \code{TRUE}, then the tilt is set to be equal to 
 #'                     \code{0.5}. If numeric, the value should be between \code{0} and \code{1},
 #'                     which the tilt will be set to.
-#' @param num_neigh positive integer for how many NNs are used to construct the relevant
-#'                  NN graphs. 
-#' @param verbose boolean                
-#'                              
-#' The \code{cell_max} parameter is used specifically to limit the 
-#' number of cells involved in \code{.common_decomposition} (for 
-#' less cells to be involved in \code{.determine_cluster})
+#' @param verbose non-negative integer             
 #' 
 #' For the tilt values (possibly set in \code{fix_tilt_perc}),
 #' values close to 0 or 1 means the common space resembles the 
 #' canonical scores of \code{mat_2} or \code{mat_1} respectively.
 #' 
-#' \code{metacell_clustering_1} and \code{metacell_clustering_2} need to be
-#' both either \code{NA} or factor vectors. If the former (i.e.,
-#' \code{metacell_clustering_1=NA} and \code{metacell_clustering_2=NA}),
-#' then the appropriate amount of tilt is determined by Jaccard dissimilarity
-#' based on the NN structure. If the latter (i.e.,
-#' \code{is.factor(metacell_clustering_1)=TRUE} and \code{is.factor(metacell_clustering_2)=TRUE}),
-#' then the appropriate amount of tilt is determined by KL-divergences of
-#' each cell's NNs' factor proportions. These are all done in \code{.determine_cluster}.
-#'
-#' \code{num_neigh} is used to construct the Shared NN graphs (in \code{.form_snns})
-#' for \code{mat_1} and \code{mat_2}
-#' as well as in \code{.determine_cluster} (to call \code{.form_snns} to construct
-#' the analogous Shared NN graph for the common space).
-#'
-#' @return list of class \code{dcca}
+#' @return object of class \code{multiSVD}
 #' @export
 tiltedCCA <- function(input_obj,
                       discretization_gridsize = 21, 
@@ -60,12 +31,12 @@ tiltedCCA <- function(input_obj,
   svd_2 <- .get_SVD(input_obj)
   
   n <- nrow(svd_1$u)
-  metacell_clustering <- .get_metacell(input_obj,
+  metacell_clustering_list <- .get_metacell(input_obj,
                                        resolution = "cell", 
                                        type = "list", 
                                        what = "metacell_clustering")
-  if(!all(is.null(metacell_clustering))){
-    averaging_mat <- .generate_averaging_matrix(metacell_clustering = metacell_clustering,
+  if(!all(is.null(metacell_clustering_list))){
+    averaging_mat <- .generate_averaging_matrix(metacell_clustering_list = metacell_clustering_list,
                                                 n = n)
   } else {
     averaging_mat <- NULL
@@ -120,10 +91,12 @@ tiltedCCA <- function(input_obj,
 
 #' Tilted-CCA Decomposition
 #'
-#' @param tiltedCCA_res output from \code{dcca_factor}
-#' @param verbose boolean
+#' @param input_obj output from \code{tiltedCCA}
+#' @param bool_modality_1_full boolean
+#' @param bool_modality_2_full boolean
+#' @param verbose non-negative integer
 #'
-#' @return list of class \code{dcca_decomp}
+#' @return object of class \code{multiSVD}
 #' @export
 tiltedCCA_decomposition <- function(input_obj, 
                                     bool_modality_1_full = T,

@@ -22,6 +22,8 @@
 )
 }
 \arguments{
+\item{averaging_mat}{sparse matrix}
+
 \item{cca_res}{returned object from \code{.cca}}
 
 \item{discretization_gridsize}{positive integer for how many values between 0 and 1 (inclusive) to search the 
@@ -35,29 +37,23 @@ determined, and if \code{TRUE}, then the tilt is set to be equal to
 \code{0.5}. If numeric, the value should be between \code{0} and \code{1},
 which the tilt will be set to.}
 
+\item{snn_bool_cosine}{boolean}
+
+\item{snn_bool_intersect}{boolean}
+
+\item{snn_k}{integer}
+
+\item{snn_min_deg}{integer}
+
+\item{snn_num_neigh}{integer}
+
 \item{svd_1}{SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}}
 
 \item{svd_2}{SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}}
 
-\item{verbose}{boolean}
+\item{target_dimred}{matrix}
 
-\item{cell_max}{positive integer for how many cells to subsample (useful if
-\code{nrow(mat_1) is too large})}
-
-\item{metacell_clustering_1}{\code{NA} or factor vector of length \code{nrow(mat_1)} that 
-depicts the hard clustering structure of the cell
-(with possible \code{NA}'s for cells that don't
-conform to a hard clustering structure).}
-
-\item{metacell_clustering_2}{\code{NA} or factor vector of length \code{nrow(mat_2)} that 
-depicts the hard clustering structure of the cell
-(with possible \code{NA}'s for cells that don't
-conform to a hard clustering structure).}
-
-\item{num_neigh}{number of neighbors to consider to computed the common percentage
-(when calling \code{.determine_cluster})}
-
-\item{msg}{additional print character}
+\item{verbose}{non-negative integer}
 }
 \value{
 list

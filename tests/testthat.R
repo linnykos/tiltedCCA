@@ -1,4 +1,4 @@
 library(testthat)
-library(multiomicCCA)
+library(tiltedCCA)
 
-test_check("multiomicCCA")
+test_check("tiltedCCA")

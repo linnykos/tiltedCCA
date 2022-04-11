@@ -138,7 +138,7 @@
                                      circle_list = circle_list,
                                      enforce_boundary = enforce_boundary,
                                      percentage = percentage_grid[i],
-                                     return_common_score = F,
+                                     return_common_score_basis = F,
                                      score_1 = score_1,
                                      score_2 = score_2,
                                      snn_bool_cosine = snn_bool_cosine,
@@ -238,7 +238,7 @@
   min_idx <- which(y_val == min_val)
   if(length(min_idx) == 1) return(min_idx)
   
-  min_idx[which.min(abs(x_val[min_idx] - median(x_val)))]
+  min_idx[which.min(abs(x_val[min_idx] - stats::median(x_val)))]
 }
 
 ############################################

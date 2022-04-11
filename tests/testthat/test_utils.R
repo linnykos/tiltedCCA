@@ -168,7 +168,6 @@ test_that(".combine_two_named_lists works", {
   expect_true(all(names(res) == c("a", "b", "c", "d", "e")))
 })
 
-
 test_that(".combine_two_named_lists respects the first named conflict", {
   list1 <- list(a = 1, b = 1:5, c = 3)
   list2 <- list(d = 2, a = 1:10)
@@ -176,6 +175,16 @@ test_that(".combine_two_named_lists respects the first named conflict", {
   
   expect_true(all(names(res) == c("a", "b", "c", "d")))
   expect_true(res$a == 1)
+})
+
+test_that(".combine_two_named_lists works with there are NULLs", {
+  list1 <- list(a=5, b=2, c=NULL)
+  list2 <- list(d=3, e=NULL, f=10)
+  res <- .combine_two_named_lists(list1, list2)
+  
+  expect_true(all(names(res) == c("a", "b", "c", "d", "e", "f")))
+  expect_true(is.null(list2[["c"]]))
+  expect_true(is.null(list2[["e"]]))
 })
 
 ##########################

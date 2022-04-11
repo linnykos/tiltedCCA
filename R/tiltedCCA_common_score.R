@@ -5,9 +5,8 @@
 #' This calls the functions
 #' \code{.common_decomposition} and \code{.compute_distinct_score}. 
 #'
+#' @param averaging_mat sparse matrix
 #' @param cca_res returned object from \code{.cca}
-#' @param cell_max positive integer for how many cells to subsample (useful if  
-#'                 \code{nrow(mat_1) is too large})
 #' @param discretization_gridsize positive integer for how many values between 0 and 1 (inclusive) to search the 
 #'                                appropriate amount of tilt over
 #' @param enforce_boundary boolean, on whether or not the tilt is required to stay between
@@ -16,20 +15,15 @@
 #'                     determined, and if \code{TRUE}, then the tilt is set to be equal to 
 #'                     \code{0.5}. If numeric, the value should be between \code{0} and \code{1},
 #'                     which the tilt will be set to.
-#' @param metacell_clustering_1 \code{NA} or factor vector of length \code{nrow(mat_1)} that 
-#'                              depicts the hard clustering structure of the cell
-#'                              (with possible \code{NA}'s for cells that don't
-#'                              conform to a hard clustering structure).      
-#' @param metacell_clustering_2 \code{NA} or factor vector of length \code{nrow(mat_2)} that 
-#'                              depicts the hard clustering structure of the cell
-#'                              (with possible \code{NA}'s for cells that don't
-#'                              conform to a hard clustering structure). 
-#' @param num_neigh number of neighbors to consider to computed the common percentage
-#'                  (when calling \code{.determine_cluster})
+#' @param snn_bool_cosine boolean
+#' @param snn_bool_intersect boolean
+#' @param snn_k integer
+#' @param snn_min_deg integer
+#' @param snn_num_neigh integer
 #' @param svd_1 SVD of the denoised variant of \code{mat_1} from \code{dcca_factor}
 #' @param svd_2 SVD of the denoised variant of \code{mat_2} from \code{dcca_factor}
-#' @param verbose boolean
-#' @param msg additional print character
+#' @param target_dimred matrix
+#' @param verbose non-negative integer
 #'
 #' @return list 
 .tiltedCCA_common_score <- function(averaging_mat,

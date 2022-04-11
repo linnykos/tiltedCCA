@@ -22,6 +22,19 @@ clisi_information <- function(c_g, d_g, membership_vec,
 
 ############
 
+.construct_celltype_subsample <- function(membership_vec, max_subsample_cell){
+  res <- lapply(levels(membership_vec), function(x){
+    idx <- which(membership_vec == x)
+    stopifnot(length(idx) > 2)
+    
+    if(length(idx) <= max_subsample_cell) return(idx)
+    
+    sample(idx, max_subsample_cell, replace = F)
+  })
+  
+  sort(unlist(res))
+}
+
 .clisi <- function(g, membership_vec, cell_subidx, tol = 1e-3, verbose = F){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(g))
   stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), 

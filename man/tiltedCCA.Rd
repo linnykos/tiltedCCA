@@ -13,6 +13,8 @@ tiltedCCA(
 )
 }
 \arguments{
+\item{input_obj}{\code{multiSVD} object}
+
 \item{discretization_gridsize}{positive integer for how many values between 0 and 1 (inclusive) to search the 
 appropriate amount of tilt over}
 
@@ -24,54 +26,14 @@ determined, and if \code{TRUE}, then the tilt is set to be equal to
 \code{0.5}. If numeric, the value should be between \code{0} and \code{1},
 which the tilt will be set to.}
 
-\item{verbose}{boolean
-                             
-The \code{cell_max} parameter is used specifically to limit the 
-number of cells involved in \code{.common_decomposition} (for 
-less cells to be involved in \code{.determine_cluster})
+\item{verbose}{non-negative integer
 
 For the tilt values (possibly set in \code{fix_tilt_perc}),
 values close to 0 or 1 means the common space resembles the 
-canonical scores of \code{mat_2} or \code{mat_1} respectively.
-
-\code{metacell_clustering_1} and \code{metacell_clustering_2} need to be
-both either \code{NA} or factor vectors. If the former (i.e.,
-\code{metacell_clustering_1=NA} and \code{metacell_clustering_2=NA}),
-then the appropriate amount of tilt is determined by Jaccard dissimilarity
-based on the NN structure. If the latter (i.e.,
-\code{is.factor(metacell_clustering_1)=TRUE} and \code{is.factor(metacell_clustering_2)=TRUE}),
-then the appropriate amount of tilt is determined by KL-divergences of
-each cell's NNs' factor proportions. These are all done in \code{.determine_cluster}.
-
-\code{num_neigh} is used to construct the Shared NN graphs (in \code{.form_snns})
-for \code{mat_1} and \code{mat_2}
-as well as in \code{.determine_cluster} (to call \code{.form_snns} to construct
-the analogous Shared NN graph for the common space).}
-
-\item{mat_1}{data matrix 1}
-
-\item{mat_2}{data matrix 2}
-
-\item{dims_1}{desired latent dimensions of data matrix 1 (increasing integer vector of length 2)}
-
-\item{dims_2}{desired latent dimensions of data matrix 2 (increasing integer vector of length 2)}
-
-\item{center_1}{boolean, on whether or not to center \code{mat_1} prior to SVD}
-
-\item{center_2}{boolean, on whether or not to center \code{mat_2} prior to SVD}
-
-\item{scale_1}{boolean, on whether or not to rescale \code{mat_1} prior to SVD}
-
-\item{scale_2}{boolean, on whether or not to rescale \code{mat_2} prior to SVD}
-
-\item{cell_max}{positive integer for how many cells to subsample (useful if
-\code{nrow(mat_1) is too large})}
-
-\item{num_neigh}{positive integer for how many NNs are used to construct the relevant
-NN graphs.}
+canonical scores of \code{mat_2} or \code{mat_1} respectively.}
 }
 \value{
-list of class \code{dcca}
+object of class \code{multiSVD}
 }
 \description{
 Tilted-CCA Factorization
