@@ -184,3 +184,34 @@ form_seurat_obj <- function(mat_1, mat_2){
   
   vec
 }
+
+.univariate_regression <- function(bool_include_intercept,
+                                   bool_center_x,
+                                   bool_center_y,
+                                   bool_scale_x,
+                                   bool_scale_y,
+                                   return_type, 
+                                   x_vec,
+                                   y_vec){
+  stopifnot(length(x_vec) == length(y_vec), 
+            return_type %in% c("r_squared"))
+  
+  if(bool_center_x | bool_scale_x) x_vec <- scale(x_vec, 
+                                                  center = bool_center_x,
+                                                  scale = bool_scale_x)
+  if(bool_center_y | bool_scale_y) y_vec <- scale(y_vec, 
+                                                  center = bool_center_y,
+                                                  scale = bool_scale_y)
+  
+  df <- data.frame(x = x_vec, y = y_vec)
+  
+  if(bool_include_intercept){
+    lm_res <- stats::lm(y ~ ., data = df)
+  } else {
+    lm_res <- stats::lm(y ~ . - 1, data = df)
+  }
+  
+  if(return_type == "r_squared"){
+    summary(lm_res)$r.squared
+  }
+}
