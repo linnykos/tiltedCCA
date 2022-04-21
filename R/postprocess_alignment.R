@@ -44,11 +44,11 @@ postprocess_alignment <- function(multiSVD_obj,
   
   if(bool_center | bool_scale){
     common_mat <- scale(common_mat,
-                        center = bool_common_center, 
-                        scale = bool_common_scale)
+                        center = bool_center, 
+                        scale = bool_scale)
     everything_mat <- scale(everything_mat,
-                            center = bool_everything_center, 
-                            scale = bool_everything_scale)
+                            center = bool_center, 
+                            scale = bool_scale)
   }
   
   if(verbose > 0) print("Starting to perform regressions")
