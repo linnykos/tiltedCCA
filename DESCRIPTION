@@ -1,6 +1,6 @@
 Package: tiltedCCA
 Title: Kevin Lin
-Version: 0.0.0.0084
+Version: 0.0.0.0085
 Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
 Description: Tilted CCA method. Currently under development.
 Depends:

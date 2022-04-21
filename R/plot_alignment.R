@@ -1,6 +1,6 @@
 plot_alignment <- function(rsquare_vec,
                            logpval_vec,
-                           bool_mark_mean = F,
+                           bool_mark_ymedian = F,
                            bool_polygon_mean = T,
                            bool_truncate_xaxis = T,
                            bool_white_bg = T,
@@ -25,6 +25,7 @@ plot_alignment <- function(rsquare_vec,
                            lwd_grid_minor = 0.5,
                            lwd_polygon = 1,
                            lwd_polygon_bold = 2,
+                           mark_median_xthres = 1,
                            pch = 16,
                            xaxt_num_ticks = 10,
                            xaxt_grid_spacing = 2,
@@ -33,7 +34,8 @@ plot_alignment <- function(rsquare_vec,
                            yaxt_by = 0.1,
                            yaxt_num_ticks = 2,
                            ylab = "Alignment with common space (R^2)",
-                           ylim = NULL, ...){
+                           ylim = NULL,
+                           verbose = T, ...){
   stopifnot(length(rsquare_vec) == length(logpval_vec),
             all(rsquare_vec >= 0), all(rsquare_vec <= 1), 
             all(logpval_vec >= 0))
@@ -175,10 +177,11 @@ plot_alignment <- function(rsquare_vec,
   }
   
   
-  if(bool_mark_mean){
-    mean_val <- mean(rsquare_vec)
+  if(bool_mark_ymedian){
+    med_val <- stats::median(rsquare_vec[logpval_vec >= mark_median_xthres])
+    if(verbose) print(paste0("Median value of: ", round(med_val, 3)))
     
-    graphics::lines(c(-2,2)*max(abs(xlim)), rep(mean_val, 2),
+    graphics::lines(c(-2,2)*max(abs(xlim)), rep(med_val, 2),
                     col = col_gene_highlight,
                     lty = lty_polygon,
                     lwd = lwd_polygon_bold)
