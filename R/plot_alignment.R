@@ -40,6 +40,7 @@ plot_alignment <- function(rsquare_vec,
             all(rsquare_vec >= 0), all(rsquare_vec <= 1), 
             all(logpval_vec >= 0))
   
+  logpval_vec_org <- logpval_vec
   logpval_vec[logpval_vec == 0] <- min(logpval_vec[logpval_vec != 0])
   logpval_vec <- log10(logpval_vec)
   xmin <- floor(min(logpval_vec)); xmax <- ceiling(max(logpval_vec))
@@ -178,7 +179,7 @@ plot_alignment <- function(rsquare_vec,
   
   
   if(bool_mark_ymedian){
-    med_val <- stats::median(rsquare_vec[logpval_vec >= mark_median_xthres])
+    med_val <- stats::median(rsquare_vec[logpval_vec_org >= mark_median_xthres])
     if(verbose) print(paste0("Median value of: ", round(med_val, 3)))
     
     graphics::lines(c(-2,2)*max(abs(xlim)), rep(med_val, 2),
