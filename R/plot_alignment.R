@@ -178,7 +178,6 @@ plot_alignment <- function(rsquare_vec,
   if(bool_mark_mean){
     mean_val <- mean(rsquare_vec)
     
-    print(mean_val)
     graphics::lines(c(-2,2)*max(abs(xlim)), rep(mean_val, 2),
                     col = col_gene_highlight,
                     lty = lty_polygon,
