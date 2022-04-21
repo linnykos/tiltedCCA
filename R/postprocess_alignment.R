@@ -24,7 +24,7 @@ postprocess_alignment <- function(multiSVD_obj,
   if(bool_use_denoised){
     distinct_mat <- .get_tCCAobj(multiSVD_obj, 
                                  apply_postDimred = F,
-                                 what = "common_mat")
+                                 what = "distinct_mat")
     everything_mat <- common_mat + distinct_mat
   } else {
     stopifnot(inherits(seurat_obj, "Seurat"))
