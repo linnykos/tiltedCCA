@@ -135,7 +135,24 @@ plot_alignment <- function(rsquare_vec,
     }
   }
   
+  
+  if(bool_mark_ymedian){
+    quantile_vec <- stats::quantile(rsquare_vec[logpval_vec_org >= mark_median_xthres],
+                                    probs = c(0.25, 0.75))
+
+    graphics::polygon(cbind(c(-2, 2, 2, -2)*max(abs(logpval_vec)),
+                            c(rep(quantile_vec[1], 2), rep(quantile_vec[2], 2))),
+                      col = col_gene_highlight_border,
+                      density = NA,
+                      lwd = lwd_polygon)
+  }
+  
   if(bool_white_bg){
+    graphics::points(x = logpval_vec,
+                     y = rsquare_vec,
+                     cex = cex_gene_highlight_inner + .5*abs(cex_gene_highlight_inner - cex_gene_highlight_outer),
+                     col = "black",
+                     pch = pch)
     graphics::points(x = logpval_vec,
                      y = rsquare_vec,
                      cex = cex_gene_highlight_inner,
