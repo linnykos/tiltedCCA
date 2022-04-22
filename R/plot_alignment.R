@@ -1,5 +1,6 @@
 plot_alignment <- function(rsquare_vec,
                            logpval_vec,
+                           bool_hide_points = F,
                            bool_mark_ymedian = F,
                            bool_polygon_mean = T,
                            bool_truncate_xaxis = T,
@@ -136,7 +137,7 @@ plot_alignment <- function(rsquare_vec,
   }
   
   
-  if(bool_mark_ymedian){
+  if(!bool_hide_points & bool_mark_ymedian){
     quantile_vec <- stats::quantile(rsquare_vec[logpval_vec_org >= mark_median_xthres],
                                     probs = c(0.25, 0.75))
 
@@ -147,7 +148,7 @@ plot_alignment <- function(rsquare_vec,
                       lwd = lwd_polygon)
   }
   
-  if(bool_white_bg){
+  if(!bool_hide_points & bool_white_bg){
     graphics::points(x = logpval_vec,
                      y = rsquare_vec,
                      cex = cex_gene_highlight_inner + .5*abs(cex_gene_highlight_inner - cex_gene_highlight_outer),
@@ -160,7 +161,7 @@ plot_alignment <- function(rsquare_vec,
                      pch = pch)
   }
   
-  if(!all(is.null(gene_names)) & bool_polygon_mean){
+  if(!bool_hide_points & !all(is.null(gene_names)) & bool_polygon_mean){
     mean_val <- mean(rsquare_vec[gene_names])
     range_vec <- mean_val + c(-1,1)*stats::sd(rsquare_vec[gene_names])
     
@@ -175,34 +176,35 @@ plot_alignment <- function(rsquare_vec,
                       lwd = lwd_polygon)
   }
   
-  graphics::points(x = logpval_vec,
-                   y = rsquare_vec,
-                   cex = cex_points,
-                   col = col_points,
-                   pch = pch)
-  
-  if(!all(is.null(gene_names))){
-    graphics::points(x = logpval_vec[gene_names],
-                     y = rsquare_vec[gene_names],
-                     cex = cex_gene_highlight_outer,
-                     col = col_gene_highlight_border,
+  if(!bool_hide_points){
+    graphics::points(x = logpval_vec,
+                     y = rsquare_vec,
+                     cex = cex_points,
+                     col = col_points,
                      pch = pch)
-    graphics::points(x = logpval_vec[gene_names],
-                     y = rsquare_vec[gene_names],
-                     cex = cex_gene_highlight_inner,
-                     col = col_gene_highlight,
-                     pch = pch)
-  }
-  
-  
-  if(bool_mark_ymedian){
-    med_val <- stats::median(rsquare_vec[logpval_vec_org >= mark_median_xthres])
-    if(verbose) print(paste0("Median value of: ", round(med_val, 3)))
     
-    graphics::lines(c(-2,2)*max(abs(xlim)), rep(med_val, 2),
-                    col = col_gene_highlight,
-                    lty = lty_polygon,
-                    lwd = lwd_polygon_bold)
+    if(!all(is.null(gene_names))){
+      graphics::points(x = logpval_vec[gene_names],
+                       y = rsquare_vec[gene_names],
+                       cex = cex_gene_highlight_outer,
+                       col = col_gene_highlight_border,
+                       pch = pch)
+      graphics::points(x = logpval_vec[gene_names],
+                       y = rsquare_vec[gene_names],
+                       cex = cex_gene_highlight_inner,
+                       col = col_gene_highlight,
+                       pch = pch)
+    }
+    
+    if(bool_mark_ymedian){
+      med_val <- stats::median(rsquare_vec[logpval_vec_org >= mark_median_xthres])
+      if(verbose) print(paste0("Median value of: ", round(med_val, 3)))
+      
+      graphics::lines(c(-2,2)*max(abs(xlim)), rep(med_val, 2),
+                      col = col_gene_highlight,
+                      lty = lty_polygon,
+                      lwd = lwd_polygon_bold)
+    }
   }
   
   invisible()
