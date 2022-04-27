@@ -7,19 +7,15 @@ create_SeuratDim <- function(input_obj,
                              ...){
   stopifnot(what %in% c("common", "distinct_1", "distinct_2"))
   
-  # hard set parameters to avoid applying scaling on the dimred objects
-  input_obj$param$svd_center_1 <- F
-  input_obj$param$svd_center_2 <- F
-  input_obj$param$svd_scale_1 <- F
-  input_obj$param$svd_scale_2 <- F
+  if(any(!c("common_dimred_1", "common_dimred_2", "distinct_1", "distinct_2") %in% names(input_obj))){
+    input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
+                                         verbose = 1,
+                                         bool_modality_1_full = F,
+                                         bool_modality_2_full = F)
+  }
   
   if(what == "common"){
-    if(any(!c("common_dimred_1", "common_dimred_2") %in% names(input_obj))){
-      input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
-                                           verbose = 1,
-                                           bool_modality_1_full = F,
-                                           bool_modality_2_full = F)
-    }
+    
     input_obj <- .set_defaultAssay(input_obj, assay = 1)
     dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
     input_obj <- .set_defaultAssay(input_obj, assay = 2)
@@ -28,22 +24,10 @@ create_SeuratDim <- function(input_obj,
     dimred <- cbind(dimred_1, dimred_2)
     
   } else if(what == "distinct_1"){
-    if(!"distinct_dimred_1" %in% names(input_obj)){
-      input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
-                                           verbose = 1,
-                                           bool_modality_1_full = F,
-                                           bool_modality_2_full = F)
-    }
     input_obj <- .set_defaultAssay(input_obj, assay = 1)
     dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
     
   } else {
-    if(!"distinct_dimred_2" %in% names(input_obj)){
-      input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
-                                           verbose = 1,
-                                           bool_modality_1_full = F,
-                                           bool_modality_2_full = F)
-    }
     input_obj <- .set_defaultAssay(input_obj, assay = 2)
     dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
   } 
