@@ -7,49 +7,45 @@ create_SeuratDim <- function(input_obj,
                              ...){
   stopifnot(what %in% c("common", "distinct_1", "distinct_2"))
   
+  # hard set parameters to avoid applying scaling on the dimred objects
+  input_obj$param$svd_center_1 <- F
+  input_obj$param$svd_center_2 <- F
+  input_obj$param$svd_scale_1 <- F
+  input_obj$param$svd_scale_2 <- F
+  
   if(what == "common"){
-    param <- .get_param(input_obj)
-    if(!param$svd_normalize_singular_value){
-      warning("The normalize_singular_value is FALSE in input_obj, arguably nonsensical.")
+    if(any(!c("common_dimred_1", "common_dimred_2") %in% names(input_obj))){
+      input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
+                                           verbose = 1,
+                                           bool_modality_1_full = F,
+                                           bool_modality_2_full = F)
     }
-    
     input_obj <- .set_defaultAssay(input_obj, assay = 1)
-    if("common_mat_1" %in% names(input_obj)){
-      dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
-    } else if("common_dimred_1" %in% names(input_obj)){
-      dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
-    } else {
-      stop("Cannot find the appropriate common matrix for modality 1")
-    }
+    dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
     input_obj <- .set_defaultAssay(input_obj, assay = 2)
-    if("common_mat_2" %in% names(input_obj)){
-      dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
-    } else if("common_dimred_2" %in% names(input_obj)){
-      dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
-    } else {
-      stop("Cannot find the appropriate common matrix for modality 2")
-    }
+    dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
+    
     dimred <- cbind(dimred_1, dimred_2)
     
   } else if(what == "distinct_1"){
-    input_obj <- .set_defaultAssay(input_obj, assay = 1)
-    if("distinct_mat_1" %in% names(input_obj)){
-      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
-    } else if("distinct_dimred_1" %in% names(input_obj)){
-      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
-    } else {
-      stop("Cannot find the appropriate distinct matrix for modality 1")
+    if(!"distinct_dimred_1" %in% names(input_obj)){
+      input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
+                                           verbose = 1,
+                                           bool_modality_1_full = F,
+                                           bool_modality_2_full = F)
     }
+    input_obj <- .set_defaultAssay(input_obj, assay = 1)
+    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
     
   } else {
-    input_obj <- .set_defaultAssay(input_obj, assay = 2)
-    if("distinct_mat_2" %in% names(input_obj)){
-      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
-    } else if("distinct_dimred_2" %in% names(input_obj)){
-      dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
-    } else {
-      stop("Cannot find the appropriate distinct matrix for modality 2")
+    if(!"distinct_dimred_2" %in% names(input_obj)){
+      input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
+                                           verbose = 1,
+                                           bool_modality_1_full = F,
+                                           bool_modality_2_full = F)
     }
+    input_obj <- .set_defaultAssay(input_obj, assay = 2)
+    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
   } 
   
   seurat_umap <- Seurat::RunUMAP(dimred, 
