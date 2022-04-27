@@ -1,9 +1,35 @@
-clisi_information <- function(c_g, d_g, membership_vec, 
+clisi_information <- function(input_obj, 
+                              membership_vec, 
                               max_subsample_clisi = min(1000, nrow(c_g)),
                               verbose = T){
-  stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(c_g),
-            all(dim(c_g) == dim(d_g)))
+  stopifnot(inherits(input_obj, "multiSVD"),
+            all("tcca_obj" %in% names(input_obj)),
+            is.factor(membership_vec), length(membership_vec) == nrow(input_obj$svd_1$u))
   n <- length(membership_vec)
+  
+  if(any(!c("common_dimred_1", "common_dimred_2", "distinct_1", "distinct_2") %in% names(input_obj))){
+    input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
+                                         verbose = 1,
+                                         bool_modality_1_full = F,
+                                         bool_modality_2_full = F)
+  }
+  
+  param <- .get_param(input_obj)
+  snn_1 <- .form_snn_mat(mat = dimred_1,
+                         num_neigh = num_neigh,
+                         bool_cosine = bool_cosine, 
+                         bool_intersect = bool_intersect, 
+                         min_deg = min_deg,
+                         tol = tol,
+                         verbose = verbose)
+  if(verbose >= 1) print(paste0("Constructin SNN 2"))
+  snn_2 <- .form_snn_mat(mat = dimred_2,
+                         num_neigh = num_neigh,
+                         bool_cosine = bool_cosine, 
+                         bool_intersect = bool_intersect, 
+                         min_deg = min_deg,
+                         tol = tol,
+                         verbose = verbose)
   
   # remove all distance information and symmetrize
   if(verbose) print(paste0(Sys.time(),": cLISI: Symmetrizing matrices"))

@@ -32,9 +32,9 @@ tiltedCCA <- function(input_obj,
   
   n <- nrow(svd_1$u)
   metacell_clustering_list <- .get_metacell(input_obj,
-                                       resolution = "cell", 
-                                       type = "list", 
-                                       what = "metacell_clustering")
+                                            resolution = "cell", 
+                                            type = "list", 
+                                            what = "metacell_clustering")
   if(!all(is.null(metacell_clustering_list))){
     averaging_mat <- .generate_averaging_matrix(metacell_clustering_list = metacell_clustering_list,
                                                 n = n)
@@ -112,16 +112,16 @@ tiltedCCA_decomposition <- function(input_obj,
   svd_1 <- .get_SVD(input_obj)
   score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "score")
   distinct_score_1 <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_score")
- 
-   if(bool_modality_1_full){
-     mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
-     coef_mat_1 <- crossprod(score_1, mat_1)/n
-   } else {
-     coef_mat_1 <- crossprod(score_1, .mult_mat_vec(svd_1$u, svd_1$d))/n
-   }
+  
+  if(bool_modality_1_full){
+    mat_1 <- tcrossprod(.mult_mat_vec(svd_1$u, svd_1$d), svd_1$v)
+    coef_mat_1 <- crossprod(score_1, mat_1)/n
+  } else {
+    coef_mat_1 <- crossprod(score_1, .mult_mat_vec(svd_1$u, svd_1$d))/n
+  }
   common_mat_1 <- common_score %*% coef_mat_1[1:rank_c,,drop = F]
   distinct_mat_1 <- distinct_score_1 %*% coef_mat_1
-     
+  
   if(bool_modality_1_full){
     input_obj$common_mat_1 <- common_mat_1
     input_obj$distinct_mat_1 <- distinct_mat_1
