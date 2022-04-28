@@ -19,6 +19,38 @@ test_that(".svd_safe works", {
   expect_true(all(rownames(res$v) == colnames(mat)) & length(rownames(res$v)) == 10)
 })
 
+test_that(".svd_safe works with scale_max", {
+  set.seed(10)
+  mat <- MASS::mvrnorm(n = 100, mu = rep(0, 10), Sigma = diag(10))*10
+  rownames(mat) <- paste0("c", 1:100)
+  colnames(mat) <- paste0("g", 1:10)
+  res1 <- .svd_safe(mat = mat,
+                   check_stability = T, 
+                   K = 5, 
+                   mean_vec = F, 
+                   rescale = F, 
+                   scale_max = NULL, 
+                   sd_vec = NULL)
+  res2 <- .svd_safe(mat = mat,
+                    check_stability = T, 
+                    K = 5, 
+                    mean_vec = F, 
+                    rescale = F, 
+                    scale_max = 10, 
+                    sd_vec = NULL)
+  res3 <- .svd_safe(mat = mat,
+                    check_stability = T, 
+                    K = 5, 
+                    mean_vec = F, 
+                    rescale = F, 
+                    scale_max = max(mat)*2, 
+                    sd_vec = NULL)
+  
+  
+  expect_true(sum(abs(res1$d - res2$d)) > 0)
+  expect_true(sum(abs(res1$d - res3$d)) < 1e-6)
+})
+
 ########################
 
 ## create_multiSVD is correct

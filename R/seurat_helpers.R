@@ -1,11 +1,16 @@
 create_SeuratDim <- function(input_obj,
                              what,
                              aligned_umap_assay = NULL,
+                             scale_max_1 = NULL,
+                             scale_max_2 = NULL,
                              seurat_obj = NULL,
                              seurat_assay = "RNA",
                              verbose = 0,
                              ...){
   stopifnot(what %in% c("common", "distinct_1", "distinct_2"))
+  
+  if(!is.null(scale_max_1)) input_obj$param$svd_scale_max_1 <- scale_max_1
+  if(!is.null(scale_max_2)) input_obj$param$svd_scale_max_2 <- scale_max_2
   
   if(what == "common"){
     param <- .get_param(input_obj)
