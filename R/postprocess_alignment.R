@@ -1,4 +1,4 @@
-postprocess_alignment <- function(multiSVD_obj,
+postprocess_alignment <- function(input_obj,
                                   bool_use_denoised,
                                   bool_center = T,
                                   bool_scale = T,
@@ -7,22 +7,22 @@ postprocess_alignment <- function(multiSVD_obj,
                                   bool_regression_include_intercept = T,
                                   bool_regression_center = T,
                                   bool_regression_scale = T,
-                                  multiSVD_assay = 1,
+                                  input_assay = 1,
                                   seurat_obj = NULL,
                                   seurat_assay = Seurat::DefaultAssay(seurat_obj),
                                   seurat_slot = "data",
                                   verbose = 1){
-  stopifnot(multiSVD_assay %in% c(1,2),
+  stopifnot(input_assay %in% c(1,2),
             seurat_slot %in% c("counts", "data", "scale.data"))
   
   if(verbose > 0) print("Gathering ingredients")
-  multiSVD_obj <- .set_defaultAssay(multiSVD_obj, 
-                                    assay = multiSVD_assay)
-  common_mat <- .get_tCCAobj(multiSVD_obj, 
+  input_obj <- .set_defaultAssay(input_obj, 
+                                    assay = input_assay)
+  common_mat <- .get_tCCAobj(input_obj, 
                              apply_postDimred = F,
                              what = "common_mat")
   if(bool_use_denoised){
-    distinct_mat <- .get_tCCAobj(multiSVD_obj, 
+    distinct_mat <- .get_tCCAobj(input_obj, 
                                  apply_postDimred = F,
                                  what = "distinct_mat")
     everything_mat <- common_mat + distinct_mat
