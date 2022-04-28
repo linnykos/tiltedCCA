@@ -1,36 +1,36 @@
-clisi_information <- function(input_obj, 
-                              membership_vec, 
-                              max_subsample_clisi = min(1000, length(membership_vec)),
-                              verbose = 0){
+postprocess_cell_enrichment <- function(input_obj, 
+                                        membership_vec, 
+                                        max_subsample = min(1000, length(membership_vec)),
+                                        verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"),
             all("tcca_obj" %in% names(input_obj)),
             is.factor(membership_vec), length(membership_vec) == nrow(input_obj$svd_1$u))
   
   res <- .construct_snn_from_tcca(input_obj, verbose = verbose)
-  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
+  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
   
-  # compute clisi scores
-  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
-  clisi_common <- .clisi(cell_subidx = cell_subidx,
-                         g = res$snn_common, 
-                         membership_vec = membership_vec, 
-                         verbose = verbose)
+  # compute enrichment scores
+  if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute common enrichment"))
+  enrichment_common <- .enrichment(cell_subidx = cell_subidx,
+                                   g = res$snn_common, 
+                                   membership_vec = membership_vec, 
+                                   verbose = verbose)
   
-  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct 1"))
-  clisi_distinct_1 <- .clisi(cell_subidx = cell_subidx,
-                             g = res$snn_distinct_1, 
-                             membership_vec = membership_vec, 
-                             verbose = verbose)
+  if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute distinct 1 enrichment"))
+  enrichment_distinct_1 <- .enrichment(cell_subidx = cell_subidx,
+                                       g = res$snn_distinct_1, 
+                                       membership_vec = membership_vec, 
+                                       verbose = verbose)
   
-  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct 2"))
-  clisi_distinct_2 <- .clisi(cell_subidx = cell_subidx,
-                             g = res$snn_distinct_2, 
-                             membership_vec = membership_vec, 
-                             verbose = verbose)
+  if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute distinct 2 enrichment"))
+  enrichment_distinct_2 <- .enrichment(cell_subidx = cell_subidx,
+                                       g = res$snn_distinct_2, 
+                                       membership_vec = membership_vec, 
+                                       verbose = verbose)
   
-  structure(list(clisi_common = clisi_common, 
-                 clisi_distinct_1 = clisi_distinct_1,
-                 clisi_distinct_2 = clisi_distinct_2), class = "clisi")
+  structure(list(enrichment_common = enrichment_common, 
+                 enrichment_distinct_1 = enrichment_distinct_1,
+                 enrichment_distinct_2 = enrichment_distinct_2), class = "enrichment")
 }
 
 ############
@@ -122,30 +122,30 @@ clisi_information <- function(input_obj,
   sort(unlist(res))
 }
 
-.clisi <- function(cell_subidx, 
-                   g, 
-                   membership_vec, 
-                   tol = 1e-3, 
-                   verbose = 0){
+.enrichment <- function(cell_subidx, 
+                        g, 
+                        membership_vec, 
+                        tol = 1e-3, 
+                        verbose = 0){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(g))
   stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), 
             length(cell_subidx) == length(unique(cell_subidx)),
             length(cell_subidx) <= length(membership_vec))
   
-  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
+  if(verbose > 0) print(paste0(Sys.time(),": Computing cell-wise enrichment"))
   
-  clisi_cell_mat <- sapply(1:length(cell_subidx), function(i){
+  enrichment_cell_mat <- sapply(1:length(cell_subidx), function(i){
     if(verbose > 1 && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
-    .clisi_cell(g, membership_vec, position = cell_subidx[i], tol = tol)
+    .enrichment_cell(g, membership_vec, position = cell_subidx[i], tol = tol)
   })
-  rownames(clisi_cell_mat) <- levels(membership_vec)
-  colnames(clisi_cell_mat) <- rownames(g)[cell_subidx] 
+  rownames(enrichment_cell_mat) <- levels(membership_vec)
+  colnames(enrichment_cell_mat) <- rownames(g)[cell_subidx] 
   
-  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
+  if(verbose > 0) print(paste0(Sys.time(),": Computing cell-type enrichment"))
   res <- lapply(levels(membership_vec), function(celltype){
     idx <- which(membership_vec[cell_subidx] == celltype)
-    tmp_mat <- clisi_cell_mat[,idx,drop = F]
+    tmp_mat <- enrichment_cell_mat[,idx,drop = F]
     mean_vec <- matrixStats::rowMeans2(tmp_mat)
     sd_vec <- matrixStats::rowSds(tmp_mat)
     names(mean_vec) <- rownames(tmp_mat)
@@ -168,13 +168,13 @@ clisi_information <- function(input_obj,
   colnames(mat) <- paste0("from_", levels(membership_vec))
   rownames(mat) <- paste0("to_", levels(membership_vec))
   
-  list(df = df, clisi_mat = mat, clisi_cell_mat = clisi_cell_mat)
+  list(df = df, enrichment_mat = mat, enrichment_cell_mat = enrichment_cell_mat)
 }
 
-.clisi_cell <- function(g, 
-                        membership_vec, 
-                        position, 
-                        tol = 1e-3){
+.enrichment_cell <- function(g, 
+                             membership_vec, 
+                             position, 
+                             tol = 1e-3){
   stopifnot(position > 0, position <= nrow(g), position %% 1 == 0,
             ncol(g) == nrow(g), is.factor(membership_vec), 
             length(membership_vec) == nrow(g))
@@ -192,8 +192,8 @@ clisi_information <- function(input_obj,
     length(which(membership_vec[neigh] == celltype))
   })
   
-  clisi_vec <- pmax((in_len/len-target_bg+tol) / (1-target_bg+tol), 0)
-  names(clisi_vec) <- celltype_vec
+  enrichment_vec <- pmax((in_len/len-target_bg+tol) / (1-target_bg+tol), 0)
+  names(enrichment_vec) <- celltype_vec
   
-  clisi_vec
+  enrichment_vec
 }

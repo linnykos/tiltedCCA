@@ -167,7 +167,7 @@ form_seurat_obj <- function(mat_1, mat_2){
   names(lis) <- level_vec
   lis
 }
-  
+
 .convert_list2factor <- function(lis, n){
   stopifnot(is.list(lis), n >= max(unlist(lis)))
   vec <- rep(NA, n)
@@ -185,25 +185,26 @@ form_seurat_obj <- function(mat_1, mat_2){
   vec
 }
 
-.univariate_regression <- function(bool_include_intercept,
-                                   bool_center_x,
-                                   bool_center_y,
-                                   bool_scale_x,
-                                   bool_scale_y,
-                                   return_type, 
-                                   x_vec,
-                                   y_vec){
-  stopifnot(length(x_vec) == length(y_vec), 
-            return_type %in% c("r_squared"))
+.linear_regression <- function(bool_include_intercept,
+                               bool_center_x,
+                               bool_center_y,
+                               bool_scale_x,
+                               bool_scale_y,
+                               return_type, 
+                               x_mat,
+                               y_vec){
+  if(!is.matrix(x_mat)) x_mat <- matrix(x_mat, nrow = length(x_mat), ncol = 1)
+  stopifnot(nrow(x_mat) == length(y_vec), return_type %in% c("r_squared"))
   
-  if(bool_center_x | bool_scale_x) x_vec <- scale(x_vec, 
+  if(bool_center_x | bool_scale_x) x_mat <- scale(x_mat, 
                                                   center = bool_center_x,
                                                   scale = bool_scale_x)
   if(bool_center_y | bool_scale_y) y_vec <- scale(y_vec, 
                                                   center = bool_center_y,
                                                   scale = bool_scale_y)
   
-  df <- data.frame(x = x_vec, y = y_vec)
+  df <- data.frame(cbind(y_vec, x_mat))
+  colnames(df)[1] <- "y"
   
   if(bool_include_intercept){
     lm_res <- stats::lm(y ~ ., data = df)

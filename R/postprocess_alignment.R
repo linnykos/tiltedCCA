@@ -55,14 +55,14 @@ postprocess_alignment <- function(multiSVD_obj,
   
   rsquare_vec <- sapply(1:ncol(common_mat), function(j){
     if(verbose > 0 && ncol(common_mat) > 10 && j %% floor(ncol(common_mat)/10) == 0) cat('*')
-    .univariate_regression(
+    .linear_regression(
       bool_include_intercept = bool_regression_include_intercept,
       bool_center_x = bool_regression_center,
       bool_center_y = bool_regression_center,
       bool_scale_x = bool_regression_scale,
       bool_scale_y = bool_regression_scale,
       return_type = "r_squared", 
-      x_vec = common_mat[,j],
+      x_mat = common_mat[,j],
       y_vec = everything_mat[,j]
     )
   })
