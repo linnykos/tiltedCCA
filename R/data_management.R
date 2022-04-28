@@ -55,13 +55,13 @@
                             dims,
                             scale, ...){
   K <- max(dims)
-  tmp <- .svd_truncated(mat = input_obj, 
-                        K = K, 
-                        symmetric = F, 
-                        rescale = F,
-                        mean_vec = center, 
-                        sd_vec = scale,
-                        K_full_rank = (min(dim(input_obj)) == K))
+  tmp <- .svd_safe(mat = input_obj,
+                   check_stability = T,
+                   K = K,
+                   mean_vec = center,
+                   rescale = F,
+                   scale_max = NULL,
+                   sd_vec = scale)
   tmp <- .check_svd(tmp, dims = dims)
   .append_rowcolnames(bool_colnames = T, bool_rownames = T,
                       source_obj = input_obj,  target_obj = tmp)

@@ -1,15 +1,19 @@
 context("Test svd")
 
-## .svd_truncated is correct
+## .svd_safe is correct
 
-test_that(".svd_truncated works", {
+test_that(".svd_safe works", {
   set.seed(10)
   mat <- MASS::mvrnorm(n = 100, mu = rep(0, 10), Sigma = diag(10))
   rownames(mat) <- paste0("c", 1:100)
   colnames(mat) <- paste0("g", 1:10)
-  res <- .svd_truncated(mat = mat, K = 5, symmetric = F, 
-                        rescale = F, mean_vec = F, sd_vec = F,
-                        K_full_rank = F)
+  res <- .svd_safe(mat = mat,
+                   check_stability = T, 
+                   K = 5, 
+                   mean_vec = F, 
+                   rescale = F, 
+                   scale_max = NULL, 
+                   sd_vec = NULL)
   
   expect_true(all(rownames(res$u) == rownames(mat)) & length(rownames(res$u)) == 100)
   expect_true(all(rownames(res$v) == colnames(mat)) & length(rownames(res$v)) == 10)

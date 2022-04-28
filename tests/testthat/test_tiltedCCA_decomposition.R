@@ -209,7 +209,7 @@ test_that("(Math) tiltedCCA_decomposition can obtain the same result when fed in
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
                             verbose = F)
   res <- tiltedCCA_decomposition(multiSVD_obj)
-  
+
   multiSVD_obj2 <- create_multiSVD(mat_1 = res$common_mat_1 + res$distinct_mat_1, 
                                    mat_2 = res$common_mat_2 + res$distinct_mat_2, 
                                    dims_1 = 1:2, dims_2 = 1:2,

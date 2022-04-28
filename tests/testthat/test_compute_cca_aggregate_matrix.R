@@ -24,10 +24,20 @@ test_that("(Coding) .compute_cca_aggregate_matrix works when ranks are not the s
   mat_1 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p1), Sigma = diag(p1)), center = T, scale = F)
   mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
   
-  svd_1 <- .svd_truncated(mat_1, K = 2, symmetric = F, rescale = F, 
-                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
-  svd_2 <- .svd_truncated(mat_2, K = 3, symmetric = F, rescale = F, 
-                          mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+  svd_1 <- .svd_safe(mat = mat_1,
+                     check_stability = T, 
+                     K = 2,
+                     mean_vec = NULL, 
+                     rescale = F, 
+                     scale_max = NULL, 
+                     sd_vec = NULL)
+  svd_2 <- .svd_safe(mat = mat_1,
+                     check_stability = T, 
+                     K = 3,
+                     mean_vec = NULL, 
+                     rescale = F, 
+                     scale_max = NULL, 
+                     sd_vec = NULL)
   svd_1 <- .check_svd(svd_1, dims = 1:2)
   svd_2 <- .check_svd(svd_2, dims = 1:3)
   
@@ -47,10 +57,20 @@ test_that("(Math) .compute_cca_aggregate_matrix preserves SVD values when augmen
     mat_2 <- scale(MASS::mvrnorm(n = n, mu = rep(0,p2), Sigma = diag(p2)), center = T, scale = F)
     
     rank_1 <- sample(1:10,1); rank_2 <- sample(1:10,1); rank_full <- min(c(rank_1, rank_2))
-    svd_1 <- .svd_truncated(mat_1, K = rank_1, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
-    svd_2 <- .svd_truncated(mat_2, K = rank_2, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_1 <- .svd_safe(mat = mat_1,
+                       check_stability = T, 
+                       K = rank_1,
+                       mean_vec = NULL, 
+                       rescale = F, 
+                       scale_max = NULL, 
+                       sd_vec = NULL)
+    svd_2 <- .svd_safe(mat = mat_1,
+                       check_stability = T, 
+                       K = rank_2,
+                       mean_vec = NULL, 
+                       rescale = F, 
+                       scale_max = NULL, 
+                       sd_vec = NULL)
     svd_1 <- .check_svd(svd_1, dims = 1:rank_1)
     svd_2 <- .check_svd(svd_2, dims = 1:rank_2)
     

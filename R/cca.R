@@ -22,10 +22,20 @@
     rank_1 <- max(dims_1); rank_2 <- max(dims_2)
     stopifnot(nrow(input_1) == nrow(input_2), 
               rank_1 <= ncol(input_1), rank_2 <= ncol(input_2))
-    svd_1 <- .svd_truncated(input_1, rank_1, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
-    svd_2 <- .svd_truncated(input_2, rank_2, symmetric = F, rescale = F, 
-                            mean_vec = NULL, sd_vec = NULL, K_full_rank = F)
+    svd_1 <- .svd_safe(mat = input_1,
+                       check_stability = T,
+                       K = rank_1,
+                       mean_vec = NULL,
+                       rescale = F,
+                       scale_max = NULL,
+                       sd_vec = NULL)
+    svd_2 <- .svd_safe(mat = input_2,
+                       check_stability = T,
+                       K = rank_2,
+                       mean_vec = NULL,
+                       rescale = F,
+                       scale_max = NULL,
+                       sd_vec = NULL)
     
     svd_1 <- .check_svd(svd_1, dims_1); svd_2 <- .check_svd(svd_2, dims_2)
   } else {

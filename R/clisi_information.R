@@ -1,52 +1,113 @@
 clisi_information <- function(input_obj, 
                               membership_vec, 
                               max_subsample_clisi = min(1000, nrow(c_g)),
-                              verbose = T){
+                              verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"),
             all("tcca_obj" %in% names(input_obj)),
             is.factor(membership_vec), length(membership_vec) == nrow(input_obj$svd_1$u))
-  n <- length(membership_vec)
   
-  if(any(!c("common_dimred_1", "common_dimred_2", "distinct_1", "distinct_2") %in% names(input_obj))){
-    input_obj <- tiltedCCA_decomposition(input_obj = input_obj,
-                                         verbose = 1,
-                                         bool_modality_1_full = F,
-                                         bool_modality_2_full = F)
-  }
-  
-  param <- .get_param(input_obj)
-  snn_1 <- .form_snn_mat(mat = dimred_1,
-                         num_neigh = num_neigh,
-                         bool_cosine = bool_cosine, 
-                         bool_intersect = bool_intersect, 
-                         min_deg = min_deg,
-                         tol = tol,
-                         verbose = verbose)
-  if(verbose >= 1) print(paste0("Constructin SNN 2"))
-  snn_2 <- .form_snn_mat(mat = dimred_2,
-                         num_neigh = num_neigh,
-                         bool_cosine = bool_cosine, 
-                         bool_intersect = bool_intersect, 
-                         min_deg = min_deg,
-                         tol = tol,
-                         verbose = verbose)
-  
-  # remove all distance information and symmetrize
-  if(verbose) print(paste0(Sys.time(),": cLISI: Symmetrizing matrices"))
-  c_g <- .symmetrize_sparse(c_g, set_ones = T)
-  d_g <- .symmetrize_sparse(d_g, set_ones = T)
+  res <- .construct_snn_from_tcca(input_obj, verbose = verbose)
+  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
   
   # compute clisi scores
-  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample_clisi)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
-  c_score <- .clisi(c_g, membership_vec, cell_subidx, verbose = verbose)
-  if(verbose) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct"))
-  d_score <- .clisi(d_g, membership_vec, cell_subidx, verbose = verbose)
+  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Compute cLISI -- common"))
+  clisi_common <- .clisi(cell_subidx = cell_subidx,
+                         g = res$snn_common, 
+                         membership_vec = membership_vec, 
+                         verbose = verbose)
   
-  structure(list(common_clisi = c_score, distinct_clisi = d_score), class = "clisi")
+  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct 1"))
+  clisi_distinct_1 <- .clisi(cell_subidx = cell_subidx,
+                             g = res$snn_distinct_1, 
+                             membership_vec = membership_vec, 
+                             verbose = verbose)
+  
+  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Compute cLISI -- distinct 2"))
+  clisi_distinct_2 <- .clisi(cell_subidx = cell_subidx,
+                             g = res$snn_distinct_2, 
+                             membership_vec = membership_vec, 
+                             verbose = verbose)
+  
+  structure(list(clisi_common = clisi_common, 
+                 clisi_distinct_1 = clisi_distinct_1,
+                 clisi_distinct_2 = clisi_distinct_2), class = "clisi")
 }
 
 ############
+
+.construct_snn_from_tcca <- function(input_obj,
+                                     tol = 1e-4,
+                                     verbose = 0){
+  param <- .get_param(input_obj)
+  num_neigh <- param$snn_num_neigh
+  bool_cosine <- param$snn_bool_cosine
+  bool_intersect <- param$snn_bool_intersect
+  min_deg <- param$snn_min_deg
+
+  # first construct the common graph
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  if("common_mat_1" %in% names(input_obj)){
+    dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
+  } else if("common_dimred_1" %in% names(input_obj)){
+    dimred_1 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
+  } else {
+    stop("Cannot find the appropriate common matrix for modality 1")
+  }
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  if("common_mat_2" %in% names(input_obj)){
+    dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_mat")
+  } else if("common_dimred_2" %in% names(input_obj)){
+    dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
+  } else {
+    stop("Cannot find the appropriate common matrix for modality 2")
+  }
+  dimred <- cbind(dimred_1, dimred_2)
+  
+  snn_common <- .form_snn_mat(mat = dimred,
+                              num_neigh = num_neigh,
+                              bool_cosine = bool_cosine, 
+                              bool_intersect = bool_intersect, 
+                              min_deg = min_deg,
+                              tol = tol,
+                              verbose = verbose)
+  
+  # next the distinct graphs
+  input_obj <- .set_defaultAssay(input_obj, assay = 1)
+  if("distinct_mat_1" %in% names(input_obj)){
+    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
+  } else if("distinct_dimred_1" %in% names(input_obj)){
+    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
+  } else {
+    stop("Cannot find the appropriate distinct matrix for modality 1")
+  }
+  snn_distinct_1 <- .form_snn_mat(mat = dimred,
+                                  num_neigh = num_neigh,
+                                  bool_cosine = bool_cosine, 
+                                  bool_intersect = bool_intersect, 
+                                  min_deg = min_deg,
+                                  tol = tol,
+                                  verbose = verbose)
+  
+  input_obj <- .set_defaultAssay(input_obj, assay = 2)
+  if("distinct_mat_2" %in% names(input_obj)){
+    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_mat")
+  } else if("distinct_dimred_2" %in% names(input_obj)){
+    dimred <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "distinct_dimred")
+  } else {
+    stop("Cannot find the appropriate distinct matrix for modality 2")
+  }
+  snn_distinct_2 <- .form_snn_mat(mat = dimred,
+                                  num_neigh = num_neigh,
+                                  bool_cosine = bool_cosine, 
+                                  bool_intersect = bool_intersect, 
+                                  min_deg = min_deg,
+                                  tol = tol,
+                                  verbose = verbose)
+  
+  list(snn_common = snn_common,
+       snn_distinct_1 = snn_distinct_1,
+       snn_distinct_2 = snn_distinct_2)
+}
 
 .construct_celltype_subsample <- function(membership_vec, max_subsample_cell){
   res <- lapply(levels(membership_vec), function(x){
@@ -61,23 +122,27 @@ clisi_information <- function(input_obj,
   sort(unlist(res))
 }
 
-.clisi <- function(g, membership_vec, cell_subidx, tol = 1e-3, verbose = F){
+.clisi <- function(cell_subidx, 
+                   g, 
+                   membership_vec, 
+                   tol = 1e-3, 
+                   verbose = 0){
   stopifnot(is.factor(membership_vec), length(membership_vec) == nrow(g))
   stopifnot(all(cell_subidx %% 1 == 0), all(cell_subidx > 0), 
             length(cell_subidx) == length(unique(cell_subidx)),
             length(cell_subidx) <= length(membership_vec))
   
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
+  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Computing cell-wise cLISI"))
   
   clisi_cell_mat <- sapply(1:length(cell_subidx), function(i){
-    if(verbose && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
+    if(verbose > 1 && length(cell_subidx) > 10 && i %% floor(length(cell_subidx)/10) == 0) cat('*')
     
     .clisi_cell(g, membership_vec, position = cell_subidx[i], tol = tol)
   })
   rownames(clisi_cell_mat) <- levels(membership_vec)
   colnames(clisi_cell_mat) <- rownames(g)[cell_subidx] 
   
-  if(verbose) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
+  if(verbose > 0) print(paste0(Sys.time(),": cLISI: Computing cell-type cLISI"))
   res <- lapply(levels(membership_vec), function(celltype){
     idx <- which(membership_vec[cell_subidx] == celltype)
     tmp_mat <- clisi_cell_mat[,idx,drop = F]
@@ -106,7 +171,10 @@ clisi_information <- function(input_obj,
   list(df = df, clisi_mat = mat, clisi_cell_mat = clisi_cell_mat)
 }
 
-.clisi_cell <- function(g, membership_vec, position, tol = 1e-3){
+.clisi_cell <- function(g, 
+                        membership_vec, 
+                        position, 
+                        tol = 1e-3){
   stopifnot(position > 0, position <= nrow(g), position %% 1 == 0,
             ncol(g) == nrow(g), is.factor(membership_vec), 
             length(membership_vec) == nrow(g))

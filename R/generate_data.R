@@ -17,8 +17,14 @@ generate_sbm_orthogonal <- function(B_mat, membership_vec, centered = T){
   
   prob_mat <- .compute_prob_mat(B_mat, membership_vec)
   adj_mat <- .generate_adjaceny_mat(prob_mat)
-  .svd_truncated(adj_mat, K = ifelse(centered, K-1, K), 
-                 symmetric = F, rescale = F, mean_vec = centered, sd_vec = NULL, K_full_rank = F)$u
+  res <- .svd_safe(mat = adj_mat,
+                   check_stability = T,
+                   K = ifelse(centered, K-1, K),
+                   mean_vec = centered,
+                   rescale = F,
+                   scale_max = NULL,
+                   sd_vec = NULL)
+  res$u
 }
 
 #' Generate orthogonal matrices via Gaussian noise
@@ -34,8 +40,14 @@ generate_random_orthogonal <- function(n, K, centered = F){
   stopifnot(K+1 <= n)
   mat <- matrix(stats::rnorm(n^2), n, n)
   mat <- mat + t(mat)
-  .svd_truncated(mat, K = K, symmetric = F, rescale = F, mean_vec = centered, 
-                 sd_vec = NULL, K_full_rank = F)$u
+  res <- .svd_safe(mat = mat,
+                   check_stability = T,
+                   K = K,
+                   mean_vec = centered,
+                   rescale = F,
+                   scale_max = NULL,
+                   sd_vec = NULL)
+  res$u
 }
 
 ###########################

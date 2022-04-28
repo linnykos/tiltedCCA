@@ -9,7 +9,7 @@ test_that(".get_SVD works for matrix", {
   res <- .get_SVD(mat, center = T, dims = 1:2, scale = T)
   
   expect_true(inherits(res, "svd"))
-  expect_true(all(sort(names(res)) == sort(c("u", "d", "v"))))
+  expect_true(all(sort(names(res)) == sort(c("u", "d", "v", "method"))))
   expect_true(all(rownames(res$u) == rownames(mat)) & length(rownames(res$u)) == 10)
   expect_true(all(rownames(res$v) == colnames(mat)) & length(rownames(res$v)) == 5)
 })
@@ -25,7 +25,7 @@ test_that(".get_SVD works for dgCMatrix", {
   res <- .get_SVD(mat, center = T, dims = 1:2, scale = T)
   
   expect_true(inherits(res, "svd"))
-  expect_true(all(sort(names(res)) == sort(c("u", "d", "v"))))
+  expect_true(all(sort(names(res)) == sort(c("u", "d", "v", "method"))))
   expect_true(all(rownames(res$u) == rownames(mat)) & length(rownames(res$u)) == 10)
   expect_true(all(rownames(res$v) == colnames(mat)) & length(rownames(res$v)) == 5)
 })
@@ -44,12 +44,12 @@ test_that(".get_SVD works for multiSVD", {
   res2 <- .get_SVD(multiSVD_obj)
   
   expect_true(inherits(res1, "svd"))
-  expect_true(all(c("u", "d", "v") %in% names(res1)))
+  expect_true(all(c("u", "d", "v", "method") %in% names(res1)))
   expect_true(all(rownames(res1$u) == rownames(mat_1)) & length(rownames(res1$u)) == nrow(mat_1))
   expect_true(all(rownames(res1$v) == colnames(mat_1)) & length(rownames(res1$v)) == ncol(mat_1))
   
   expect_true(inherits(res2, "svd"))
-  expect_true(all(c("u", "d", "v") %in% names(res2)))
+  expect_true(all(c("u", "d", "v", "method") %in% names(res2)))
   expect_true(all(rownames(res2$u) == rownames(mat_2)) & length(rownames(res2$u)) == nrow(mat_2))
   expect_true(all(rownames(res2$v) == colnames(mat_2)) & length(rownames(res2$v)) == ncol(mat_2))
 })

@@ -181,17 +181,6 @@ compute_snns <- function(input_obj,
   dimred
 }
 
-#######################
-.symmetrize_sparse <- function(g_mat, set_ones){
-  stopifnot(inherits(g_mat, "dgCMatrix"))
-  
-  tmp <- Matrix::t(g_mat)
-  g_mat <- g_mat + tmp - sqrt(g_mat * tmp)
-  if(set_ones) g_mat@x <- rep(1, length(g_mat@x))
-  
-  g_mat
-}
-
 .form_snn_param <- function(bool_cosine,
                             bool_intersect,
                             latent_k,
