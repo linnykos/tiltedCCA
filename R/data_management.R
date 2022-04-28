@@ -53,14 +53,15 @@
 .get_SVD.matrix <- function(input_obj,
                             center,
                             dims,
-                            scale, ...){
+                            scale, 
+                            scale_max, ...){
   K <- max(dims)
   tmp <- .svd_safe(mat = input_obj,
                    check_stability = T,
                    K = K,
                    mean_vec = center,
                    rescale = F,
-                   scale_max = NULL,
+                   scale_max = scale_max,
                    sd_vec = scale)
   tmp <- .check_svd(tmp, dims = dims)
   .append_rowcolnames(bool_colnames = T, bool_rownames = T,
@@ -71,9 +72,11 @@
 .get_SVD.dgCMatrix <- function(input_obj,
                                center,
                                dims,
-                               scale, ...){
+                               scale, 
+                               scale_max, ...){
+  if(!is.null(scale_max)) warning("scale_max is not currently implemented for dgCMatrix matrices")
   .get_SVD.matrix(input_obj = input_obj,
-                  center = center, dims = dims, scale = scale,
+                  center = center, dims = dims, scale = scale, scale_max = NULL,
                   ...)
 }
 
@@ -351,6 +354,7 @@
       dims <- param$svd_dims_1; dims <- dims - min(dims) + 1
       dims <- pmin(dims, ncol(tmp))
       scale <- param$svd_scale_1
+      scale_max <- param$svd_scale_max_1
     } else {
       recenter <- param$svd_recenter_2
       rescale <- param$svd_rescale_2
@@ -358,6 +362,7 @@
       dims <- param$svd_dims_2; dims <- dims - min(dims) + 1
       dims <- pmin(dims, ncol(tmp))
       scale <- param$svd_scale_2
+      scale_max <- param$svd_scale_max_2
     }
     
     tmp <- .normalize_svd(input_obj = tmp,
@@ -368,7 +373,8 @@
                           normalize_singular_value = normalize_singular_value,
                           recenter = recenter,
                           rescale = rescale,
-                          scale = scale)
+                          scale = scale,
+                          scale_max = scale_max)
   } 
   if(any(dim(tmp) == 0)){
     warning("Output incomplete, possibly since the requested matrix is all-0's")

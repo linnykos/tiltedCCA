@@ -6,7 +6,7 @@ test_that(".get_SVD works for matrix", {
   mat <- matrix(1:50, 10, 5)
   rownames(mat) <- paste0("c", 1:10)
   colnames(mat) <- paste0("g", 1:5)
-  res <- .get_SVD(mat, center = T, dims = 1:2, scale = T)
+  res <- .get_SVD(mat, center = T, dims = 1:2, scale = T, scale_max = NULL)
   
   expect_true(inherits(res, "svd"))
   expect_true(all(sort(names(res)) == sort(c("u", "d", "v", "method"))))
@@ -22,7 +22,7 @@ test_that(".get_SVD works for dgCMatrix", {
   mat <- Matrix::Matrix(mat, sparse = T)
   rownames(mat) <- paste0("c", 1:10)
   colnames(mat) <- paste0("g", 1:5)
-  res <- .get_SVD(mat, center = T, dims = 1:2, scale = T)
+  res <- .get_SVD(mat, center = T, dims = 1:2, scale = T, scale_max = NULL)
   
   expect_true(inherits(res, "svd"))
   expect_true(all(sort(names(res)) == sort(c("u", "d", "v", "method"))))
@@ -39,9 +39,9 @@ test_that(".get_SVD works for multiSVD", {
                                   dims_1 = 1:2, dims_2 = 1:2)
   
   multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 1)
-  res1 <- .get_SVD(multiSVD_obj)
+  res1 <- .get_SVD(multiSVD_obj, scale_max = NULL)
   multiSVD_obj <- .set_defaultAssay(multiSVD_obj, assay = 2)
-  res2 <- .get_SVD(multiSVD_obj)
+  res2 <- .get_SVD(multiSVD_obj, scale_max = NULL)
   
   expect_true(inherits(res1, "svd"))
   expect_true(all(c("u", "d", "v", "method") %in% names(res1)))
@@ -63,7 +63,7 @@ test_that(".get_Dimred works for matrix", {
   rownames(mat) <- paste0("c", 1:10)
   colnames(mat) <- paste0("g", 1:5)
   res <- .get_Dimred(mat, center = T, dims = 1:2, scale = T,
-                     normalize_singular_value = T)
+                     normalize_singular_value = T, scale_max = NULL)
   
   expect_true(inherits(res, "matrix"))
   expect_true(all(rownames(res) == rownames(mat)) & length(rownames(res)) == 10)
@@ -73,7 +73,7 @@ test_that(".get_Dimred works for svd", {
   mat <- matrix(1:50, 10, 5)
   rownames(mat) <- paste0("c", 1:10)
   colnames(mat) <- paste0("g", 1:5)
-  svd_obj <- .get_SVD(mat, center = T, dims = 1:2, scale = T)
+  svd_obj <- .get_SVD(mat, center = T, dims = 1:2, scale = T, scale_max = NULL)
   
   res <- .get_Dimred(svd_obj, center = T, dims = 1:2, scale = T,
                      normalize_singular_value = T)

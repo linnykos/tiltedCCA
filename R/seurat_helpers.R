@@ -7,12 +7,6 @@ create_SeuratDim <- function(input_obj,
                              ...){
   stopifnot(what %in% c("common", "distinct_1", "distinct_2"))
   
-  # hard set parameters to avoid applying scaling on the matrices
-  input_obj$param$svd_center_1 <- F
-  input_obj$param$svd_center_2 <- F
-  input_obj$param$svd_scale_1 <- F
-  input_obj$param$svd_scale_2 <- F
-  
   if(what == "common"){
     param <- .get_param(input_obj)
     if(!param$svd_normalize_singular_value){

@@ -43,7 +43,7 @@ clisi_information <- function(input_obj,
   bool_cosine <- param$snn_bool_cosine
   bool_intersect <- param$snn_bool_intersect
   min_deg <- param$snn_min_deg
-
+  
   # first construct the common graph
   input_obj <- .set_defaultAssay(input_obj, assay = 1)
   if("common_mat_1" %in% names(input_obj)){
