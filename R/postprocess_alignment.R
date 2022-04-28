@@ -33,7 +33,7 @@ postprocess_alignment <- function(input_obj,
     if(seurat_slot == "counts"){
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts[seurat_obj[[seurat_assay]]@var.features,])
     } else if(seurat_slot == "data"){
-      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@data)
+      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@data[seurat_obj[[seurat_assay]]@var.features,])
     } else if(seurat_slot == "scale.data"){
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@scale.data)
     } else {
