@@ -1,6 +1,6 @@
 clisi_information <- function(input_obj, 
                               membership_vec, 
-                              max_subsample_clisi = min(1000, nrow(c_g)),
+                              max_subsample_clisi = min(1000, length(membership_vec)),
                               verbose = 0){
   stopifnot(inherits(input_obj, "multiSVD"),
             all("tcca_obj" %in% names(input_obj)),
