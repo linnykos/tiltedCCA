@@ -8,6 +8,8 @@ postprocess_alignment <- function(input_obj,
                                   bool_regression_center = T,
                                   bool_regression_scale = T,
                                   input_assay = 1,
+                                  min_subsample_cell = NULL,
+                                  seurat_celltype_variable = "celltype",
                                   seurat_obj = NULL,
                                   seurat_assay = Seurat::DefaultAssay(seurat_obj),
                                   seurat_slot = "data",
@@ -17,7 +19,7 @@ postprocess_alignment <- function(input_obj,
   
   if(verbose > 0) print("Gathering ingredients")
   input_obj <- .set_defaultAssay(input_obj, 
-                                    assay = input_assay)
+                                 assay = input_assay)
   common_mat <- .get_tCCAobj(input_obj, 
                              apply_postDimred = F,
                              what = "common_mat")
@@ -29,7 +31,7 @@ postprocess_alignment <- function(input_obj,
   } else {
     stopifnot(inherits(seurat_obj, "Seurat"))
     if(seurat_slot == "counts"){
-      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts)
+      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts[seurat_obj[[seurat_assay]]@var.features,])
     } else if(seurat_slot == "data"){
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@data)
     } else if(seurat_slot == "scale.data"){
@@ -41,6 +43,15 @@ postprocess_alignment <- function(input_obj,
   
   everything_mat <- everything_mat[,colnames(common_mat)]
   stopifnot(all(dim(common_mat) == dim(everything_mat)))
+  
+  if(!is.null(min_subsample_cell)){
+    stopifnot(seurat_celltype_variable %in% colnames(seurat_obj@meta.data))
+    membership_vec <- seurat_obj@meta.data[,seurat_celltype_variable]
+    idx <- construct_celltype_subsample(membership_vec, min_subsample_cell = min_subsample_cell)
+    
+    common_mat <- common_mat[idx,]
+    everything_mat <- everything_mat[idx,]
+  }
   
   if(bool_center | bool_scale){
     common_mat <- scale(common_mat,
