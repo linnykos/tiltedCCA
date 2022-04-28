@@ -45,15 +45,20 @@ postprocess_alignment <- function(input_obj,
   stopifnot(all(dim(common_mat) == dim(everything_mat)))
   
   if(!is.null(min_subsample_cell)){
+    if(verbose > 1) print("Reducing the number of cells")
     stopifnot(seurat_celltype_variable %in% colnames(seurat_obj@meta.data))
     membership_vec <- seurat_obj@meta.data[,seurat_celltype_variable]
     idx <- construct_celltype_subsample(membership_vec, min_subsample_cell = min_subsample_cell)
     
+    ncell_before <- nrow(common_mat)
     common_mat <- common_mat[idx,]
     everything_mat <- everything_mat[idx,]
+    ncell_after <- nrow(common_mat)
+    if(verbose > 1) print(paste0("Reduced the number of cells from ", ncell_before, " to ", ncell_after))
   }
   
   if(bool_center | bool_scale){
+    if(verbose > 1) print(paste0("Rescaling matrices, each of dimension ", nrow(common_mat), " by ", ncol(common_mat)))
     common_mat <- scale(common_mat,
                         center = bool_center, 
                         scale = bool_scale)

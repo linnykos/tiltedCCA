@@ -10,6 +10,7 @@
 #' @export
 construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
   stopifnot(is.factor(membership_vec))
+  membership_vec <- droplevels(membership_vec)
   
   res <- lapply(levels(membership_vec), function(x){
     idx <- which(membership_vec == x)
