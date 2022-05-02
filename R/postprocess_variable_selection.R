@@ -97,7 +97,9 @@ postprocess_variable_selection <- function(input_obj,
     if(ncol(distinct_mat) == 0) break()
   }
   
-  structure(list(selected_variables = selected_variables,
-                 candidate_list = candidate_list), 
+  structure(list(candidate_list = candidate_list,
+                 cor_threshold = cor_threshold,
+                 logpval_vec = logpval_vec,
+                 selected_variables = selected_variables), 
             class = "varSelect")
 }
