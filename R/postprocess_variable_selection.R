@@ -37,9 +37,11 @@ postprocess_variable_selection <- function(input_obj,
   if(verbose > 1) print(paste0("reference_dimred of dimension ", nrow(reference_dimred), " by ", ncol(reference_dimred)))
   
   input_obj <- .set_defaultAssay(input_obj, assay = input_assay)
+  common_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_mat")
   distinct_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_mat")
-  logpval_vec <- logpval_vec[colnames(distinct_mat)]
-  stopifnot(all(colnames(distinct_mat) == names(logpval_vec)))
+  adt_mat <- common_mat + distinct_mat
+  logpval_vec <- logpval_vec[colnames(adt_mat)]
+  stopifnot(all(colnames(adt_mat) == names(logpval_vec)))
   
   if(!is.null(min_subsample_cell)){
     if(verbose > 1) print("Reducing the number of cells")
@@ -49,12 +51,12 @@ postprocess_variable_selection <- function(input_obj,
     
     ncell_before <- nrow(reference_dimred)
     reference_dimred <- reference_dimred[idx,]
-    distinct_mat <- distinct_mat[idx,]
+    adt_mat <- adt_mat[idx,]
     ncell_after <- nrow(reference_dimred)
     if(verbose > 1) print(paste0("Reduced the number of cells from ", ncell_before, " to ", ncell_after))
   }
   
-  n <- nrow(distinct_mat)
+  n <- nrow(adt_mat)
   candidate_list <- vector("list", length = max_variables)
   selected_variables <- numeric(0)
   
@@ -62,9 +64,9 @@ postprocess_variable_selection <- function(input_obj,
     if(verbose > 0) print(paste0("On iteration: ", length(selected_variables)+1))
     
     if(verbose > 0) print("Selecting variable")
-    cor_vec <- sapply(1:ncol(distinct_mat), function(j){
-      if(verbose > 1 && ncol(distinct_mat) > 10 & j %% floor(ncol(distinct_mat)/10) == 0) cat('*')
-      if(verbose > 2) print(paste0("Working on variable ", j, " of ", ncol(distinct_mat)))
+    cor_vec <- sapply(1:ncol(adt_mat), function(j){
+      if(verbose > 1 && ncol(adt_mat) > 10 & j %% floor(ncol(adt_mat)/10) == 0) cat('*')
+      if(verbose > 2) print(paste0("Working on variable ", j, " of ", ncol(adt_mat)))
       .linear_regression(bool_include_intercept = T,
                          bool_center_x = T,
                          bool_center_y = T,
@@ -72,9 +74,9 @@ postprocess_variable_selection <- function(input_obj,
                          bool_scale_y = T,
                          return_type = "r_squared", 
                          x_mat = reference_dimred,
-                         y_vec = distinct_mat[,j])
+                         y_vec = adt_mat[,j])
     })
-    candidate_var <- colnames(distinct_mat)[which(cor_vec <= cor_threshold)]
+    candidate_var <- colnames(adt_mat)[which(cor_vec <= cor_threshold)]
     candidate_list[[length(selected_variables)+1]] <- candidate_var
     
     if(verbose > 0) print(paste0(length(candidate_var), " eligble variables"))
@@ -89,12 +91,12 @@ postprocess_variable_selection <- function(input_obj,
     }
     
     selected_variables <- c(selected_variables, idx)
-    reference_dimred <- cbind(reference_dimred, distinct_mat[,idx])
+    reference_dimred <- cbind(reference_dimred, adt_mat[,idx])
     colnames(reference_dimred)[ncol(reference_dimred)] <- idx
     
     stopifnot(all(selected_variables %in% colnames(reference_dimred)))
-    distinct_mat <- distinct_mat[,which(!colnames(distinct_mat) %in% selected_variables),drop = F]
-    if(ncol(distinct_mat) == 0) break()
+    adt_mat <- adt_mat[,which(!colnames(adt_mat) %in% selected_variables),drop = F]
+    if(ncol(adt_mat) == 0) break()
   }
   
   structure(list(candidate_list = candidate_list,
