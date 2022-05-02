@@ -84,7 +84,7 @@ postprocess_variable_selection <- function(input_obj,
     if(verbose > 1) {
       tmp_k <- min(5, length(candidate_var))
       print(paste0("Top ", tmp_k, " variables:"))
-      print(logpval_vec[order(logpval_vec[candidate_var], decreasing = T)[1:tmp_k]])
+      print(logpval_vec[candidate_var[order(logpval_vec[candidate_var], decreasing = T)[1:tmp_k]]])
       print(paste0("Selected the variable: ", idx))
     }
     
