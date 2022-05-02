@@ -84,12 +84,14 @@ postprocess_variable_selection <- function(input_obj,
     if(verbose > 1) {
       tmp_k <- min(5, length(candidate_var))
       print(paste0("Top ", tmp_k, " variables:"))
-      print(candidate_var[order(logpval_vec[candidate_var], decreasing = T)[1:tmp_k]])
-      print(paste0("Selected the variable: ", candidate_var[idx]))
+      print(logpval_vec[order(logpval_vec[candidate_var], decreasing = T)[1:tmp_k]])
+      print(paste0("Selected the variable: ", idx))
     }
     
     selected_variables <- c(selected_variables, idx)
     reference_dimred <- cbind(reference_dimred, distinct_mat[,idx])
+    colnames(reference_dimred)[ncol(reference_dimred)] <- idx
+    
     stopifnot(all(selected_variables %in% colnames(reference_dimred)))
     distinct_mat <- distinct_mat[,which(!colnames(distinct_mat) %in% selected_variables),drop = F]
     if(ncol(distinct_mat) == 0) break()
