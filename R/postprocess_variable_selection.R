@@ -24,10 +24,9 @@ postprocess_variable_selection <- function(input_obj,
   stopifnot(length(names(logpval_vec)) == length(logpval_vec),
             cor_threshold >= 0, cor_threshold <= 1)
   
+  if(verbose > 0) print("Extracting relevant matrices")
   input_obj <- .set_defaultAssay(input_obj, assay = -input_assay+3)
   common_dimred_string <- ifelse(-input_assay+3 == 1, "common_dimred_1", "common_dimred_2")
-  
-  if(verbose > 0) print("Extracting relevant matrices")
   if(!common_dimred_string %in% names(input_obj)){
     input_obj <- tiltedCCA_decomposition(input_obj, 
                                          bool_modality_1_full = F,
@@ -39,7 +38,8 @@ postprocess_variable_selection <- function(input_obj,
   
   input_obj <- .set_defaultAssay(input_obj, assay = input_assay)
   distinct_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_mat")
-  stopifnot(all(sort(colnames(distinct_mat)) == sort(names(logpval_vec))))
+  logpval_vec <- logpval_vec[colnames(distinct_mat)]
+  stopifnot(all(colnames(distinct_mat) == names(logpval_vec)))
   
   if(!is.null(min_subsample_cell)){
     if(verbose > 1) print("Reducing the number of cells")
@@ -81,9 +81,17 @@ postprocess_variable_selection <- function(input_obj,
     if(length(candidate_var) == 0) break()
     
     idx <- candidate_var[which.max(logpval_vec[candidate_var])]
+    if(verbose > 1) {
+      tmp_k <- min(5, length(candidate_var))
+      print(paste0("Top ", tmp_k, " variables:"))
+      print(candidate_var[order(logpval_vec[candidate_var], decreasing = T)[1:tmp_k]])
+      print(paste0("Selected the variable: ", candidate_var[idx]))
+    }
+    
     selected_variables <- c(selected_variables, idx)
     reference_dimred <- cbind(reference_dimred, distinct_mat[,idx])
-    distinct_mat <- distinct_mat[,which(!colnames(distinct_mat) %in% idx),drop = F]
+    stopifnot(all(selected_variables %in% colnames(reference_dimred)))
+    distinct_mat <- distinct_mat[,which(!colnames(distinct_mat) %in% selected_variables),drop = F]
     if(ncol(distinct_mat) == 0) break()
   }
   
