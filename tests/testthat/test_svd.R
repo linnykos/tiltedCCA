@@ -19,6 +19,23 @@ test_that(".svd_safe works", {
   expect_true(all(rownames(res$v) == colnames(mat)) & length(rownames(res$v)) == 10)
 })
 
+test_that(".svd_safe works with tall and skinny matrices", {
+  set.seed(10)
+  mat <- MASS::mvrnorm(n = 100, mu = rep(0, 3), Sigma = diag(3))
+  rownames(mat) <- paste0("c", 1:100)
+  colnames(mat) <- paste0("g", 1:3)
+  res <- .svd_safe(mat = mat,
+                   check_stability = T, 
+                   K = 3, 
+                   mean_vec = F, 
+                   rescale = F, 
+                   scale_max = NULL, 
+                   sd_vec = NULL)
+  
+  mat2 <- tcrossprod(.mult_mat_vec(res$u, res$d), res$v)
+  expect_true(sum(abs(mat - mat2)) <= 1e-5)
+})
+
 test_that(".svd_safe works with scale_max", {
   set.seed(10)
   mat <- MASS::mvrnorm(n = 100, mu = rep(0, 10), Sigma = diag(10))*10

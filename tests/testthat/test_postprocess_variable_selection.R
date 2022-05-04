@@ -41,7 +41,8 @@ test_that("postprocess_variable_selection works", {
                                         verbose = 0)
   
   expect_true(class(res) == "varSelect")
-  expect_true(all(sort(names(res)) == sort(c("selected_variables", "candidate_list"))))
+  expect_true(all(sort(names(res)) == sort(c("selected_variables", "candidate_list", "logpval_vec",
+                                             "cor_threshold"))))
   expect_true(all(res$selected_variables %in% colnames(mat_2)))
   for(i in 1:length(res$candidate_list)){
     expect_true(all(res$candidate_list[[i]] %in% colnames(mat_2)))
