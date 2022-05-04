@@ -42,6 +42,7 @@ postprocess_variable_selection <- function(input_obj,
   adt_mat <- common_mat + distinct_mat
   logpval_vec <- logpval_vec[colnames(adt_mat)]
   stopifnot(all(colnames(adt_mat) == names(logpval_vec)))
+  cor_vec_intial <- NULL
   
   if(!is.null(min_subsample_cell)){
     if(verbose > 1) print("Reducing the number of cells")
@@ -76,6 +77,9 @@ postprocess_variable_selection <- function(input_obj,
                          x_mat = reference_dimred,
                          y_vec = adt_mat[,j])
     })
+    cor_vec <- colnames(adt_mat)
+    if(all(is.null(cor_vec_intial))) cor_vec_intial <- cor_vec
+    
     candidate_var <- colnames(adt_mat)[which(cor_vec <= cor_threshold)]
     candidate_list[[length(selected_variables)+1]] <- candidate_var
     
@@ -101,6 +105,7 @@ postprocess_variable_selection <- function(input_obj,
   
   structure(list(candidate_list = candidate_list,
                  cor_threshold = cor_threshold,
+                 cor_vec_intial = cor_vec_intial,
                  logpval_vec = logpval_vec,
                  selected_variables = selected_variables), 
             class = "varSelect")
