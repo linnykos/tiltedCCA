@@ -1,4 +1,5 @@
 postprocess_variable_selection <- function(input_obj,
+                                           input_mat = NULL,
                                            logpval_vec, #larger is more significant
                                            cor_threshold = 0.9,
                                            input_assay = 2,
@@ -39,9 +40,19 @@ postprocess_variable_selection <- function(input_obj,
   input_obj <- .set_defaultAssay(input_obj, assay = input_assay)
   common_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_mat")
   distinct_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_mat")
-  adt_mat <- common_mat + distinct_mat
-  logpval_vec <- logpval_vec[colnames(adt_mat)]
-  stopifnot(all(colnames(adt_mat) == names(logpval_vec)))
+  everything_mat <- common_mat + distinct_mat
+  if(!all(is.null(input_mat))){
+    stopifnot(all(dim(input_mat) == dim(everything_mat)), all(sort(colnames(input_mat)) == sort(colnames(input_mat))))
+    if(inherits(input_mat, "dgCMatrix")) {
+      everything_mat <- as.matrix(input_mat)
+    } else if (inherits(input_mat, "matrix")){
+      everything_mat <- input_mat
+    } else {
+      stop("input_mat is not a valid input")
+    }
+  }
+  logpval_vec <- logpval_vec[colnames(everything_mat)]
+  stopifnot(all(colnames(everything_mat) == names(logpval_vec)))
   cor_vec_intial <- NULL
   
   if(!is.null(min_subsample_cell)){
@@ -52,12 +63,12 @@ postprocess_variable_selection <- function(input_obj,
     
     ncell_before <- nrow(reference_dimred)
     reference_dimred <- reference_dimred[idx,]
-    adt_mat <- adt_mat[idx,]
+    everything_mat <- everything_mat[idx,]
     ncell_after <- nrow(reference_dimred)
     if(verbose > 1) print(paste0("Reduced the number of cells from ", ncell_before, " to ", ncell_after))
   }
   
-  n <- nrow(adt_mat)
+  n <- nrow(everything_mat)
   candidate_list <- vector("list", length = max_variables)
   selected_variables <- numeric(0)
   
@@ -65,9 +76,9 @@ postprocess_variable_selection <- function(input_obj,
     if(verbose > 0) print(paste0("On iteration: ", length(selected_variables)+1))
     
     if(verbose > 0) print("Selecting variable")
-    cor_vec <- sapply(1:ncol(adt_mat), function(j){
-      if(verbose > 1 && ncol(adt_mat) > 10 & j %% floor(ncol(adt_mat)/10) == 0) cat('*')
-      if(verbose > 2) print(paste0("Working on variable ", j, " of ", ncol(adt_mat)))
+    cor_vec <- sapply(1:ncol(everything_mat), function(j){
+      if(verbose > 1 && ncol(everything_mat) > 10 & j %% floor(ncol(everything_mat)/10) == 0) cat('*')
+      if(verbose > 2) print(paste0("Working on variable ", j, " of ", ncol(everything_mat)))
       .linear_regression(bool_include_intercept = T,
                          bool_center_x = T,
                          bool_center_y = T,
@@ -75,12 +86,12 @@ postprocess_variable_selection <- function(input_obj,
                          bool_scale_y = T,
                          return_type = "r_squared", 
                          x_mat = reference_dimred,
-                         y_vec = adt_mat[,j])
+                         y_vec = everything_mat[,j])
     })
-    names(cor_vec) <- colnames(adt_mat)
+    names(cor_vec) <- colnames(everything_mat)
     if(all(is.null(cor_vec_intial))) cor_vec_intial <- cor_vec
     
-    candidate_var <- colnames(adt_mat)[which(cor_vec <= cor_threshold)]
+    candidate_var <- colnames(everything_mat)[which(cor_vec <= cor_threshold)]
     candidate_list[[length(selected_variables)+1]] <- candidate_var
     
     if(verbose > 0) print(paste0(length(candidate_var), " eligble variables"))
@@ -95,12 +106,12 @@ postprocess_variable_selection <- function(input_obj,
     }
     
     selected_variables <- c(selected_variables, idx)
-    reference_dimred <- cbind(reference_dimred, adt_mat[,idx])
+    reference_dimred <- cbind(reference_dimred, everything_mat[,idx])
     colnames(reference_dimred)[ncol(reference_dimred)] <- idx
     
     stopifnot(all(selected_variables %in% colnames(reference_dimred)))
-    adt_mat <- adt_mat[,which(!colnames(adt_mat) %in% selected_variables),drop = F]
-    if(ncol(adt_mat) == 0) break()
+    everything_mat <- everything_mat[,which(!colnames(everything_mat) %in% selected_variables),drop = F]
+    if(ncol(everything_mat) == 0) break()
   }
   
   structure(list(candidate_list = candidate_list,

@@ -1,6 +1,7 @@
 consensus_pca <- function(mat_1, mat_2,
                           dims_1, dims_2,
                           dims_consensus,
+                          apply_pca = T,
                           center_1 = T, center_2 = T,
                           center_consensus = T,
                           normalize_row = F,
@@ -24,7 +25,8 @@ consensus_pca <- function(mat_1, mat_2,
   
   n <- nrow(svd_1$u)
   stopifnot(n == nrow(svd_2$u))
-  param <- .form_consensusPCA_param(center_1 = center_1, center_2 = center_2,
+  param <- .form_consensusPCA_param(apply_pca = apply_pca,
+                                    center_1 = center_1, center_2 = center_2,
                                     center_consensus = center_consensus,
                                     dims_1 = dims_1, dims_2 = dims_2,
                                     dims_consensus = dims_consensus,
@@ -56,17 +58,30 @@ consensus_pca <- function(mat_1, mat_2,
   
   if(verbose > 0) print("Computing Consensus PCA")
   dimred_combined <- cbind(dimred_1, dimred_2)
-  svd_consensus <- .get_SVD(center = center_consensus, 
-                            input_obj = dimred_combined,
-                            dims = dims_consensus, 
-                            scale = scale_consensus, 
-                            scale_max = scale_max_consensus)
-  dimred_consensus <- .normalize_svd(input_obj = svd_consensus,
-                                     averaging_mat = NULL,
-                                     normalize_row = normalize_row,
-                                     normalize_singular_value = normalize_singular_value,
-                                     recenter = recenter_consensus,
-                                     rescale = rescale_consensus)
+  
+  if(apply_pca){
+    svd_consensus <- .get_SVD(center = center_consensus, 
+                              input_obj = dimred_combined,
+                              dims = dims_consensus, 
+                              scale = scale_consensus, 
+                              scale_max = scale_max_consensus)
+    dimred_consensus <- .normalize_svd(input_obj = svd_consensus,
+                                       averaging_mat = NULL,
+                                       normalize_row = normalize_row,
+                                       normalize_singular_value = normalize_singular_value,
+                                       recenter = recenter_consensus,
+                                       rescale = rescale_consensus)
+  } else {
+    if(recenter_consensus | rescale_consensus) {
+      dimred_combined <- scale(dimred_combined, center = recenter_consensus, scale = rescale_consensus)
+    }
+    
+    if(normalize_row){
+      l2_vec <- apply(dimred_combined, 1, function(x){.l2norm(x)})
+      l2_vec[l2_vec <= tol] <- tol
+      dimred_combined <- .mult_vec_mat(1/l2_vec, dimred_combined)
+    }
+  }
   
   structure(list(dimred_consensus = dimred_consensus,
                  dimred_1 = dimred_1,
@@ -75,7 +90,8 @@ consensus_pca <- function(mat_1, mat_2,
             class = "consensusPCA")
 }
 
-.form_consensusPCA_param <- function(center_1, center_2,
+.form_consensusPCA_param <- function(apply_pca,
+                                     center_1, center_2,
                                      center_consensus,
                                      dims_1, dims_2,
                                      dims_consensus,
@@ -90,7 +106,8 @@ consensus_pca <- function(mat_1, mat_2,
                                      scale_consensus,
                                      scale_max_1, scale_max_2,
                                      scale_max_consensus){
-  list(svd_center_1 = center_1, svd_center_2 = center_2,
+  list(svd_apply_pca = apply_pca,
+       svd_center_1 = center_1, svd_center_2 = center_2,
        svd_center_consensus = center_consensus,
        svd_dims_1 = dims_1, svd_dims_2 = dims_2,
        svd_dims_consensus = dims_consensus,
