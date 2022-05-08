@@ -1,7 +1,47 @@
-postprocess_cell_enrichment <- function(input_obj, 
-                                        membership_vec, 
-                                        max_subsample = min(1000, length(membership_vec)),
-                                        verbose = 0){
+#' @export
+postprocess_cell_enrichment <- function(input_obj, ...) UseMethod("postprocess_cell_enrichment")
+
+#' @export
+postprocess_cell_enrichment.default <- function(input_obj, 
+                                                membership_vec, 
+                                                num_neigh,
+                                                bool_cosine = T,
+                                                bool_intersect = T,
+                                                max_subsample = min(1000, length(membership_vec)),
+                                                min_deg = 1,
+                                                verbose = 0,
+                                                ...){
+  stopifnot(inherits(input_obj, "matrix"),
+            nrow(input_obj) == length(membership_vec), is.factor(membership_vec))
+  
+  snn <- .form_snn_mat(mat = input_obj,
+                       num_neigh = num_neigh,
+                       bool_cosine = bool_cosine, 
+                       bool_intersect = bool_intersect, 
+                       min_deg = min_deg,
+                       tol = 1e-4,
+                       verbose = verbose)
+  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
+  enrichment <- .enrichment(cell_subidx = cell_subidx,
+                            g = snn, 
+                            membership_vec = membership_vec, 
+                            verbose = verbose)
+  
+  param <- list(num_neigh = num_neigh,
+                bool_cosine = bool_cosine,
+                bool_intersect = bool_intersect,
+                max_subsample = max_subsample,
+                min_deg = min_deg)
+  
+  list(enrichment = enrichment,
+       param = param)
+}
+
+#' @export
+postprocess_cell_enrichment.multiSVD <- function(input_obj, 
+                                                 membership_vec, 
+                                                 max_subsample = min(1000, length(membership_vec)),
+                                                 verbose = 0, ...){
   stopifnot(inherits(input_obj, "multiSVD"),
             all("tcca_obj" %in% names(input_obj)),
             is.factor(membership_vec), length(membership_vec) == nrow(input_obj$svd_1$u))

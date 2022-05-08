@@ -54,7 +54,8 @@ consensus_pca <- function(mat_1, mat_2,
                              normalize_row = normalize_row,
                              normalize_singular_value = normalize_singular_value,
                              recenter = recenter_2,
-                             rescale = rescale_2)
+                             rescale = rescale_2,
+                             tol = 1e-4)
   
   if(verbose > 0) print("Computing Consensus PCA")
   dimred_combined <- cbind(dimred_1, dimred_2)
