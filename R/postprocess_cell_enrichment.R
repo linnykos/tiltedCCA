@@ -14,6 +14,7 @@ postprocess_cell_enrichment.default <- function(input_obj,
   stopifnot(inherits(input_obj, "matrix"),
             nrow(input_obj) == length(membership_vec), is.factor(membership_vec))
   
+  if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute graph"))
   snn <- .form_snn_mat(mat = input_obj,
                        num_neigh = num_neigh,
                        bool_cosine = bool_cosine, 
@@ -22,6 +23,8 @@ postprocess_cell_enrichment.default <- function(input_obj,
                        tol = 1e-4,
                        verbose = verbose)
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
+  
+  if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute enrichment"))
   enrichment <- .enrichment(cell_subidx = cell_subidx,
                             g = snn, 
                             membership_vec = membership_vec, 
@@ -46,6 +49,7 @@ postprocess_cell_enrichment.multiSVD <- function(input_obj,
             all("tcca_obj" %in% names(input_obj)),
             is.factor(membership_vec), length(membership_vec) == nrow(input_obj$svd_1$u))
   
+  if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute graphs"))
   res <- .construct_snn_from_tcca(input_obj, verbose = verbose)
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
   
