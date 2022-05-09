@@ -14,6 +14,13 @@ postprocess_cell_enrichment.default <- function(input_obj,
   stopifnot(inherits(input_obj, "matrix"),
             nrow(input_obj) == length(membership_vec), is.factor(membership_vec))
   
+  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
+  input_obj <- input_obj[cell_subidx,]
+  membership_vec <- membership_vec[cell_subidx]
+  if(verbose > 1){
+    print(paste0("After subsampling, matrix of ", nrow(input_obj), " cells"))
+  }
+  
   if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute graph"))
   snn <- .form_snn_mat(mat = input_obj,
                        num_neigh = num_neigh,
@@ -22,10 +29,9 @@ postprocess_cell_enrichment.default <- function(input_obj,
                        min_deg = min_deg,
                        tol = 1e-4,
                        verbose = verbose)
-  cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
-  
+
   if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute enrichment"))
-  enrichment <- .enrichment(cell_subidx = cell_subidx,
+  enrichment <- .enrichment(cell_subidx = 1:nrow(snn),
                             g = snn, 
                             membership_vec = membership_vec, 
                             verbose = verbose)
@@ -50,24 +56,28 @@ postprocess_cell_enrichment.multiSVD <- function(input_obj,
             is.factor(membership_vec), length(membership_vec) == nrow(input_obj$svd_1$u))
   
   if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute graphs"))
-  res <- .construct_snn_from_tcca(input_obj, verbose = verbose)
   cell_subidx <- .construct_celltype_subsample(membership_vec, max_subsample)
-  
+  membership_vec <- membership_vec[cell_subidx]
+  res <- .construct_snn_from_tcca(cell_subidx = cell_subidx,
+                                  input_obj = input_obj, 
+                                  verbose = verbose)
+
   # compute enrichment scores
+  n <- nrow(res$snn_common)
   if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute common enrichment"))
-  enrichment_common <- .enrichment(cell_subidx = cell_subidx,
+  enrichment_common <- .enrichment(cell_subidx = 1:n,
                                    g = res$snn_common, 
                                    membership_vec = membership_vec, 
                                    verbose = verbose)
   
   if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute distinct 1 enrichment"))
-  enrichment_distinct_1 <- .enrichment(cell_subidx = cell_subidx,
+  enrichment_distinct_1 <- .enrichment(cell_subidx = 1:n,
                                        g = res$snn_distinct_1, 
                                        membership_vec = membership_vec, 
                                        verbose = verbose)
   
   if(verbose > 0) print(paste0(Sys.time(),": Enrichment: Compute distinct 2 enrichment"))
-  enrichment_distinct_2 <- .enrichment(cell_subidx = cell_subidx,
+  enrichment_distinct_2 <- .enrichment(cell_subidx = 1:n,
                                        g = res$snn_distinct_2, 
                                        membership_vec = membership_vec, 
                                        verbose = verbose)
@@ -79,7 +89,8 @@ postprocess_cell_enrichment.multiSVD <- function(input_obj,
 
 ############
 
-.construct_snn_from_tcca <- function(input_obj,
+.construct_snn_from_tcca <- function(cell_subidx,
+                                     input_obj,
                                      tol = 1e-4,
                                      verbose = 0){
   param <- .get_param(input_obj)
@@ -106,6 +117,10 @@ postprocess_cell_enrichment.multiSVD <- function(input_obj,
     stop("Cannot find the appropriate common matrix for modality 2")
   }
   dimred <- cbind(dimred_1, dimred_2)
+  dimred <- dimred[cell_subidx,]
+  if(verbose > 1){
+    print(paste0("After subsampling, matrix of ", nrow(dimred), " cells"))
+  }
   
   snn_common <- .form_snn_mat(mat = dimred,
                               num_neigh = num_neigh,
@@ -124,6 +139,7 @@ postprocess_cell_enrichment.multiSVD <- function(input_obj,
   } else {
     stop("Cannot find the appropriate distinct matrix for modality 1")
   }
+  dimred <- dimred[cell_subidx,]
   snn_distinct_1 <- .form_snn_mat(mat = dimred,
                                   num_neigh = num_neigh,
                                   bool_cosine = bool_cosine, 
@@ -140,6 +156,7 @@ postprocess_cell_enrichment.multiSVD <- function(input_obj,
   } else {
     stop("Cannot find the appropriate distinct matrix for modality 2")
   }
+  dimred <- dimred[cell_subidx,]
   snn_distinct_2 <- .form_snn_mat(mat = dimred,
                                   num_neigh = num_neigh,
                                   bool_cosine = bool_cosine, 

@@ -31,7 +31,8 @@ test_that(".enrichment works", {
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
                             verbose = F)
   multiSVD_obj <- tiltedCCA_decomposition(multiSVD_obj)
-  graph_list <- .construct_snn_from_tcca(multiSVD_obj)
+  graph_list <- .construct_snn_from_tcca(cell_subidx = 1:n,
+                                         input_obj = multiSVD_obj)
   
   res1 <- .enrichment(cell_subidx = 1:nrow(mat_1), 
                       g = graph_list$snn_common, 
@@ -90,7 +91,8 @@ test_that("postprocess_cell_enrichment.multiSVD works", {
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
                             verbose = F)
   multiSVD_obj <- tiltedCCA_decomposition(multiSVD_obj)
-  graph_list <- .construct_snn_from_tcca(multiSVD_obj)
+  graph_list <- .construct_snn_from_tcca(cell_subidx = 1:n,
+                                         input_obj = multiSVD_obj)
   
   res1 <- postprocess_cell_enrichment(multiSVD_obj,
                                       membership_vec = test_data$true_membership_vec,
@@ -178,7 +180,8 @@ test_that(".enrichment_cell works", {
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
                             verbose = F)
   multiSVD_obj <- tiltedCCA_decomposition(multiSVD_obj)
-  graph_list <- .construct_snn_from_tcca(multiSVD_obj)
+  graph_list <- .construct_snn_from_tcca(cell_subidx = 1:n,
+                                         input_obj = multiSVD_obj)
   
   res <- .enrichment_cell(g = graph_list$snn_common,
                           membership_vec = test_data$true_membership_vec,
