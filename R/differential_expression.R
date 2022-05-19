@@ -34,5 +34,7 @@ differential_expression <- function(seurat_obj,
                         verbose = verbose)
   })
   
-  de_list
+  list(combn_mat = combn_mat,
+       de_list = de_list,
+       level_vec = level_vec)
 }

@@ -2,6 +2,7 @@
 - Technically, we just need to pass in the factor vector of celltypes into variable_selection, not the entire Seurat object
 - I can improve the variable_selection method by using lm.QR functions like in Seurat so it's faster
 - Check that all my function give a warning if an object currently exists, and allow for an option to overwrite existing calculations
+- Allow plotting of laplacian if there was subsampling/averaging
 - Change plot_clisi to not be ggplot, and add tests for .pie_custom
 - See if I need to remove functions in rare_cel, plot_embedding2, graph_laplacian, consensus_pca, or information_plot
 
