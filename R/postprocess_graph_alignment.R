@@ -3,6 +3,7 @@ postprocess_graph_alignment <- function(
   bool_use_denoised,
   bool_include_intercept = T,
   bool_use_metacells = T,
+  cell_idx = NULL,
   input_assay = 1,
   return_everything_mat = F,
   seurat_obj = NULL,
@@ -72,6 +73,15 @@ postprocess_graph_alignment <- function(
   dimred <- cbind(dimred_1, dimred_2)
   stopifnot(nrow(dimred) == nrow(everything_mat))
   
+  # account of selection of cells
+  if(all(!is.null(cell_idx))){
+    stopifnot(is.numeric(cell_idx), all(cell_idx >= 1),
+              all(cell_idx <= nrow(dimred)),
+              all(cell_idx %% 1 == 0))
+    dimred <- dimred[cell_idx,]
+    everything_mat <- everything_mat[cell_idx,]
+  }
+  
   param <- .get_param(input_obj)
   if(bool_use_metacells & !is.null(param$mc_num_metacells)){
     metacell_clustering_list <- .get_metacell(
@@ -84,6 +94,10 @@ postprocess_graph_alignment <- function(
       metacell_clustering_list = metacell_clustering_list,
       n = n
     )
+    
+    if(all(!is.null(cell_idx))){
+      averaging_mat <- averaging_mat[,cell_idx]
+    }
     
     everything_mat <- averaging_mat %*% everything_mat
     dimred <- averaging_mat %*% dimred
@@ -134,6 +148,7 @@ postprocess_smooth_variable_selection <- function(
   bool_use_denoised,
   bool_include_intercept = T,
   bool_use_metacells = T,
+  cell_idx = NULL,
   cor_threshold = 0.8,
   input_assay = 1,
   num_variables = 50,
@@ -147,6 +162,7 @@ postprocess_smooth_variable_selection <- function(
     bool_use_denoised = bool_use_denoised,
     bool_include_intercept = bool_include_intercept,
     bool_use_metacells = bool_use_metacells,
+    cell_idx = cell_idx,
     input_assay = input_assay,
     return_everything_mat = T,
     seurat_obj = seurat_obj,
