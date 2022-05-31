@@ -1,4 +1,4 @@
-context("Test postprocess variable selection")
+context("Test postprocess distinct variable selection")
 
 ## postprocess_distinct_variable_selection is correct
 
@@ -37,7 +37,7 @@ test_that("postprocess_distinct_variable_selection works", {
   res <- postprocess_distinct_variable_selection(input_obj = multiSVD_obj,
                                                  input_assay = 2,
                                                  logpval_vec = logpval_vec,
-                                                 max_variables = 2,
+                                                 num_variables = 2,
                                                  verbose = 0)
   
   expect_true(class(res) == "varSelect")

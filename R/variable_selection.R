@@ -17,6 +17,7 @@
   if(!bool_maximizing) vec <- -vec
   
   if(verbose > 0) print("Selecting variables")
+  cor_vec_intial <- numeric(0)
   selected_variables <- numeric(0)
   candidate_variables <- colnames(mat)
   candidate_list <- vector("list", length = num_variables)
@@ -40,9 +41,11 @@
                            x_mat = selected_mat,
                            y_vec = mat[,which(colnames(mat) == variable)])
       })
+      names(cor_vec) <- candidate_variables
+      if(length(cor_vec_intial) == 0) cor_vec_intial <- cor_vec
       
       # screen out variables
-      names(cor_vec) <- candidate_variables
+
       candidate_variables <- names(cor_vec)[which(cor_vec <= cor_threshold)]
       vec <- vec[candidate_variables]
     }
@@ -77,6 +80,7 @@
   
   if(return_candidate_list){
     list(candidate_list = candidate_list,
+         cor_vec = cor_vec_intial,
          variables = selected_variables)
   } else {
     selected_variables

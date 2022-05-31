@@ -40,9 +40,13 @@ postprocess_graph_alignment <- function(
     if(is.null(seurat_assay)) seurat_assay <- Seurat::DefaultAssay(seurat_obj)
     
     if(seurat_slot == "counts"){
+      stopifnot(length(seurat_obj[[seurat_assay]]@var.features) > 0)
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts[seurat_obj[[seurat_assay]]@var.features,])
+      everything_mat <- as.matrix(everything_mat)
     } else if(seurat_slot == "data"){
+      stopifnot(length(seurat_obj[[seurat_assay]]@var.features) > 0)
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@data[seurat_obj[[seurat_assay]]@var.features,])
+      everything_mat <- as.matrix(everything_mat)
     } else if(seurat_slot == "scale.data"){
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@scale.data)
     } else {
@@ -157,34 +161,16 @@ postprocess_smooth_variable_selection <- function(
   if(num_variables >= p) return(list(variables = names(alignment_vec), alignment = alignment_vec))
   
   if(verbose > 0) print("Selecting variables")
-  selected_variables <- numeric(0)
-  candidate_var <- colnames(everything_mat)
-  selected_mat <- numeric(0)
-  alignment_tmp <- alignment_vec
-  
-  while(length(selected_variables) < num_variables | length(candidate_var) > 0){
-    if(verbose > 0) print(paste0("On iteration ", length(selected_variables)+1), 
-                          ": ", length(candidate_var), " remaining candidates")
-    
-    new_variable <- names(alignment_tmp)[which.max(alignment_tmp)]
-    selected_mat <- cbind(selected_mat, everything_mat[,new_variable,drop = F])
-    selected_variables <- c(selected_variables, new_variable)
-    candidate_var <- candidate_var[!candidate_var %in% selected_variables]
-    
-    cor_vec <- sapply(candidate_var, function(j){
-      .linear_regression(bool_include_intercept = T,
-                         bool_center_x = T,
-                         bool_center_y = T,
-                         bool_scale_x = T,
-                         bool_scale_y = T,
-                         return_type = "r_squared", 
-                         x_mat = selected_mat,
-                         y_vec = everything_mat[,which(colnames(everything_mat) == j)])
-    })
-    names(cor_vec) <- candidate_var
-    candidate_var <- names(cor_vec)[which(cor_vec <= cor_threshold)]
-    alignment_tmp <- alignment_tmp[candidate_var]
-  }
+  selected_variables <- .generic_variable_selection(
+    bool_maximizing = T, 
+    cor_threshold = cor_threshold,
+    initial_mat = NULL,
+    mat = everything_mat,
+    num_variables = num_variables,
+    return_candidate_list = F,
+    vec = alignment_vec,
+    verbose = verbose
+  )
   
   list(alignment = alignment_vec,
        cor_threshold = cor_threshold,

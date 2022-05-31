@@ -34,9 +34,13 @@ postprocess_modality_alignment <- function(input_obj,
     if(is.null(seurat_assay)) seurat_assay <- Seurat::DefaultAssay(seurat_obj)
     
     if(seurat_slot == "counts"){
+      stopifnot(length(seurat_obj[[seurat_assay]]@var.features) > 0)
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts[seurat_obj[[seurat_assay]]@var.features,])
+      everything_mat <- as.matrix(everything_mat)
     } else if(seurat_slot == "data"){
+      stopifnot(length(seurat_obj[[seurat_assay]]@var.features) > 0)
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@data[seurat_obj[[seurat_assay]]@var.features,])
+      everything_mat <- as.matrix(everything_mat)
     } else if(seurat_slot == "scale.data"){
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@scale.data)
     } else {

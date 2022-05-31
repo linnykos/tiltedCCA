@@ -22,7 +22,7 @@ test_that(".generic_variable_selection works", {
   )
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("candidate_list", "variables"))))
+  expect_true(all(sort(names(res)) == sort(c("candidate_list", "variables", "cor_vec"))))
   expect_true(names(vec)[which.max(vec)] == res$variables[1])
   expect_true(length(res$variables) <= 10)
   expect_true(length(res$candidate_list) <= length(res$variables))
@@ -62,7 +62,9 @@ test_that(".generic_variable_selection works with an initial mat", {
   )
   
   expect_true(is.list(res2))
-  expect_true(all(sort(names(res2)) == sort(c("candidate_list", "variables"))))
+  expect_true(all(sort(names(res2)) == sort(c("candidate_list", "variables", "cor_vec"))))
+  expect_true(length(res2$cor_vec) == p)
+  expect_true(min(res2$cor_vec[1:3]) > max(res2$cor_vec[-c(1:3)]))
   expect_true(names(vec)[which.max(vec)] == res1$variables[1])
   expect_true(!any(names(vec)[1:3] %in% res2$variables))
 })
