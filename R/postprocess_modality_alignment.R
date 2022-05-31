@@ -1,19 +1,20 @@
-postprocess_alignment <- function(input_obj,
-                                  bool_use_denoised,
-                                  bool_center = T,
-                                  bool_scale = T,
-                                  bool_everything_center = T,
-                                  bool_everything_scale = T,
-                                  bool_regression_include_intercept = T,
-                                  bool_regression_center = T,
-                                  bool_regression_scale = T,
-                                  input_assay = 1,
-                                  min_subsample_cell = NULL,
-                                  seurat_celltype_variable = "celltype",
-                                  seurat_obj = NULL,
-                                  seurat_assay = Seurat::DefaultAssay(seurat_obj),
-                                  seurat_slot = "data",
-                                  verbose = 1){
+# this is for how aligned one modality is with another
+postprocess_modality_alignment <- function(input_obj,
+                                           bool_use_denoised,
+                                           bool_center = T,
+                                           bool_scale = T,
+                                           bool_everything_center = T,
+                                           bool_everything_scale = T,
+                                           bool_regression_include_intercept = T,
+                                           bool_regression_center = T,
+                                           bool_regression_scale = T,
+                                           input_assay = 1,
+                                           min_subsample_cell = NULL,
+                                           seurat_celltype_variable = "celltype",
+                                           seurat_obj = NULL,
+                                           seurat_assay = NULL,
+                                           seurat_slot = "data",
+                                           verbose = 1){
   stopifnot(input_assay %in% c(1,2),
             seurat_slot %in% c("counts", "data", "scale.data"))
   
@@ -30,6 +31,8 @@ postprocess_alignment <- function(input_obj,
     everything_mat <- common_mat + distinct_mat
   } else {
     stopifnot(inherits(seurat_obj, "Seurat"))
+    if(is.null(seurat_assay)) seurat_assay <- Seurat::DefaultAssay(seurat_obj)
+    
     if(seurat_slot == "counts"){
       everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts[seurat_obj[[seurat_assay]]@var.features,])
     } else if(seurat_slot == "data"){

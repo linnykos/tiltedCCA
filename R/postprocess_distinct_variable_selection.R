@@ -1,13 +1,15 @@
-postprocess_variable_selection <- function(input_obj,
-                                           input_mat = NULL,
-                                           logpval_vec, #larger is more significant
-                                           cor_threshold = 0.9,
-                                           input_assay = 2,
-                                           max_variables = 10,
-                                           min_subsample_cell = NULL,
-                                           seurat_celltype_variable = "celltype",
-                                           seurat_obj = NULL,
-                                           verbose = 1){
+postprocess_distinct_variable_selection <- function(
+  input_obj,
+  input_mat = NULL,
+  logpval_vec, #larger is more significant
+  cor_threshold = 0.9,
+  input_assay = 2,
+  max_variables = 10,
+  min_subsample_cell = NULL,
+  seurat_celltype_variable = "celltype",
+  seurat_obj = NULL,
+  verbose = 1
+){
   stopifnot(input_assay %in% c(1,2))
   
   if(input_assay == 1) {
@@ -72,7 +74,7 @@ postprocess_variable_selection <- function(input_obj,
   candidate_list <- vector("list", length = max_variables)
   selected_variables <- numeric(0)
   
-  while(length(selected_variables) < max_variables){
+  while(length(selected_variables) < max_variables | ncol(everything_mat) > 0){
     if(verbose > 0) print(paste0("On iteration: ", length(selected_variables)+1))
     
     if(verbose > 0) print("Selecting variable")

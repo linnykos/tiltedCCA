@@ -1,8 +1,8 @@
-context("Test postprocess variable selection")
+context("Test graph alignment")
 
-## postprocess_distinct_variable_selection is correct
+## postprocess_graph_alignment is correct
 
-test_that("postprocess_distinct_variable_selection works", {
+test_that("postprocess_graph_alignment works", {
   # load("tests/assets/test_data2.RData")
   load("../assets/test_data2.RData")
   mat_1 <- test_data$mat_1
@@ -30,21 +30,27 @@ test_that("postprocess_distinct_variable_selection works", {
                                min_deg = 10)
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj,
                             verbose = F)
-  multiSVD_obj <- tiltedCCA_decomposition(multiSVD_obj)
+  multiSVD_obj <- tiltedCCA_decomposition(multiSVD_obj,)
   
-  logpval_vec <- seq(0, 1, length.out = ncol(mat_2))
-  names(logpval_vec) <- colnames(mat_2)
-  res <- postprocess_distinct_variable_selection(input_obj = multiSVD_obj,
-                                                 input_assay = 2,
-                                                 logpval_vec = logpval_vec,
-                                                 max_variables = 2,
-                                                 verbose = 0)
+  res <- postprocess_graph_alignment(
+    input_obj = multiSVD_obj,
+    bool_use_denoised = T,
+    bool_use_metacells = F,
+    input_assay = 1
+  )
+  expect_true(is.numeric(res))
+  expect_true(all(sort(names(res)) == sort(colnames(mat_1))))
   
-  expect_true(class(res) == "varSelect")
-  expect_true(all(sort(names(res)) == sort(c("selected_variables", "candidate_list", "logpval_vec",
-                                             "cor_threshold", "cor_vec_intial"))))
-  expect_true(all(res$selected_variables %in% colnames(mat_2)))
-  for(i in 1:length(res$candidate_list)){
-    expect_true(all(res$candidate_list[[i]] %in% colnames(mat_2)))
-  }
+  res <- postprocess_graph_alignment(
+    input_obj = multiSVD_obj,
+    bool_use_denoised = T,
+    bool_use_metacells = F,
+    input_assay = 2
+  )
+  expect_true(is.numeric(res))
+  expect_true(all(sort(names(res)) == sort(colnames(mat_2))))
 })
+
+###############################
+
+
