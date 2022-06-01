@@ -9,6 +9,7 @@ postprocess_graph_alignment <- function(
   seurat_obj = NULL,
   seurat_assay = NULL,
   seurat_slot = "data",
+  tol = 1e-6,
   verbose = 0
 ){
   stopifnot(input_assay %in% c(1,2),
@@ -110,7 +111,7 @@ postprocess_graph_alignment <- function(
     bool_cosine = param$snn_bool_cosine,
     bool_intersect = param$snn_bool_intersect,
     min_deg = param$snn_min_deg,
-    verbose = 0
+    verbose = verbose
   )
   
   if(verbose > 0) print("Computing Laplacian")
@@ -132,7 +133,6 @@ postprocess_graph_alignment <- function(
                        x_mat = laplacian_basis,
                        y_vec = everything_mat[,j])
   })
-  
   names(alignment_vec) <- colnames(everything_mat)
   
   if(return_everything_mat){
@@ -172,6 +172,11 @@ postprocess_smooth_variable_selection <- function(
   )
   alignment_vec <- res$alignment
   everything_mat <- res$everything_mat
+  if(any(is.na(alignment_vec))){
+    everything_mat <- everything_mat[,which(!is.na(alignment_vec)), drop = F]
+    alignment_vec <- alignment_vec[which(!is.na(alignment_vec))]
+  }
+  stopifnot(all(names(alignment_vec) == names(everything_mat)))
   
   p <- length(alignment_vec)
   if(num_variables >= p) return(list(variables = names(alignment_vec), alignment = alignment_vec))
@@ -188,7 +193,7 @@ postprocess_smooth_variable_selection <- function(
     verbose = verbose
   )
   
-  list(alignment = alignment_vec,
+  list(alignment = res$alignment,
        cor_threshold = cor_threshold,
        selected_variables = selected_variables)
 }

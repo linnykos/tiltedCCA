@@ -229,3 +229,50 @@ test_that(".convert_list2factor works", {
   expect_true(all(vec[!is.na(vec)] == res[!is.na(res)]))
   expect_true(all(is.na(vec) == is.na(res)))
 })
+
+########################
+
+## .linear_regression is correct
+
+test_that(".linear_regression works", {
+  set.seed(10)
+  n <- 100; p <- 20
+  x_mat <- matrix(rnorm(n*p), nrow = n, ncol = p)
+  y_vec <- rnorm(n)
+  
+  res <- .linear_regression(
+    bool_include_intercept = T,
+    bool_center_x = T,
+    bool_center_y = T,
+    bool_scale_x = T,
+    bool_scale_y = T,
+    return_type = "r_squared", 
+    x_mat = x_mat,
+    y_vec = y_vec
+  )
+  
+  expect_true(is.numeric(res))
+  expect_true(length(res) == 1)
+  expect_true(res >= 0)
+  expect_true(res <= 1)
+})
+
+test_that(".linear_regression works with the standard deviation is 0", {
+  set.seed(10)
+  n <- 100; p <- 20
+  x_mat <- matrix(rnorm(n*p), nrow = n, ncol = p)
+  y_vec <- rep(1, n)
+  
+  res <- .linear_regression(
+    bool_include_intercept = T,
+    bool_center_x = T,
+    bool_center_y = T,
+    bool_scale_x = T,
+    bool_scale_y = T,
+    return_type = "r_squared", 
+    x_mat = x_mat,
+    y_vec = y_vec
+  )
+  
+  expect_true(is.na(res))
+})

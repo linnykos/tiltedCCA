@@ -193,9 +193,14 @@ form_seurat_obj <- function(mat_1, mat_2){
                                bool_scale_y,
                                return_type, 
                                x_mat,
-                               y_vec){
+                               y_vec,
+                               tol = 1e-6){
   if(!is.matrix(x_mat)) x_mat <- matrix(x_mat, nrow = length(x_mat), ncol = 1)
   stopifnot(nrow(x_mat) == length(y_vec), return_type %in% c("r_squared"))
+  
+  if(stats::sd(y_vec) <= tol) {
+    if(return_type == "r_squared") return(NA)
+  }
   
   if(bool_center_x | bool_scale_x) x_mat <- scale(x_mat, 
                                                   center = bool_center_x,
