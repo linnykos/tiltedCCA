@@ -152,6 +152,7 @@ postprocess_smooth_variable_selection <- function(
   cor_threshold = 0.8,
   input_assay = 1,
   num_variables = 50,
+  sd_quantile = 0.75,
   seurat_obj = NULL,
   seurat_assay = NULL,
   seurat_slot = "data",
@@ -176,10 +177,24 @@ postprocess_smooth_variable_selection <- function(
     everything_mat <- everything_mat[,which(!is.na(alignment_vec)), drop = F]
     alignment_vec <- alignment_vec[which(!is.na(alignment_vec))]
   }
+  sd_vec <- matrixStats::colSds(everything_mat)
+  names(sd_vec) <- colnames(everything_mat)
+  if(!is.null(sd_quantile)){
+    sd_threshold <- stats::quantile(sd_vec, probs = sd_quantile)
+    everything_mat <- everything_mat[,which(sd_vec >= sd_threshold), drop = F]
+    alignment_vec <- alignment_vec[which(sd_vec >= sd_threshold)]
+    sd_vec <- sd_vec[which(sd_vec >= sd_threshold)]
+  }
   stopifnot(all(names(alignment_vec) == names(everything_mat)))
   
   p <- length(alignment_vec)
-  if(num_variables >= p) return(list(variables = names(alignment_vec), alignment = alignment_vec))
+  if(num_variables >= p) return(list(
+    alignment = alignment_vec,
+    cor_threshold = cor_threshold,
+    sd_quantile = sd_quantile,
+    sd_vec = sd_vec,
+    selected_variables = names(alignment_vec)
+  ))
   
   if(verbose > 0) print("Selecting variables")
   selected_variables <- .generic_variable_selection(
@@ -195,6 +210,8 @@ postprocess_smooth_variable_selection <- function(
   
   list(alignment = res$alignment,
        cor_threshold = cor_threshold,
+       sd_quantile = sd_quantile,
+       sd_vec = sd_vec,
        selected_variables = selected_variables)
 }
 
