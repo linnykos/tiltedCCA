@@ -51,8 +51,8 @@
     }
     
     if(length(candidate_variables) == 0) break()
-    if(verbose > 0) print(paste0("On iteration ", length(selected_variables)+1), 
-                          ": ", length(candidate_variables), " remaining candidates")
+    if(verbose > 0) print(paste0("On iteration ", length(selected_variables)+1, 
+                          ": ", length(candidate_variables), " remaining candidates"))
   
     candidate_list[[length(selected_variables)+1]] <- candidate_variables
     
