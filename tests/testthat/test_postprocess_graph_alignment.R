@@ -139,13 +139,14 @@ test_that("postprocess_smooth_variable_selection works", {
     bool_use_metacells = F,
     input_assay = 1,
     num_variables = 5,
+    sd_quantile = 0,
     seurat_obj = seurat_obj,
     seurat_assay = "RNA",
     seurat_slot = "counts"
   )
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("alignment", "cor_threshold", "selected_variables"))))
+  expect_true(all(sort(names(res)) == sort(c("alignment", "cor_threshold", "selected_variables", "sd_quantile", "sd_vec"))))
   expect_true(all(names(res$alignment) == colnames(mat_1)))
   expect_true(length(res$selected_variables) <= 5)
   expect_true(all(res$selected_variables %in% colnames(mat_1)))
@@ -194,6 +195,7 @@ test_that("postprocess_smooth_variable_selection works with singular variables",
     bool_use_metacells = F,
     input_assay = 1,
     num_variables = 5,
+    sd_quantile = 0,
     seurat_obj = seurat_obj,
     seurat_assay = "RNA",
     seurat_slot = "counts"

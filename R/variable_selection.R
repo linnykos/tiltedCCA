@@ -81,7 +81,7 @@
   if(return_candidate_list){
     list(candidate_list = candidate_list,
          cor_vec = cor_vec_intial,
-         variables = selected_variables)
+         selected_variables = selected_variables)
   } else {
     selected_variables
   }

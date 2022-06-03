@@ -58,6 +58,7 @@ consensus_pca <- function(mat_1, mat_2,
                              tol = 1e-4)
   
   if(verbose > 0) print("Computing Consensus PCA")
+  stopifnot(nrow(dimred_1) == nrow(dimred_2))
   dimred_combined <- cbind(dimred_1, dimred_2)
   
   if(apply_pca){
