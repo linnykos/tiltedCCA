@@ -146,7 +146,7 @@ create_reducedSeuratObj <- function(input_obj,
   tmp <- target_mat %*% t(rotation_mat)
   rownames(tmp) <- rownames(target_mat)
   colnames(tmp) <- colnames(target_mat)
-  target_mat
+  tmp
 }
 
 .translate_celltype <- function(input_obj,

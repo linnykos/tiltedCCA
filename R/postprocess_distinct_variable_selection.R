@@ -1,14 +1,14 @@
 postprocess_distinct_variable_selection <- function(
-  input_obj,
-  input_mat = NULL,
-  logpval_vec, #larger is more significant
-  cor_threshold = 0.9,
-  input_assay = 2,
-  min_subsample_cell = NULL,
-  num_variables = 10,
-  seurat_celltype_variable = "celltype",
-  seurat_obj = NULL,
-  verbose = 1
+    input_obj,
+    input_mat = NULL,
+    logpval_vec, #larger is more significant
+    cor_threshold = 0.9,
+    input_assay = 2,
+    min_subsample_cell = NULL,
+    num_variables = 10,
+    seurat_celltype_variable = "celltype",
+    seurat_obj = NULL,
+    verbose = 1
 ){
   stopifnot(input_assay %in% c(1,2))
   
@@ -39,12 +39,7 @@ postprocess_distinct_variable_selection <- function(
   reference_dimred <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_dimred")
   if(verbose > 1) print(paste0("reference_dimred of dimension ", nrow(reference_dimred), " by ", ncol(reference_dimred)))
   
-  input_obj <- .set_defaultAssay(input_obj, assay = input_assay)
-  common_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_mat")
-  distinct_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_mat")
-  everything_mat <- common_mat + distinct_mat
   if(!all(is.null(input_mat))){
-    stopifnot(all(dim(input_mat) == dim(everything_mat)), all(sort(colnames(input_mat)) == sort(colnames(input_mat))))
     if(inherits(input_mat, "dgCMatrix")) {
       everything_mat <- as.matrix(input_mat)
     } else if (inherits(input_mat, "matrix")){
@@ -52,11 +47,17 @@ postprocess_distinct_variable_selection <- function(
     } else {
       stop("input_mat is not a valid input")
     }
+  } else {
+    input_obj <- .set_defaultAssay(input_obj, assay = input_assay)
+    common_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "common_mat")
+    distinct_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_mat")
+    everything_mat <- common_mat + distinct_mat
   }
+  stopifnot(nrow(reference_dimred) == nrow(everything_mat), length(colnames(everything_mat)) > 0)
+  
   logpval_vec <- logpval_vec[colnames(everything_mat)]
   stopifnot(all(colnames(everything_mat) == names(logpval_vec)))
-  cor_vec_intial <- NULL
-  
+
   if(!is.null(min_subsample_cell)){
     if(verbose > 1) print("Reducing the number of cells")
     stopifnot(seurat_celltype_variable %in% colnames(seurat_obj@meta.data))

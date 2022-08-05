@@ -7,7 +7,8 @@ differential_expression <- function(seurat_obj,
   stopifnot(assay %in% names(seurat_obj),
             idents %in% colnames(seurat_obj@meta.data),
             test_use %in% c("MAST", "wilcox"),
-            slot %in% c("counts", "data", "scale.data"))
+            slot %in% c("counts", "data", "scale.data"),
+            length(seurat_obj[[assay]]@var.features) > 0)
   
   Seurat::DefaultAssay(seurat_obj) <- assay
   Seurat::Idents(seurat_obj) <- idents
