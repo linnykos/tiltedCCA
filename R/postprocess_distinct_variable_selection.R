@@ -53,7 +53,10 @@ postprocess_distinct_variable_selection <- function(
     distinct_mat <- .get_tCCAobj(input_obj, apply_postDimred = F, what = "distinct_mat")
     everything_mat <- common_mat + distinct_mat
   }
-  stopifnot(nrow(reference_dimred) == nrow(everything_mat), length(colnames(everything_mat)) > 0)
+  stopifnot(ncol(everything_mat) == length(colnames(everything_mat)))
+  everything_mat <- everything_mat[,names(logpval_vec)]
+  stopifnot(nrow(reference_dimred) == nrow(everything_mat), 
+            length(colnames(everything_mat)) > 0)
   
   logpval_vec <- logpval_vec[colnames(everything_mat)]
   stopifnot(all(colnames(everything_mat) == names(logpval_vec)))

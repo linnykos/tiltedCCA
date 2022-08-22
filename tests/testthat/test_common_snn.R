@@ -64,6 +64,18 @@ test_that(".l2_selection_qp works", {
   expect_true(is.table(res))
   expect_true(sum(res) == num_neigh)
   expect_true(all(dim(res) == dim(obs_tab)))
+  
+  num_neigh <- 30
+  obs_tab <- as.table(matrix(c(40,10,10,0,0,0), nrow = 3, ncol = 2))
+  prior_1 <- c(1/3,1/3,1/3)
+  prior_2 <- c(1, 0)
+  res <- .l2_selection_qp(num_neigh = num_neigh,
+                          obs_tab = obs_tab,
+                          prior_1 = prior_1,
+                          prior_2 = prior_2)
+  expect_true(is.table(res))
+  expect_true(sum(res) == num_neigh)
+  expect_true(all(dim(res) == dim(obs_tab)))
 })
 
 test_that(".l2_selection_qp works when the requested number is too small", {
