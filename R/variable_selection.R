@@ -87,6 +87,8 @@
         if(length(cor_vec_intial_2) == 0) cor_vec_intial_2 <- cor_vec_2
         stopifnot(length(cor_vec_1) == length(cor_vec_2), length(selected_mat_1) == length(selected_mat_2))
         
+        print(paste0("asdf 1: ", length(candidate_variables_1)))
+        print(paste0("asdf 2: ", length(candidate_variables_2)))
         candidate_variables <- sort(intersect(candidate_variables_1, candidate_variables_2))
         
       } else {
@@ -116,6 +118,7 @@
         })
         names(rank_overall) <- candidate_variables
         new_variable <- names(rank_overall)[which.max(rank_overall)]
+        print("zzz")
       } else {
         new_variable <- candidate_variables[which.max(vec_1[candidate_variables])]
       }
