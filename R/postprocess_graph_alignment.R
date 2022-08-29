@@ -196,8 +196,16 @@ postprocess_smooth_variable_selection <- function(
     alignment_vec_2 <- res$alignment_vec
     everything_mat_2 <- res$everything_mat
     sd_vec_2 <- res$sd_vec
+    stopifnot(length(names(alignment_vec_2)) > 0)
     
-    stopifnot(length(names(alignment_vec_2)) > 0 && all(names(alignment_vec_2) == names(alignment_vec_1)))
+    shared_variables <- intersect(names(alignment_vec_1), names(alignment_vec_2))
+    alignment_vec_1 <- alignment_vec_1[shared_variables]
+    alignment_vec_2 <- alignment_vec_2[shared_variables]
+    everything_mat_1 <- everything_mat_1[,shared_variables]
+    everything_mat_2 <- everything_mat_2[,shared_variables]
+    sd_vec_1 <- sd_vec_1[shared_variables]
+    sd_vec_2 <- sd_vec_2[shared_variables]
+    stopifnot(all(names(alignment_vec_2) == names(alignment_vec_1)))
   } else {
     alignment_vec_2 <- NULL
     everything_mat_2 <- NULL
