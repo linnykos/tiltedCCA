@@ -10,6 +10,7 @@ postprocess_graph_alignment <- function(
     seurat_assay = NULL,
     seurat_slot = "data",
     tol = 1e-6,
+    variable_names = NULL,
     verbose = 0
 ){
   stopifnot(input_assay %in% c(1,2),
@@ -56,6 +57,11 @@ postprocess_graph_alignment <- function(
     }
   }
   
+  if(!all(is.null(variable_names))){
+    everything_mat <- everything_mat[,sort(intersect(colnames(everything_mat), variable_names)),drop = F]
+    stopifnot(ncol(everything_mat) >= 1)
+  }
+  
   if(verbose > 0) print("Computing NN graph")
   common_dimred_string1 <- "common_dimred_1"
   common_dimred_string2 <- "common_dimred_2"
@@ -80,7 +86,7 @@ postprocess_graph_alignment <- function(
               all(cell_idx <= nrow(dimred)),
               all(cell_idx %% 1 == 0))
     dimred <- dimred[cell_idx,]
-    everything_mat <- everything_mat[cell_idx,]
+    everything_mat <- everything_mat[cell_idx,,drop = F]
   }
   
   param <- .get_param(input_obj)
@@ -159,6 +165,7 @@ postprocess_smooth_variable_selection <- function(
     seurat_assay_1 = NULL,
     seurat_assay_2 = NULL,
     seurat_slot = "data",
+    variable_names = NULL,
     verbose = 0
 ){
   # gather ingredients
@@ -173,6 +180,7 @@ postprocess_smooth_variable_selection <- function(
     seurat_assay = seurat_assay_1,
     seurat_obj = seurat_obj,
     seurat_slot = seurat_slot,
+    variable_names = variable_names,
     verbose = verbose
   )
   alignment_vec_1 <- res$alignment_vec
@@ -191,6 +199,7 @@ postprocess_smooth_variable_selection <- function(
       seurat_assay = seurat_assay_2,
       seurat_obj = seurat_obj,
       seurat_slot = seurat_slot,
+      variable_names = variable_names,
       verbose = verbose
     )
     alignment_vec_2 <- res$alignment_vec
@@ -262,6 +271,7 @@ postprocess_smooth_variable_selection <- function(
     seurat_assay,
     seurat_obj,
     seurat_slot,
+    variable_names,
     verbose
 ){
   res <- postprocess_graph_alignment(
@@ -275,6 +285,7 @@ postprocess_smooth_variable_selection <- function(
     seurat_obj = seurat_obj,
     seurat_assay = seurat_assay,
     seurat_slot = seurat_slot,
+    variable_names = variable_names,
     verbose = verbose
   )
   alignment_vec <- res$alignment
