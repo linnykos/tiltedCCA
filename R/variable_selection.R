@@ -122,12 +122,10 @@
       
       if(verbose > 1) {
         tmp_k <- min(5, length(candidate_variables))
-        print(paste0("Top ", tmp_k, " variables:"))
+        print(paste0("Top ", tmp_k, " variables in one modality:"))
         print(vec_1[candidate_variables[order(vec_1[candidate_variables], decreasing = T)[1:tmp_k]]])
-        print(bool_second)
-        print(vec_2[candidate_variables[order(vec_2[candidate_variables], decreasing = T)[1:tmp_k]]])
-        print("====")
         if(bool_second){
+          print(paste0("Top ", tmp_k, " variables in the other modality:"))
           print(vec_2[candidate_variables[order(vec_2[candidate_variables], decreasing = T)[1:tmp_k]]])
         }
         print(paste0("Selected the variable: ", new_variable))
