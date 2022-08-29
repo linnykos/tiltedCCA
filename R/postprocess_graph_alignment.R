@@ -214,7 +214,7 @@ postprocess_smooth_variable_selection <- function(
   
   #########
   
-  p <- length(alignment_vec)
+  p <- length(alignment_vec_1)
   if(num_variables >= p) return(list(
     alignment_1 = alignment_vec_1,
     alignment_2 = alignment_vec_2,
