@@ -87,8 +87,6 @@
         if(length(cor_vec_intial_2) == 0) cor_vec_intial_2 <- cor_vec_2
         stopifnot(length(cor_vec_1) == length(cor_vec_2), length(selected_mat_1) == length(selected_mat_2))
         
-        print(paste0("asdf 1: ", length(candidate_variables_1)))
-        print(paste0("asdf 2: ", length(candidate_variables_2)))
         candidate_variables <- sort(intersect(candidate_variables_1, candidate_variables_2))
         
       } else {
@@ -118,7 +116,6 @@
         })
         names(rank_overall) <- candidate_variables
         new_variable <- names(rank_overall)[which.max(rank_overall)]
-        print("zzz")
       } else {
         new_variable <- candidate_variables[which.max(vec_1[candidate_variables])]
       }
@@ -127,6 +124,9 @@
         tmp_k <- min(5, length(candidate_variables))
         print(paste0("Top ", tmp_k, " variables:"))
         print(vec_1[candidate_variables[order(vec_1[candidate_variables], decreasing = T)[1:tmp_k]]])
+        print(bool_second)
+        print(vec_2[candidate_variables[order(vec_2[candidate_variables], decreasing = T)[1:tmp_k]]])
+        print("====")
         if(bool_second){
           print(vec_2[candidate_variables[order(vec_2[candidate_variables], decreasing = T)[1:tmp_k]]])
         }
