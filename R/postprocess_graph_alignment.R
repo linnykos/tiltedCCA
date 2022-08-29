@@ -1,16 +1,16 @@
 postprocess_graph_alignment <- function(
-  input_obj,
-  bool_use_denoised,
-  bool_include_intercept = T,
-  bool_use_metacells = T,
-  cell_idx = NULL,
-  input_assay = 1,
-  return_everything_mat = F,
-  seurat_obj = NULL,
-  seurat_assay = NULL,
-  seurat_slot = "data",
-  tol = 1e-6,
-  verbose = 0
+    input_obj,
+    bool_use_denoised,
+    bool_include_intercept = T,
+    bool_use_metacells = T,
+    cell_idx = NULL,
+    input_assay = 1,
+    return_everything_mat = F,
+    seurat_obj = NULL,
+    seurat_assay = NULL,
+    seurat_slot = "data",
+    tol = 1e-6,
+    verbose = 0
 ){
   stopifnot(input_assay %in% c(1,2),
             seurat_slot %in% c("counts", "data", "scale.data"))
@@ -143,20 +143,118 @@ postprocess_graph_alignment <- function(
   }
 }
 
+######################
+
 postprocess_smooth_variable_selection <- function(
-  input_obj,
-  bool_use_denoised,
-  bool_include_intercept = T,
-  bool_use_metacells = T,
-  cell_idx = NULL,
-  cor_threshold = 0.8,
-  input_assay = 1,
-  num_variables = 50,
-  sd_quantile = 0.75,
-  seurat_obj = NULL,
-  seurat_assay = NULL,
-  seurat_slot = "data",
-  verbose = 0
+    input_obj,
+    bool_use_denoised,
+    bool_include_intercept = T,
+    bool_use_metacells = T,
+    bool_use_both_modalities = T,
+    cell_idx = NULL,
+    cor_threshold = 0.8,
+    num_variables = 50,
+    sd_quantile = 0.75,
+    seurat_obj = NULL,
+    seurat_assay_1 = NULL,
+    seurat_assay_2 = NULL,
+    seurat_slot = "data",
+    verbose = 0
+){
+  # gather ingredients
+  res <- .smooth_variable_selection_helper(
+    bool_include_intercept = bool_include_intercept,
+    bool_use_denoised = bool_use_denoised,
+    bool_use_metacells = bool_use_metacells,
+    cell_idx = cell_idx,
+    input_assay = 1,
+    input_obj = input_obj,
+    sd_quantile = sd_quantile,
+    seurat_assay = seurat_assay_1,
+    seurat_obj = seurat_obj,
+    seurat_slot = seurat_slot,
+    verbose = verbose
+  )
+  alignment_vec_1 <- res$alignment_vec
+  everything_mat_1 <- res$everything_mat
+  sd_vec_1 <- res$sd_vec
+  
+  if(bool_use_both_modalities){
+    res <- .smooth_variable_selection_helper(
+      bool_include_intercept = bool_include_intercept,
+      bool_use_denoised = bool_use_denoised,
+      bool_use_metacells = bool_use_metacells,
+      cell_idx = cell_idx,
+      input_assay = 2,
+      input_obj = input_obj,
+      sd_quantile = sd_quantile,
+      seurat_assay = seurat_assay_2,
+      seurat_obj = seurat_obj,
+      seurat_slot = seurat_slot,
+      verbose = verbose
+    )
+    alignment_vec_2 <- res$alignment_vec
+    everything_mat_2 <- res$everything_mat
+    sd_vec_2 <- res$sd_vec
+    
+    stopifnot(length(names(alignment_vec_2)) > 0 && all(names(alignment_vec_2) == names(alignment_vec_1)))
+  } else {
+    alignment_vec_2 <- NULL
+    everything_mat_2 <- NULL
+    sd_vec_2 <- NULL
+  }
+  
+  #########
+  
+  p <- length(alignment_vec)
+  if(num_variables >= p) return(list(
+    alignment_1 = alignment_vec_1,
+    alignment_2 = alignment_vec_2,
+    cor_threshold = cor_threshold,
+    sd_quantile = sd_quantile,
+    sd_vec_1 = sd_vec_1,
+    sd_vec_2 = sd_vec_2,
+    selected_variables = names(alignment_1)
+  ))
+  
+  if(verbose > 0) print("Selecting variables")
+  selected_variables <- .generic_variable_selection(
+    bool_maximizing = T, 
+    cor_threshold = cor_threshold,
+    initial_mat = NULL,
+    mat_1 = everything_mat_1,
+    mat_2 = everything_mat_2,
+    num_variables = num_variables,
+    prediction_type = "cor",
+    return_candidate_list = F,
+    vec_1 = alignment_vec_1,
+    vec_2 = alignment_vec_2,
+    verbose = verbose
+  )
+  
+  list(alignment_1 = alignment_vec_1,
+       alignment_2 = alignment_vec_2,
+       cor_threshold = cor_threshold,
+       sd_quantile = sd_quantile,
+       sd_vec_1 = sd_vec_1,
+       sd_vec_2 = sd_vec_2,
+       selected_variables = selected_variables)
+}
+
+###########################################
+
+.smooth_variable_selection_helper <- function(
+    bool_include_intercept,
+    bool_use_denoised,
+    bool_use_metacells,
+    cell_idx,
+    input_assay,
+    input_obj,
+    sd_quantile,
+    seurat_assay,
+    seurat_obj,
+    seurat_slot,
+    verbose
 ){
   res <- postprocess_graph_alignment(
     input_obj = input_obj,
@@ -177,6 +275,7 @@ postprocess_smooth_variable_selection <- function(
     everything_mat <- everything_mat[,which(!is.na(alignment_vec)), drop = F]
     alignment_vec <- alignment_vec[which(!is.na(alignment_vec))]
   }
+  
   sd_vec <- matrixStats::colSds(everything_mat)
   names(sd_vec) <- colnames(everything_mat)
   if(!is.null(sd_quantile)){
@@ -187,32 +286,8 @@ postprocess_smooth_variable_selection <- function(
   }
   stopifnot(all(names(alignment_vec) == names(everything_mat)))
   
-  p <- length(alignment_vec)
-  if(num_variables >= p) return(list(
-    alignment = alignment_vec,
-    cor_threshold = cor_threshold,
-    sd_quantile = sd_quantile,
-    sd_vec = sd_vec,
-    selected_variables = names(alignment_vec)
-  ))
+  list(alignment_vec = alignment_vec,
+       everything_mat = everything_mat,
+       sd_vec = sd_vec)
   
-  if(verbose > 0) print("Selecting variables")
-  selected_variables <- .generic_variable_selection(
-    bool_maximizing = T, 
-    cor_threshold = cor_threshold,
-    initial_mat = NULL,
-    mat = everything_mat,
-    num_variables = num_variables,
-    return_candidate_list = F,
-    vec = alignment_vec,
-    verbose = verbose
-  )
-  
-  list(alignment = res$alignment,
-       cor_threshold = cor_threshold,
-       sd_quantile = sd_quantile,
-       sd_vec = sd_vec,
-       selected_variables = selected_variables)
 }
-
-###########################################
