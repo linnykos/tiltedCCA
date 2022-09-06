@@ -44,14 +44,16 @@ plot_alignment <- function(rsquare_vec,
   logpval_vec_org <- logpval_vec
   logpval_vec[logpval_vec == 0] <- min(logpval_vec[logpval_vec != 0])
   logpval_vec <- log10(logpval_vec)
-  xmin <- floor(min(logpval_vec)); xmax <- ceiling(max(logpval_vec))
   if(all(is.null(xlim))){
+    xmin <- floor(min(logpval_vec)); xmax <- ceiling(max(logpval_vec))
     if(bool_truncate_xaxis){
       xlim <- range(logpval_vec)
     } else {
       xlim <- c(xmin, xmax)
     }
-  } 
+  } else {
+    xmin <- xlim[1]; xmax <- xlim[2]
+  }
   if(all(is.null(ylim))) ylim <- c(0, 1)
   
   graphics::plot(NA,
