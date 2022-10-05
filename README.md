@@ -12,7 +12,7 @@ This package can be installed through `devtools` in R.
 library("devtools")
 devtools::install_github("linnykos/tiltedCCA")
 ```
-The package itself depends on several packages. These include `MASS`, `RSpectra`, `Matrix`, `Seurat`, `SeuratObject`, `irlba`, `RANN`, `dbscan`, `scales`, `sparseMatrixStats`, `RColorBrewer`, `ggplot2`, `ggrepel`, and `quadprog`. See the last section of this README to see where (i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
+The package itself depends on several packages. These include `dbscan`, `ggplot2`, `ggrepel`, `irlba`, `MASS`, `Matrix`, `quadprog`, `RANN`, `RColorBrewer`, `RSpectra`, `scales`, `Seurat`, `SeuratObject`, and `sparseMatrixStats`. See the last section of this README to see where (i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
 
 After installation of all the dependencies, the installation of the `tiltedCCA` package itself is fast (less than 2 minutes).
 
