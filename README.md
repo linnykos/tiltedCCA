@@ -16,6 +16,10 @@ The package itself depends on several packages. These include `MASS`, `RSpectra`
 
 After installation of all the dependencies, the installation of the `tiltedCCA` package itself is fast (less than 2 minutes).
 
+# Small simulated dataset to demo the software
+
+See https://github.com/linnykos/tiltedCCA_analysis/tree/master/simulation for the small demo on how to use Tilted-CCA.
+
 # Setup
 
 The following shows the suggested package versions that the developer (GitHub username: linnykos) used when developing the Tilted-CCA package.
