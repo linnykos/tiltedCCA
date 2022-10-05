@@ -8,7 +8,7 @@ This code was developed and tested primarily on R 4.1.2. on a Macbook (macOS 11.
 
 This package can be installed through `devtools` in R.
 
-```{r}
+```R
 library("devtools")
 devtools::install_github("linnykos/tiltedCCA")
 ```
@@ -24,7 +24,7 @@ See https://github.com/linnykos/tiltedCCA_analysis/tree/master/simulation for th
 
 The following shows the suggested package versions that the developer (GitHub username: linnykos) used when developing the Tilted-CCA package.
 
-```
+```R
 > devtools::session_info()
 ─ Session info ─────────────────────────────────────────────────────
  setting  value
