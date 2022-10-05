@@ -14,6 +14,8 @@ devtools::install_github("linnykos/tiltedCCA")
 ```
 The package itself depends on several packages. These include `MASS`, `RSpectra`, `Matrix`, `Seurat`, `SeuratObject`, `irlba`, `RANN`, `dbscan`, `scales`, `sparseMatrixStats`, `RColorBrewer`, `ggplot2`, `ggrepel`, and `quadprog`. See the last section of this README to see where (i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
 
+After installation of all the dependencies, the installation of the `tiltedCCA` package itself is fast (less than 2 minutes).
+
 # Setup
 
 The following shows the suggested package versions that the developer (GitHub username: linnykos) used when developing the Tilted-CCA package.
