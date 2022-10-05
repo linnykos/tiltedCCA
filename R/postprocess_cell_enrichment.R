@@ -1,6 +1,26 @@
+#' Computing cell enrichments (generic)
+#'
+#' @param input_obj \code{multiSVD} object, after using \code{tiltedCCA_decomposition()}
+#' @param ... Additional arguments
+#'
 #' @export
-postprocess_cell_enrichment <- function(input_obj, ...) UseMethod("postprocess_cell_enrichment")
+postprocess_cell_enrichment <- function(input_obj, ...){UseMethod("postprocess_cell_enrichment")}
 
+#' Computing cell enrichments for matrix object
+#'
+#' @param input_obj matrix of \code{n} cells and \code{p} variable
+#' @param membership_vec factor vector of the same length as the number of cells in \code{multiSVD}, denoting the
+#' cell-types for each cell
+#' @param num_neigh number of nearest neighbors
+#' @param bool_cosine boolean, on whether or not to use cosine distance when constructing the SNN 
+#' @param bool_intersect boolean, on whether or not to symmetrize (via the AND function) the SNN
+#' @param max_subsample maximum of cells to sample for each cell-type. If there are more than
+#' \code{max_subsample} cells in a cell-type (dictated by \code{membership_vec}), a random
+#' subset of cells will be selected for the sake of this function
+#' @param min_deg minimum degree of each cell in the SNN
+#' @param verbose non-negative integer             
+#' @param ... additional arguments
+#'
 #' @export
 postprocess_cell_enrichment.default <- function(input_obj, 
                                                 membership_vec, 
@@ -46,6 +66,18 @@ postprocess_cell_enrichment.default <- function(input_obj,
        param = param)
 }
 
+
+#' Computing cell enrichments for multiSVD object
+#'
+#' @param input_obj  \code{multiSVD} object, after using \code{tiltedCCA_decomposition()}
+#' @param membership_vec factor vector of the same length as the number of cells in \code{multiSVD}, denoting the
+#' cell-types for each cell
+#' @param max_subsample maximum of cells to sample for each cell-type. If there are more than
+#' \code{max_subsample} cells in a cell-type (dictated by \code{membership_vec}), a random
+#' subset of cells will be selected for the sake of this function
+#' @param verbose non-negative integer            
+#' @param ... additional arguments
+#'
 #' @export
 postprocess_cell_enrichment.multiSVD <- function(input_obj, 
                                                  membership_vec, 

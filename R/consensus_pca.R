@@ -15,6 +15,7 @@ consensus_pca <- function(mat_1, mat_2,
                           scale_max_1 = NULL, scale_max_2 = NULL, 
                           scale_max_consensus = NULL,
                           svd_1 = NULL, svd_2 = NULL,
+                          tol = 1e-3,
                           verbose = 0){
   
   if(verbose > 0) print("Extracting SVDs")

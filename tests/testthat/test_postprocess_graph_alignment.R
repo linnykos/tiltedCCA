@@ -137,16 +137,15 @@ test_that("postprocess_smooth_variable_selection works", {
     input_obj = multiSVD_obj,
     bool_use_denoised = F,
     bool_use_metacells = F,
-    input_assay = 1,
     num_variables = 5,
     sd_quantile = 0,
     seurat_obj = seurat_obj,
-    seurat_assay = "RNA",
+    seurat_assay_1 = "RNA",
     seurat_slot = "counts"
   )
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("alignment", "cor_threshold", "selected_variables", "sd_quantile", "sd_vec"))))
+  expect_true(all(sort(names(res)) == sort(c("alignment_1", "alignment_2", "cor_threshold", "selected_variables", "sd_quantile", "sd_vec_1", "sd_vec_2"))))
   expect_true(all(names(res$alignment) == colnames(mat_1)))
   expect_true(length(res$selected_variables) <= 5)
   expect_true(all(res$selected_variables %in% colnames(mat_1)))
@@ -193,17 +192,16 @@ test_that("postprocess_smooth_variable_selection works with singular variables",
     input_obj = multiSVD_obj,
     bool_use_denoised = F,
     bool_use_metacells = F,
-    input_assay = 1,
     num_variables = 5,
     sd_quantile = 0,
     seurat_obj = seurat_obj,
-    seurat_assay = "RNA",
+    seurat_assay_1 = "RNA",
     seurat_slot = "counts"
   )
   
   expect_true(all(is.na(res$alignment[(length(res$alignment)-1):length(res$alignment)])))
   expect_true(all(names(res$alignment) == colnames(mat_1)))
   na_vars <- names(res$alignment)[is.na(res$alignment)]
-  expect_true(!all(na_vars %in% res$selected_variables))
+  if(length(na_vars) > 0) expect_true(!all(na_vars %in% res$selected_variables))
 })
 

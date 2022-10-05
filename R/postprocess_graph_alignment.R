@@ -79,6 +79,7 @@ postprocess_graph_alignment <- function(
   dimred_2 <- .get_tCCAobj(input_obj, apply_postDimred = T, what = "common_dimred")
   dimred <- cbind(dimred_1, dimred_2)
   stopifnot(nrow(dimred) == nrow(everything_mat))
+  n <- nrow(dimred)
   
   # account of selection of cells
   if(all(!is.null(cell_idx))){
@@ -231,7 +232,7 @@ postprocess_smooth_variable_selection <- function(
     sd_quantile = sd_quantile,
     sd_vec_1 = sd_vec_1,
     sd_vec_2 = sd_vec_2,
-    selected_variables = names(alignment_1)
+    selected_variables = names(alignment_vec_1)
   ))
   
   if(verbose > 0) print("Selecting variables")

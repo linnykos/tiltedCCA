@@ -24,7 +24,7 @@ test_that(".generic_variable_selection works", {
   )
   
   expect_true(is.list(res))
-  expect_true(all(sort(names(res)) == sort(c("candidate_list", "selected_variables", "cor_vec"))))
+  expect_true(all(sort(names(res)) == sort(c("candidate_list", "selected_variables", "cor_vec_1", "cor_vec_2"))))
   expect_true(names(vec)[which.max(vec)] == res$selected_variables[1])
   expect_true(length(res$variables) <= 10)
   expect_true(length(res$candidate_list) <= length(res$selected_variables))
@@ -68,11 +68,11 @@ test_that(".generic_variable_selection works with an initial mat", {
   )
   
   expect_true(is.list(res2))
-  expect_true(all(sort(names(res2)) == sort(c("candidate_list", "selected_variables", "cor_vec"))))
+  expect_true(all(sort(names(res2)) == sort(c("candidate_list", "selected_variables", "cor_vec_1", "cor_vec_2"))))
   expect_true(length(res2$cor_vec_1) == p)
   expect_true(min(res2$cor_vec_1[1:3]) > max(res2$cor_vec_1[-c(1:3)]))
   expect_true(names(vec)[which.max(vec)] == res1$selected_variables[1])
-  expect_true(all(names(vec)[1:3] %in% res2$selected_variables))
+  expect_true(all(names(vec)[1:3] %in% res1$selected_variables))
 })
 
 test_that(".generic_variable_selection selects uncorrelated variables", {

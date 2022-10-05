@@ -1,6 +1,6 @@
 # Purpose
 
-This repository contains all the functions to perform Tilted-CCA and the downstream analysis, for the paper "Quantifying common and distinct information in single-cell multimodal data with Tilted-CCA". See the companion GitHub package https://github.com/linnykos/tiltedCCA_analysis for all the analyses performed in the paper.
+This repository contains all the functions to perform Tilted-CCA (version `1.0.0.001` as of October 4, 2022) and the downstream analysis, for the paper "Quantifying common and distinct information in single-cell multimodal data with Tilted-CCA". See the companion GitHub package https://github.com/linnykos/tiltedCCA_analysis for all the analyses performed in the paper.
 
 This code was developed and tested primarily on R 4.1.2. on a Macbook (macOS 11.6.8 Big Sur) equipped with an i7 processor.
 

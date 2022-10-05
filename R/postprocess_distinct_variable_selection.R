@@ -78,10 +78,12 @@ postprocess_distinct_variable_selection <- function(
     bool_maximizing = T, 
     cor_threshold = cor_threshold,
     initial_mat = reference_dimred,
-    mat = everything_mat,
+    mat_1 = everything_mat,
+    mat_2 = NULL,
     num_variables = num_variables,
     return_candidate_list = T,
-    vec = logpval_vec,
+    vec_1 = logpval_vec,
+    vec_2 = NULL,
     verbose = verbose
   )
   
