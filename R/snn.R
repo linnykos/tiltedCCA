@@ -1,3 +1,20 @@
+#' Include SNN graphs to multiSVD
+#' 
+#' Computing and including the shared nearest-neighbor (SNN) graphs 
+#' for each modality and the target common manifold
+#' for an existing \code{multiSVD} object
+#'
+#' @param input_obj \code{multiSVD} class, after creation via \code{create_multiSVD()} or \code{form_metacells()}
+#' @param latent_k number of latent dimensions for the graph Laplacian bases
+#' @param num_neigh number of neighbors for each cell, when constructing the SNN graphs
+#' @param bool_cosine boolean, for using cosine distance if \code{T} or Euclidean distance if \code{F}
+#' @param bool_intersect boolean, on whether or not to symmetrize (via the AND function) the SNN
+#' @param min_deg minimum degree of each cell in the SNN
+#' @param tol small positive number
+#' @param verbose non-negative integer             
+#'
+#' @return updated \code{multiSVD} object
+#' @export
 compute_snns <- function(input_obj,
                          latent_k,
                          num_neigh,

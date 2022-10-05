@@ -12,7 +12,7 @@ postprocess_cell_enrichment <- function(input_obj, ...){UseMethod("postprocess_c
 #' @param membership_vec factor vector of the same length as the number of cells in \code{multiSVD}, denoting the
 #' cell-types for each cell
 #' @param num_neigh number of nearest neighbors
-#' @param bool_cosine boolean, on whether or not to use cosine distance when constructing the SNN 
+#' @param bool_cosine boolean, for using cosine distance if \code{T} or Euclidean distance if \code{F}
 #' @param bool_intersect boolean, on whether or not to symmetrize (via the AND function) the SNN
 #' @param max_subsample maximum of cells to sample for each cell-type. If there are more than
 #' \code{max_subsample} cells in a cell-type (dictated by \code{membership_vec}), a random

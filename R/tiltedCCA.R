@@ -1,6 +1,9 @@
 #' Tilted-CCA Factorization
+#' 
+#' Computing the common-distinct decomposition via CCA, by setting
+#' each latent dimension to the same common tilt.
 #'
-#' @param input_obj \code{multiSVD} object
+#' @param input_obj \code{multiSVD} class, after creation via \code{compute_snns()} 
 #' @param discretization_gridsize positive integer for how many values between 0 and 1 (inclusive) to search the 
 #'                                appropriate amount of tilt over
 #' @param enforce_boundary boolean, on whether or not the tilt is required to stay between
@@ -15,7 +18,7 @@
 #' values close to 0 or 1 means the common space resembles the 
 #' canonical scores of \code{mat_2} or \code{mat_1} respectively.
 #' 
-#' @return object of class \code{multiSVD}
+#' @return updated \code{multiSVD} object
 #' @export
 tiltedCCA <- function(input_obj,
                       discretization_gridsize = 21, 
@@ -90,13 +93,17 @@ tiltedCCA <- function(input_obj,
 }
 
 #' Tilted-CCA Decomposition
+#' 
+#' After computing the appropriate tilts, recover the full decomposition of both modalities.
 #'
-#' @param input_obj output from \code{tiltedCCA}
-#' @param bool_modality_1_full boolean
-#' @param bool_modality_2_full boolean
+#' @param input_obj \code{multiSVD} class, after creation via \code{tiltedCCA()} or \code{fine_tuning()}
+#' @param bool_modality_1_full boolean, to compute the full-matrix decomposition for Modality 1 if \code{T}
+#' or only the low-dimensional representation if \code{F}
+#' @param bool_modality_2_full boolean, to compute the full-matrix decomposition for Modality 2 if \code{T}
+#' or only the low-dimensional representation if \code{F}
 #' @param verbose non-negative integer
 #'
-#' @return object of class \code{multiSVD}
+#' @return updated \code{multiSVD} object
 #' @export
 tiltedCCA_decomposition <- function(input_obj, 
                                     bool_modality_1_full = T,

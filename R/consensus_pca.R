@@ -1,3 +1,36 @@
+#' Computing Consensus PCA
+#'
+#' @param mat_1 data matrix of \code{n} cells and \code{p1} features for Modality 1
+#' @param mat_2 data matrix of \code{n} cells and \code{p2} features for Modality 2
+#' @param dims_1 vector of latent dimensions for \code{mat_1} used for analysis
+#' @param dims_2 vector of latent dimensions for \code{mat_2} used for analysis
+#' @param dims_consensus vector of latent dimensions for the Consensus PCA
+#' @param apply_pca boolean, where PCA is combined set of latent dimensions (from both modalities) if \code{T}
+#' or not if \code{F}
+#' @param center_1 boolean, to center each the feature in Modality 1 prior to computing latent dimensions
+#' @param center_2 boolean, to center each the feature in Modality 2 prior to computing latent dimensions
+#' @param center_consensus boolean, to center the combined set of latent dimensions (from both modalities)
+#' @param normalize_row boolean, to normalize each cell's latent vector after dimension-reduction for both modalities
+#' @param normalize_singular_value boolean, to normalize each modality by its largest singular value
+#' @param recenter_1 boolean, to center each latent dimension in Modality 1 after computing latent dimensions
+#' @param recenter_2 boolean, to center each latent dimension in Modality 2 after computing latent dimensions
+#' @param recenter_consensus boolean, to center the latent dimension after Consensus PCA
+#' @param rescale_1 boolean, to rescale each latent dimension in Modality 1 after computing latent dimensions
+#' @param rescale_2 boolean, to rescale each latent dimension in Modality 2 after computing latent dimensions
+#' @param rescale_consensus boolean, to rescale the latent dimension after Consensus PCA
+#' @param scale_1 boolean, to rescale each the feature in Modality 1 prior to computing latent dimensions
+#' @param scale_2 boolean, to rescale each the feature in Modality 2 prior to computing latent dimensions
+#' @param scale_consensus boolean, to rescale the combined set of latent dimensions (from both modalities)
+#' @param scale_max_1 numeric or \code{NULL}, to threshold Modality 1 in magnitude prior to computing latent dimensions
+#' @param scale_max_2 numeric or \code{NULL}, to threshold Modality 2 in magnitude prior to computing latent dimensions
+#' @param scale_max_consensus  numeric or \code{NULL}, to threshold the combined set of latent dimensions in magnitude prior to computing latent dimensions
+#' @param svd_1 list of \code{u}, \code{d}, \code{v} for the SVD of Modality 1 if it's already computed
+#' @param svd_2 list of \code{u}, \code{d}, \code{v} for the SVD of Modality 2 if it's already computed
+#' @param tol small positive number
+#' @param verbose non-negative integer             
+#'
+#' @return \code{consensusPCA} object
+#' @export
 consensus_pca <- function(mat_1, mat_2,
                           dims_1, dims_2,
                           dims_consensus,

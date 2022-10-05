@@ -1,3 +1,27 @@
+#' Create the object to initialize Tilted-CCA
+#' 
+#' Initialize the \code{multiSVD} object by computing each modality's SVD.
+#'
+#' @param mat_1 data matrix of \code{n} cells and \code{p1} features for Modality 1
+#' @param mat_2 data matrix of \code{n} cells and \code{p2} features for Modality 2
+#' @param dims_1 vector of latent dimensions for \code{mat_1} used for analysis
+#' @param dims_2 vector of latent dimensions for \code{mat_2} used for analysis
+#' @param center_1 boolean, to center each the feature in Modality 1 prior to computing latent dimensions
+#' @param center_2 boolean, to center each the feature in Modality 2 prior to computing latent dimensions
+#' @param normalize_row boolean, to normalize each cell's latent vector after dimension-reduction for both modalities
+#' @param normalize_singular_value boolean, to normalize each modality by its largest singular value
+#' @param recenter_1 boolean, to center each latent dimension in Modality 1 after computing latent dimensions
+#' @param recenter_2 boolean, to center each latent dimension in Modality 2 after computing latent dimensions
+#' @param rescale_1 boolean, to rescale each latent dimension in Modality 1 after computing latent dimensions
+#' @param rescale_2 boolean, to rescale each latent dimension in Modality 2 after computing latent dimensions
+#' @param scale_1 boolean, to rescale each the feature in Modality 1 prior to computing latent dimensions
+#' @param scale_2 boolean, to rescale each the feature in Modality 2 prior to computing latent dimensions
+#' @param scale_max_1 numeric or \code{NULL}, to threshold Modality 1 in magnitude prior to computing latent dimensions
+#' @param scale_max_2 numeric or \code{NULL}, to threshold Modality 2 in magnitude prior to computing latent dimensions
+#' @param verbose non-negative integer             
+#'
+#' @return \code{multiSVD} object
+#' @export
 create_multiSVD <- function(mat_1, mat_2,
                             dims_1, dims_2,
                             center_1 = T, center_2 = T,

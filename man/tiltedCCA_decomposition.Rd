@@ -12,17 +12,19 @@ tiltedCCA_decomposition(
 )
 }
 \arguments{
-\item{input_obj}{output from \code{tiltedCCA}}
+\item{input_obj}{\code{multiSVD} class, after creation via \code{tiltedCCA()} or \code{fine_tuning()}}
 
-\item{bool_modality_1_full}{boolean}
+\item{bool_modality_1_full}{boolean, to compute the full-matrix decomposition for Modality 1 if \code{T}
+or only the low-dimensional representation if \code{F}}
 
-\item{bool_modality_2_full}{boolean}
+\item{bool_modality_2_full}{boolean, to compute the full-matrix decomposition for Modality 2 if \code{T}
+or only the low-dimensional representation if \code{F}}
 
 \item{verbose}{non-negative integer}
 }
 \value{
-object of class \code{multiSVD}
+updated \code{multiSVD} object
 }
 \description{
-Tilted-CCA Decomposition
+After computing the appropriate tilts, recover the full decomposition of both modalities.
 }

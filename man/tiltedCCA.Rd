@@ -13,7 +13,7 @@ tiltedCCA(
 )
 }
 \arguments{
-\item{input_obj}{\code{multiSVD} object}
+\item{input_obj}{\code{multiSVD} class, after creation via \code{compute_snns()}}
 
 \item{discretization_gridsize}{positive integer for how many values between 0 and 1 (inclusive) to search the 
 appropriate amount of tilt over}
@@ -33,8 +33,9 @@ values close to 0 or 1 means the common space resembles the
 canonical scores of \code{mat_2} or \code{mat_1} respectively.}
 }
 \value{
-object of class \code{multiSVD}
+updated \code{multiSVD} object
 }
 \description{
-Tilted-CCA Factorization
+Computing the common-distinct decomposition via CCA, by setting
+each latent dimension to the same common tilt.
 }

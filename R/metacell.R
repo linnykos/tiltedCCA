@@ -1,3 +1,17 @@
+#' Include meta-cell information to multiSVD
+#' 
+#' Include the hard clustering information and compute the meta-cells 
+#' for an existing  \code{multiSVD} object.
+#'
+#' @param input_obj \code{multiSVD} class, after creation via \code{create_multiSVD()}
+#' @param large_clustering_1 factor among the \code{n} cells or \code{NULL}, representing the hard clustering structure of Modality 1
+#' @param large_clustering_2 factor among the \code{n} cells or \code{NULL}, representing the hard clustering structure of Modality 2
+#' @param num_metacells number of desired meta-cells
+#' @param min_size smallest number of cells for a meta-cell
+#' @param verbose non-negative integer 
+#'
+#' @return updated \code{multiSVD} object
+#' @export
 form_metacells <- function(input_obj,
                            large_clustering_1, 
                            large_clustering_2,

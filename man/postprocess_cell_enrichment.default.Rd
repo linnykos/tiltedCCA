@@ -24,7 +24,7 @@ cell-types for each cell}
 
 \item{num_neigh}{number of nearest neighbors}
 
-\item{bool_cosine}{boolean, on whether or not to use cosine distance when constructing the SNN}
+\item{bool_cosine}{boolean, for using cosine distance if \code{T} or Euclidean distance if \code{F}}
 
 \item{bool_intersect}{boolean, on whether or not to symmetrize (via the AND function) the SNN}
 

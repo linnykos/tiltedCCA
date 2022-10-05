@@ -1,3 +1,18 @@
+#' Fine tune the common tilts, one for each latent dimension
+#' 
+#' Tune each latent dimension (representing a pair of canonical score vectors)
+#' for an appropriate tilt of the common component
+#'
+#' @param input_obj \code{multiSVD} class, after creation via \code{tiltedCCA()} 
+#' @param max_iter maximum number of epochs (i.e., cycling through all latent dimensions)
+#' @param fix_tilt_perc scalar between 0 and 1, or \code{NA}, for setting all the tilts in each latent dimension
+#' to the scalar if not \code{NA}
+#' @param temp_path filepath for saving temporary progress to
+#' @param tol small positive number
+#' @param verbose non-negative integer             
+#'
+#' @return updated \code{multiSVD} object
+#' @export
 fine_tuning <- function(input_obj, 
                         max_iter = 5,
                         fix_tilt_perc = NA,
