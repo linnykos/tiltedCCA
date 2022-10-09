@@ -30,7 +30,7 @@ test_that("(Coding) .cca preserves colnames", {
   colnames(mat_1) <- paste0("a", 1:p1)
   colnames(mat_2) <- paste0("b", 1:p2)
   
-  res <- .cca(mat_1, mat_2, dims_1 = 2, dims_2 = 2, return_scores = F)
+  res <- .cca(mat_1, mat_2, dims_1 = 1:2, dims_2 = 1:2, return_scores = F)
   
   expect_true(all(rownames(res$loading_1) == colnames(mat_1)))
   expect_true(all(rownames(res$loading_2) == colnames(mat_2)))
