@@ -1,8 +1,8 @@
 Package: tiltedCCA
-Title: Kevin Lin
+Title: Tilted CCA
 Version: 1.0.0.001
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: Tilted CCA method. Currently under development.
+Authors@R: person("Kevin Z", "Lin", email = "kzlin@uw.edu", role = c("aut", "cre"))
+Description: Tilted CCA method for separating out the common and distinct information from paired multimodal data. Here, the information is defined based on the geometric relations between the samples.
 Depends:
     R (>= 3.5.0)
 License: MIT +file LICENSE

@@ -1,0 +1,24 @@
+citHeader("To cite Tilted-CCA in publications use:")
+
+title <- "Quantifying common and distinct information in single-cell multimodal data with Tilted Canonical Correlation Analysis"
+journal <- "Proceedings of the National Academy of Sciences"
+year <- "2023"
+volume <- "120"
+number <- "32"
+pages <- "e2303647120"
+doi <- "10.1073/pnas.2303647120"
+
+bibentry(
+  bibtype  = "Article",
+  title    = title,
+  author   = c(person("Kevin Z", "Lin"), person("Nancy R", "Zhang")),
+  journal  = journal,
+  year     = year,
+  volume   = volume,
+  number   = number,
+  pages    = pages,
+  doi      = doi,
+  textVersion = paste0(
+    "Lin, Kevin Z., and Zhang, Nancy R. (", year, "). ", title, ". ", journal, ", ", volume, "(", number, "),", pages
+  )
+)
