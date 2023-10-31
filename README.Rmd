@@ -1,54 +1,47 @@
+---
+output: github_document
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
 # Purpose
 
-This repository contains all the functions to perform Tilted-CCA
-(version `1.0.0.001` as of October 4, 2022) and the downstream analysis,
-for the paper “Quantifying common and distinct information in
-single-cell multimodal data with Tilted-CCA”. See the companion GitHub
-package <https://github.com/linnykos/tiltedCCA_analysis> for all the
-analyses performed in the paper.
+This repository contains all the functions to perform Tilted-CCA (version `1.0.0.001` as of October 4, 2022) and the downstream analysis, for the paper "Quantifying common and distinct information in single-cell multimodal data with Tilted-CCA". See the companion GitHub package https://github.com/linnykos/tiltedCCA_analysis for all the analyses performed in the paper.
 
-This code was developed and tested primarily on R 4.1.2. on a Macbook
-(macOS 11.6.8 Big Sur) equipped with an i7 processor.
+This code was developed and tested primarily on R 4.1.2. on a Macbook (macOS 11.6.8 Big Sur) equipped with an i7 processor.
 
 <!-- badges: start -->
-
-[![Lifecycle:
-stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-<!-- badges: end -->
+  [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+  <!-- badges: end -->
 
 # Installation
 
 This package can be installed through `devtools` in R.
 
-``` r
+```R
 library("devtools")
 devtools::install_github("linnykos/tiltedCCA")
 ```
+The package itself depends on several packages. These include `dbscan`, `ggplot2`, `ggrepel`, `irlba`, `MASS`, `Matrix`, `quadprog`, `RANN`, `RColorBrewer`, `RSpectra`, `scales`, `Seurat`, `SeuratObject`, and `sparseMatrixStats`. See the last section of this README to see where (i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
 
-The package itself depends on several packages. These include `dbscan`,
-`ggplot2`, `ggrepel`, `irlba`, `MASS`, `Matrix`, `quadprog`, `RANN`,
-`RColorBrewer`, `RSpectra`, `scales`, `Seurat`, `SeuratObject`, and
-`sparseMatrixStats`. See the last section of this README to see where
-(i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
-
-After installation of all the dependencies, the installation of the
-`tiltedCCA` package itself is fast (less than 2 minutes).
+After installation of all the dependencies, the installation of the `tiltedCCA` package itself is fast (less than 2 minutes).
 
 # Small simulated dataset to demo the software
 
-See
-<https://github.com/linnykos/tiltedCCA_analysis/tree/master/simulation>
-for the small demo on how to use Tilted-CCA.
+See https://github.com/linnykos/tiltedCCA_analysis/tree/master/simulation for the small demo on how to use Tilted-CCA.
 
 # Setup
 
-The following shows the suggested package versions that the developer
-(GitHub username: linnykos) used when developing the Tilted-CCA package.
+The following shows the suggested package versions that the developer (GitHub username: linnykos) used when developing the Tilted-CCA package.
 
-``` r
+```R
 > devtools::session_info()
 ─ Session info ─────────────────────────────────────────────────────
  setting  value
