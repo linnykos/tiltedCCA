@@ -15,6 +15,7 @@ This code was developed and tested primarily on R 4.1.2. on a Macbook
 
 <!-- badges: start -->
 
+[![DOI:0.1073/pnas.2303647120](https://img.shields.io/badge/doi-10.1073/pnas.2303647120-firebrick.svg)](https://doi.org/10.1073/pnas.2303647120)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
