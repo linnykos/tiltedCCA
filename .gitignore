@@ -21,3 +21,4 @@ data/*.RData
 .js
 *.css
 .css
+inst/doc

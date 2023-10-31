@@ -25,5 +25,8 @@ Imports:
     ggrepel,
     quadprog
 Suggests:
+    knitr,
+    rmarkdown,
     testthat
 RoxygenNote: 7.1.2
+VignetteBuilder: knitr
