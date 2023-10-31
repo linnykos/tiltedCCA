@@ -30,3 +30,4 @@ Suggests:
     testthat
 RoxygenNote: 7.1.2
 VignetteBuilder: knitr
+URL: https://linnykos.github.io/tiltedCCA/

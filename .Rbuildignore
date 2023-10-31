@@ -6,3 +6,4 @@ oldcode\*
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^\.github$
