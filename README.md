@@ -1,6 +1,4 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # Purpose
 
 This repository contains all the functions to perform Tilted-CCA
@@ -19,6 +17,11 @@ This code was developed and tested primarily on R 4.1.2. on a Macbook
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
+
+# Tutorials and vignettes
+
+Please see <https://linnykos.github.io/tiltedCCA/> for in-depth
+tutorials and vignettes on how to use Tilted-CCA.
 
 # Installation
 
