@@ -2,8 +2,6 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -21,6 +19,10 @@ This code was developed and tested primarily on R 4.1.2. on a Macbook (macOS 11.
 [![DOI:0.1073/pnas.2303647120](https://img.shields.io/badge/doi-10.1073/pnas.2303647120-firebrick.svg)](https://doi.org/10.1073/pnas.2303647120)
   [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
   <!-- badges: end -->
+  
+# Tutorials and vignettes
+
+Please see https://linnykos.github.io/tiltedCCA/ for in-depth tutorials and vignettes on how to use Tilted-CCA.
 
 # Installation
 
