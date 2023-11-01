@@ -6,12 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="tiltedCCA">
-<title>Tilted-CCA Overivew • tiltedCCA</title>
+<title>Tilted-CCA Simulation (3 cell types) • tiltedCCA</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Tilted-CCA Overivew">
+<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Tilted-CCA Simulation (3 cell types)">
 <meta property="og:description" content="tiltedCCA">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -58,7 +58,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Tilted-CCA Overivew</h1>
+      <img src="" class="logo" alt=""><h1>Tilted-CCA Simulation (3 cell types)</h1>
             
       
       
@@ -70,31 +70,57 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://linnykos.github.io/tiltedCCA/">tiltedCCA</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+<p>The intent of this simulation is to generate simplistic dataset where
+“Modality 1 has strictly more information than Modality 2.” Since
+Tilted-CCA infers “information” through the lense of the cell-cell
+nearest neighbor graph, this means that Modality 1 contains cell
+separation structure that is not found in Modality 2. Since we design a
+simulation in this fashion, we expect to see that the common embedding
+(loosely speaking) is essentially equivalent to Modality 2, and Modality
+1’s distinct embedding contains the separation structure that is not
+found in Modality 2, and Modality 2’s distinct embedding is random noise
+(since all its information is already represented in the common
+embedding).</p>
 <div class="section level2">
 <h2 id="simulate-data">Simulate data<a class="anchor" aria-label="anchor" href="#simulate-data"></a>
 </h2>
+<p>We first generate synthetic data. Here, we generate 300 cells, 100
+for each of the 3 true cell types. Each modality will have 10 variables.
+Looking at the code below, we can see that we purposefully separate all
+3 cell types in Modality 1, but we only separate cell types 1 and 3 from
+cell type 2 in Modality 2.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">n_clust</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
-<span><span class="va">B_mat1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.9</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>,</span>
-<span>                   <span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>,</span>
-<span>                   <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.9</span><span class="op">)</span>, <span class="fl">3</span>, <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
-<span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">B_mat1</span><span class="op">)</span></span>
-<span><span class="va">membership_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n_clust</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">n_clust</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">n_clust</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">true_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n_clust</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">n_clust</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">n_clust</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">membership_vec</span><span class="op">)</span>; <span class="va">true_membership_vec</span> <span class="op">&lt;-</span> <span class="va">membership_vec</span></span>
-<span><span class="va">svd_u_1</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/generate_sbm_orthogonal.html">generate_sbm_orthogonal</a></span><span class="op">(</span><span class="va">B_mat1</span>, <span class="va">membership_vec</span>, centered <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span></span>
-<span><span class="va">svd_u_2</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/generate_random_orthogonal.html">generate_random_orthogonal</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">2</span>, centered <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">n_each</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">true_cluster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, each <span class="op">=</span> <span class="va">n_each</span><span class="op">)</span></span>
+<span><span class="va">mat_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span><span class="op">{</span></span>
+<span>    <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n_each</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>  </span>
+<span>  <span class="op">}</span> <span class="kw">else</span> <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n_each</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>,<span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> </span>
+<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>    <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n_each</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">15</span>,<span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> </span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mat_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="kw">if</span><span class="op">(</span><span class="va">i</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>    <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n_each</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> </span>
+<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>    <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n_each</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>,<span class="fl">6</span>,<span class="fl">0</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> </span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mat_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">mat_1</span>, center <span class="op">=</span> <span class="cn">T</span>, scale <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">mat_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale</a></span><span class="op">(</span><span class="va">mat_2</span>, center <span class="op">=</span> <span class="cn">T</span>, scale <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">svd_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/svd.html" class="external-link">svd</a></span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span></span>
+<span><span class="va">svd_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/svd.html" class="external-link">svd</a></span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p_1</span> <span class="op">&lt;-</span> <span class="fl">10</span>; <span class="va">p_2</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
-<span><span class="va">svd_d_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">n</span><span class="op">*</span><span class="va">p_1</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.5</span>,<span class="fl">1</span><span class="op">)</span>; <span class="va">svd_d_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">n</span><span class="op">*</span><span class="va">p_2</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.5</span>,<span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">svd_v_1</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/generate_random_orthogonal.html">generate_random_orthogonal</a></span><span class="op">(</span><span class="va">p_1</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">svd_v_2</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/generate_random_orthogonal.html">generate_random_orthogonal</a></span><span class="op">(</span><span class="va">p_2</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">svd_v_1</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/generate_random_orthogonal.html">generate_random_orthogonal</a></span><span class="op">(</span><span class="va">p_1</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">svd_v_2</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/generate_random_orthogonal.html">generate_random_orthogonal</a></span><span class="op">(</span><span class="va">p_2</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">mat_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">svd_u_1</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">svd_d_1</span><span class="op">)</span>, <span class="va">svd_v_1</span><span class="op">)</span></span>
-<span><span class="va">mat_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">svd_u_2</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">svd_d_2</span><span class="op">)</span>, <span class="va">svd_v_2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">clustering_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">kmeans</a></span><span class="op">(</span><span class="va">mat_1</span>, centers <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span></span>
-<span><span class="va">clustering_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">membership_vec</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">mat_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">svd_1</span><span class="op">$</span><span class="va">u</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">svd_1</span><span class="op">$</span><span class="va">d</span><span class="op">)</span>, <span class="va">svd_v_1</span><span class="op">)</span></span>
+<span><span class="va">mat_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">svd_2</span><span class="op">$</span><span class="va">u</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">svd_2</span><span class="op">$</span><span class="va">d</span><span class="op">)</span>, <span class="va">svd_v_2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span><span class="op">)</span></span>
@@ -102,29 +128,116 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mat_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="co">#&gt;           g1        g2        g3       g4       g5</span></span>
-<span><span class="co">#&gt; n1 0.9514561 0.2236078 -2.480528 1.743431 1.182773</span></span>
-<span><span class="co">#&gt; n2 0.9685308 0.2204136 -2.550255 1.781280 1.229422</span></span>
-<span><span class="co">#&gt; n3 0.9222505 0.1808805 -2.529845 1.722569 1.272979</span></span>
-<span><span class="co">#&gt; n4 0.9023105 0.0994310 -2.746395 1.755924 1.518981</span></span>
-<span><span class="co">#&gt; n5 0.9071086 0.1178828 -2.698301 1.748942 1.463833</span></span>
+<span><span class="co">#&gt;          g1        g2       g3         g4        g5</span></span>
+<span><span class="co">#&gt; n1 1.819759 0.5368737 4.036763 -1.2147901 -1.821764</span></span>
+<span><span class="co">#&gt; n2 1.331994 0.5332072 3.411838 -0.4156336 -2.566754</span></span>
+<span><span class="co">#&gt; n3 1.579988 0.4680836 3.616605 -1.7683005 -2.005390</span></span>
+<span><span class="co">#&gt; n4 1.148463 0.4606350 2.978134 -0.5841379 -2.350133</span></span>
+<span><span class="co">#&gt; n5 1.762367 0.7059740 4.474579 -0.2665754 -3.241323</span></span>
 <span><span class="va">mat_2</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="co">#&gt;            p1         p2          p3           p4         p5</span></span>
-<span><span class="co">#&gt; n1 -1.7050201  1.1970268 -0.11672665 -2.630653617  2.5907433</span></span>
-<span><span class="co">#&gt; n2  0.1066401 -0.1285672  0.02396835  0.973541026 -1.1199246</span></span>
-<span><span class="co">#&gt; n3 -1.3969459  0.8017209 -0.04007018  0.541677939 -1.0707010</span></span>
-<span><span class="co">#&gt; n4  1.8693300 -1.1207408  0.06849209 -0.003001763  0.5780767</span></span>
-<span><span class="co">#&gt; n5 -1.1056130  0.8892106 -0.11076595 -3.408288709  3.6957074</span></span></code></pre></div>
+<span><span class="co">#&gt;             p1         p2         p3        p4         p5</span></span>
+<span><span class="co">#&gt; n1 -0.45066829 -0.2783653  1.0852459 0.4720760 -0.9391990</span></span>
+<span><span class="co">#&gt; n2 -0.27205972  0.5415940  0.5700232 1.0375929 -0.5041184</span></span>
+<span><span class="co">#&gt; n3 -0.16369850  0.6491696  0.3264213 1.0037482 -0.3786571</span></span>
+<span><span class="co">#&gt; n4 -0.46618987  0.1503648  1.0161462 0.8644918 -0.6804707</span></span>
+<span><span class="co">#&gt; n5  0.05288093  1.0724721 -0.1822755 1.1622260 -0.1242831</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="plot-the-data">Plot the data<a class="anchor" aria-label="anchor" href="#plot-the-data"></a>
+</h2>
+<p>Since we wish to visualize</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">svd_func</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mat</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">svd_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/svd.html" class="external-link">svd</a></span><span class="op">(</span><span class="va">mat</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">svd_res</span><span class="op">$</span><span class="va">u</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, MARGIN <span class="op">=</span> <span class="fl">2</span>, STATS <span class="op">=</span> <span class="va">svd_res</span><span class="op">$</span><span class="va">d</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, FUN <span class="op">=</span> <span class="st">"*"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Below, we set up the colors that we will use for our
+visualizations.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plot_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">orange_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">235</span>, <span class="fl">134</span>, <span class="fl">47</span>, maxColorValue <span class="op">=</span> <span class="fl">255</span><span class="op">)</span></span>
+<span><span class="va">purple_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">122</span>, <span class="fl">49</span>, <span class="fl">126</span>, maxColorValue <span class="op">=</span> <span class="fl">255</span><span class="op">)</span></span>
+<span><span class="va">blue_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">129</span>, <span class="fl">139</span>, <span class="fl">191</span>, maxColorValue <span class="op">=</span> <span class="fl">255</span><span class="op">)</span></span>
+<span><span class="va">col_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">orange_col</span>, <span class="va">purple_col</span>, <span class="va">blue_col</span><span class="op">)</span></span></code></pre></div>
+<p>We now are ready to visualize the data. First, we plot the data as if
+we had access to the true cell type labels. We see clearly that Modality
+1 separates the orange, purple, and blue cells, but Modality 2 only
+separates the orange and blue cells (i.e., cell types 1 and 3) from the
+purple cells (i.e., cell type 2).</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 1\n(With true labels)"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">col_vec</span><span class="op">[</span><span class="va">true_cluster</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 2\n(With true labels)"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">col_vec</span><span class="op">[</span><span class="va">true_cluster</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-5-1.png" width="672"></p>
+<p>Of course, we do not have access to these cell type labels in
+practice, so had this not been simulated data, we would only be able to
+visualize the data as below.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 1\n(What we see in pracitce)"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="st">"gray"</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 2\n(What we see in pracitce)"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="st">"gray"</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="apply-tilted-cca">Apply Tilted-CCA<a class="anchor" aria-label="anchor" href="#apply-tilted-cca"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>In this simulation, we will deploy the “hard clustering” variant of
+Tilted-CCA. That is, based on our visualization of the data, we can
+infer large separations of cell types. Hence, we would like to pass this
+inferred clustering information into Tilted-CCA to aid the estimation of
+the common and distinct embeddings.</p>
+<p>We can estimate this (crudely, which is sufficient for this
+simulation) via K-means. Notice that we estimating these clusterings
+(one for each modality) from the data, so we are not “cheating” (loosely
+speaking). We plot the estimated clusterings below.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">clustering_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">kmeans</a></span><span class="op">(</span><span class="va">mat_1</span>, centers <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span></span>
+<span><span class="va">clustering_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">kmeans</a></span><span class="op">(</span><span class="va">mat_2</span>, centers <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">mat_1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 1\n(Estimated clustering)"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">[</span><span class="va">clustering_1</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">mat_2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 2\n(Estimated clustering)"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">[</span><span class="va">clustering_2</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
+<p>Now we are ready to run the standard functions for Tilted-CCA. In
+general, each usage of Tilted-CCA (even beyond this simulation), will
+use these following sequence of functions.</p>
+<p><em>Note</em>: It would <em>not</em> be appropriate nor desirable to
+use <code>true_cluster</code> (i.e., the “true” cell-type labels) when
+using <code><a href="../reference/form_metacells.html">tiltedCCA::form_metacells</a></code> in general (in simulation
+or in practice). This is because <code>large_clustering_1</code> and
+<code>large_clustering_2</code> are intended to inform Tilted-CCA of the
+clustering structure (i.e., how cells are separated geometrically) in
+each modality.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/create_multiSVD.html">create_multiSVD</a></span><span class="op">(</span>mat_1 <span class="op">=</span> <span class="va">mat_1</span>, mat_2 <span class="op">=</span> <span class="va">mat_2</span>,</span>
-<span>                                           dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
+<span>                                           dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
 <span>                                           center_1 <span class="op">=</span> <span class="cn">F</span>, center_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           normalize_row <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>                                           normalize_row <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>                                           normalize_singular_value <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>                                           recenter_1 <span class="op">=</span> <span class="cn">F</span>, recenter_2 <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>                                           rescale_1 <span class="op">=</span> <span class="cn">F</span>, rescale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
@@ -135,62 +248,94 @@
 <span>                                          num_metacells <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/compute_snns.html">compute_snns</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj</span>,</span>
 <span>                                        latent_k <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                                        num_neigh <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                                        bool_cosine <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>                                        bool_intersect <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>                                        min_deg <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/tiltedCCA.html">tiltedCCA</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj</span><span class="op">)</span></span>
+<span>                                        num_neigh <span class="op">=</span> <span class="fl">80</span>,</span>
+<span>                                        bool_cosine <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                        bool_intersect <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                        min_deg <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/tiltedCCA.html">tiltedCCA</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj</span>,</span>
+<span>                                     fix_tilt_perc <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/fine_tuning.html">fine_tuning</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj</span>,</span>
 <span>                                       verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/tiltedCCA_decomposition.html">tiltedCCA_decomposition</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">)</span></span>
+<span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/tiltedCCA_decomposition.html">tiltedCCA_decomposition</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">)</span></span></code></pre></div>
+<p>We make two notes:</p>
+<ul>
+<li><p>In general, the biggest choices (as a user of Tilted-CCA) is: 1)
+whether to use the “hard clustering” variant of Tilted-CCA (done here,
+as seen in arguments of <code><a href="../reference/form_metacells.html">tiltedCCA::form_metacells</a></code>) or not,
+and 2) what the <code>latent_k</code> and <code>num_neigh</code> are
+when computing the graph Laplacian bases of the target common
+shared-nearest-neighbor graph. The former choice is usually inferred
+when visualizing the data prior to applying Tilted-CCA. The latter
+choice requires some finesse (as we will show in tutorials of scRNA-seq
+data).</p></li>
+<li><p>For the sake of simplicity in this tutorial, when we call
+<code><a href="../reference/tiltedCCA.html">tiltedCCA::tiltedCCA</a></code>, we set
+<code>fix_tilt_perc = 0</code>. This initializes the “tilt” of each
+common component (3 in total) to aligned with Modality 2 (which we
+inferred visually). Then, <code><a href="../reference/fine_tuning.html">tiltedCCA::fine_tuning</a></code> optimizes
+the tilt of each common components in a coordinate descent
+fashion.</p></li>
+</ul>
+<p>Lastly, we can look at the objects stored inside the
+<code>multiSVD_obj</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "svd_1"          "svd_2"          "default_assay"  "param"         </span></span>
 <span><span class="co">#&gt;  [5] "metacell_obj"   "snn_list"       "laplacian_list" "cca_obj"       </span></span>
 <span><span class="co">#&gt;  [9] "tcca_obj"       "common_mat_1"   "distinct_mat_1" "common_mat_2"  </span></span>
 <span><span class="co">#&gt; [13] "distinct_mat_2"</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="plot-the-data">Plot the data<a class="anchor" aria-label="anchor" href="#plot-the-data"></a>
-</h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">svd_1</span><span class="op">$</span><span class="va">u</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">svd_1</span><span class="op">$</span><span class="va">u</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Modality 1"</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
-<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">true_cluster</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">svd_2</span><span class="op">$</span><span class="va">u</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">svd_2</span><span class="op">$</span><span class="va">u</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Modality 2"</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"PCA's dim. 2"</span>,</span>
-<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">true_cluster</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-4-2.png" width="700"></p>
-</div>
-<div class="section level2">
 <h2 id="plot-tilted-ccas-result">Plot Tilted-CCA’s result<a class="anchor" aria-label="anchor" href="#plot-tilted-ccas-result"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">common_score</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">common_score</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<p>We can visualize the common embedding. We overlay the true cell type
+labels onto these plots for interpretability, but notice that
+<code>true_cluster</code> was never used in the actual usage of
+Tilted-CCA. We can see that, as desired, the common embedding separates
+only the orange and blue cells from the purple cells. This is because
+these cell type separations are the only ones that are supported by both
+modalities. In contrast, only Modality 1 shows separation between orange
+and blue cells, so the separation between the orange and blue cells
+should not be reflected in the common embedding.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">common_score</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"Common embedding"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"Common's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"Common's dim. 2"</span>,</span>
-<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">true_cluster</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">distinct_score_1</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">distinct_score_1</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Modality 1's distinct embedding"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">col_vec</span><span class="op">[</span><span class="va">true_cluster</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>We can also plot the distinct embeddings (one for each Modality 1 and
+Modality 2). We see that Modality 1’s distinct embedding shows the
+separation between orange and blue cells (which was absent from the
+common embedding). In contrast, Modality 2’s distinct embedding clusters
+all three cell types together because there is no more cell separation
+structure in Modality 2 that is not already reflected by the common
+embedding.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">distinct_score_1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 1's distinct embed."</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"Distinct-1's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"Distinct-1's dim. 2"</span>,</span>
-<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">true_cluster</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-5-2.png" width="700"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">distinct_score_2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">distinct_score_2</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Modality 2's distinct embedding"</span>,</span>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">col_vec</span><span class="op">[</span><span class="va">true_cluster</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">multiSVD_obj</span><span class="op">$</span><span class="va">tcca_obj</span><span class="op">$</span><span class="va">distinct_score_2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Modality 2's distinct embed."</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"Distinct-2's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"Distinct-2's dim. 2"</span>,</span>
-<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">true_cluster</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-5-3.png" width="700"></p>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">col_vec</span><span class="op">[</span><span class="va">true_cluster</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="for-comparison-plot-consensus-pca">For comparison, plot Consensus PCA<a class="anchor" aria-label="anchor" href="#for-comparison-plot-consensus-pca"></a>
 </h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>Finally, for comparison, we can show how Consensus PCA combines
+information between both modalities. This is in stark contrast with
+Tilted-CCA, as Consensus PCA combines information between both
+modalities. Hence, the resulting embedding shows clear separation among
+all three cell types. This is why we deem Consensus PCA as a method that
+captures the “union of information,” while Tilted-CCA’s embedding is a
+method that captures the “intersection of information.”</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">consensus_pca</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">:::</span><span class="fu"><a href="../reference/consensus_pca.html">consensus_pca</a></span><span class="op">(</span>mat_1 <span class="op">=</span> <span class="va">mat_1</span>, mat_2 <span class="op">=</span> <span class="va">mat_2</span>,</span>
 <span>                                           dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
@@ -204,12 +349,12 @@
 <span>                                           scale_consensus <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>                                           verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">consensus_pca</span><span class="op">$</span><span class="va">dimred_consensus</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
-<span>     <span class="va">consensus_pca</span><span class="op">$</span><span class="va">dimred_consensus</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>,</span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">consensus_pca</span><span class="op">$</span><span class="va">dimred_consensus</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"Consensus PCA embedding"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"Consensus PCA's dim. 1"</span>, ylab <span class="op">=</span> <span class="st">"Consensus PCA's dim. 2"</span>,</span>
-<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">true_cluster</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<span>     pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">col_vec</span><span class="op">[</span><span class="va">true_cluster</span><span class="op">[</span><span class="va">plot_idx</span><span class="op">]</span><span class="op">]</span>, asp <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="tiltedCCA_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
