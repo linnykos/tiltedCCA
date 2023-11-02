@@ -1,3 +1,48 @@
+#' Plot alignment of variables
+#'
+#' @param rsquare_vec output of \code{tiltedCCA::postprocess_modality_alignment}
+#' @param logpval_vec output of \code{tiltedCCA::postprocess_depvalue}
+#' @param bool_hide_points boolean (graphical parameter)
+#' @param bool_mark_ymedian boolean (graphical parameter)
+#' @param bool_polygon_mean boolean (graphical parameter)
+#' @param bool_truncate_xaxis boolean (graphical parameter)
+#' @param bool_white_bg boolean (graphical parameter)
+#' @param bty character (graphical parameter)
+#' @param cex_axis positive number (graphical parameter)
+#' @param cex_gene_highlight_inner positive number (graphical parameter)
+#' @param cex_gene_highlight_outer positive number (graphical parameter)
+#' @param cex_lab positive number (graphical parameter)
+#' @param cex_points positive number (graphical parameter)
+#' @param col_points character for a color (graphical parameter)
+#' @param col_gene_highlight character for a color (graphical parameter)
+#' @param col_gene_highlight_border character for a color (graphical parameter)
+#' @param col_grid character for a color (graphical parameter)
+#' @param density positive number, \code{NA}, or \code{NULL} (graphical parameter)
+#' @param gene_names vector of charaters for which genes (in \code{names(rsquare_vec)}) to highlight
+#' @param lty_grid_major positive number (graphical parameter)
+#' @param lty_grid_minor positive number (graphical parameter)
+#' @param lty_polygon positive number (graphical parameter)
+#' @param lwd_axis positive number (graphical parameter)
+#' @param lwd_axis_ticks positive number (graphical parameter)
+#' @param lwd_grid_major positive number (graphical parameter)
+#' @param lwd_grid_minor positive number (graphical parameter)
+#' @param lwd_polygon positive number (graphical parameter)
+#' @param lwd_polygon_bold positive number (graphical parameter)
+#' @param mark_median_xthres boolean (graphical parameter)
+#' @param pch positive integer (graphical parameter)
+#' @param xaxt_num_ticks positive integer (graphical parameter)
+#' @param xaxt_grid_spacing positive integer (graphical parameter)
+#' @param xlab character (graphical parameter)
+#' @param xlim vector of 2 numerics, or \code{NULL} (graphical parameter)
+#' @param yaxt_by positive number (graphical parameter)
+#' @param yaxt_num_ticks positive integer (graphical parameter)
+#' @param ylab character (graphical parameter)
+#' @param ylim vector of 2 numerics, or \code{NULL} (graphical parameter)
+#' @param verbose non-negative integer
+#' @param ... 
+#'
+#' @return makes a plot but does not return anything
+#' @export
 plot_alignment <- function(rsquare_vec,
                            logpval_vec,
                            bool_hide_points = F,
@@ -39,7 +84,10 @@ plot_alignment <- function(rsquare_vec,
                            verbose = T, ...){
   stopifnot(length(rsquare_vec) == length(logpval_vec),
             all(rsquare_vec >= 0), all(rsquare_vec <= 1), 
-            all(logpval_vec >= 0))
+            all(logpval_vec >= 0),
+            length(names(rsquare_vec)) > 0,
+            length(names(logpval_vec)) > 0)
+  rsquare_vec <- rsquare_vec[names(logpval_vec)]
   
   logpval_vec_org <- logpval_vec
   logpval_vec[logpval_vec == 0] <- min(logpval_vec[logpval_vec != 0])

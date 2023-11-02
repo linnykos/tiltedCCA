@@ -1,14 +1,37 @@
-# this is for how aligned one modality is with another
+#' Compute how aligned the common component for a feature is with that feature in the original data modality
+#'
+#' The common matrix for modality \code{input_assay} is extracted, and then
+#' compared against another matrix (depending on \code{bool_use_denoised} is set).
+#' (For example, if \code{bool_use_denoised=TRUE}, then this is the common plus distinct
+#' matrix.) Then, a regression is performed, one per feature (i.e., gene or protein)
+#' that regresses latter matrix onto the common matrix, and the R-squared
+#' (one per feature) is returned.
+#'
+#' @param input_obj a \code{multiSVD_obj} that was the output of \code{tiltedCCA::tiltedCCA_decomposition}
+#' @param bool_use_denoised boolean. If \code{TRUE}, then the common component is compared against
+#' the common plus distinct component. If \code{FALSE}, then the common component is compared against
+#' the original data matrix in slot \code{seurat_slot} in \code{seurat_obj[[seurat_assay]]}
+#' @param input_assay integer of \code{1} or \code{2}, denoting which modality is being analyzed
+#' @param bool_center boolean if all the features in the common component are centered prior to the comparison
+#' @param bool_scale boolean if all the features in the common component are rescaled prior to the comparison
+#' @param bool_regression_include_intercept boolean if the regression analysis
+#' @param min_subsample_cell if not \code{NULL}, subsample \code{min_subsample_cell} number of cells of each cell type
+#' (denoted by in \code{seurat_obj$seurat_celltype_variable})
+#' @param seurat_celltype_variable a character where \code{seurat_obj$seurat_celltype_variable} 
+#' denotes the cell type for each cell in \code{seurat_obj}
+#' @param seurat_obj the \code{Seurat} object that was used to compute \code{input_obj}, the \code{multiSVD_obj}
+#' @param seurat_assay the assay to extract the data matrix, which is relevant \code{bool_use_denoised=FALSE}
+#' @param seurat_slot the slot to extract the data matrix, which is relevant \code{bool_use_denoised=FALSE}
+#' @param verbose non-negative integer
+#'
+#' @return a vector of R-squared values for each variable 
+#' @export
 postprocess_modality_alignment <- function(input_obj,
                                            bool_use_denoised,
+                                           input_assay,
                                            bool_center = T,
                                            bool_scale = T,
-                                           bool_everything_center = T,
-                                           bool_everything_scale = T,
                                            bool_regression_include_intercept = T,
-                                           bool_regression_center = T,
-                                           bool_regression_scale = T,
-                                           input_assay = 1,
                                            min_subsample_cell = NULL,
                                            seurat_celltype_variable = "celltype",
                                            seurat_obj = NULL,
@@ -80,10 +103,10 @@ postprocess_modality_alignment <- function(input_obj,
     if(verbose > 0 && ncol(common_mat) > 10 && j %% floor(ncol(common_mat)/10) == 0) cat('*')
     .linear_regression(
       bool_include_intercept = bool_regression_include_intercept,
-      bool_center_x = bool_regression_center,
-      bool_center_y = bool_regression_center,
-      bool_scale_x = bool_regression_scale,
-      bool_scale_y = bool_regression_scale,
+      bool_center_x = F,
+      bool_center_y = F,
+      bool_scale_x = F,
+      bool_scale_y = F,
       return_type = "r_squared", 
       x_mat = common_mat[,j],
       y_vec = everything_mat[,j]

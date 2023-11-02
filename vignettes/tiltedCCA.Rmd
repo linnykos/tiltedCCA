@@ -1,10 +1,10 @@
 ---
-title: "Tilted-CCA Simulation (3 cell types)"
+title: "Tilted-CCA Overview"
 output: 
   rmarkdown::html_vignette:
     df_print: "kable"
 vignette: >
-  %\VignetteIndexEntry{Tilted-CCA Simulation (3 cell types)}
+  %\VignetteIndexEntry{Tilted-CCA Overview}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

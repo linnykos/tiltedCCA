@@ -1,3 +1,16 @@
+#' Compute the differential expression across each pair of cell types
+#'
+#' @param seurat_obj seurat object
+#' @param assay name of assay in the \code{seurat_obj}
+#' @param idents variables name inside \code{seuart_obj} that contains the cell-type information (or clustering information) for each cell
+#' @param slot slot of \code{seurat_obj[[assay]]} that informs with data matrix will be used in the DE test
+#' @param test_use either \code{"MAST"} or \code{"wilcox"} dictates which DE test will be used
+#' @param verbose non-negative integer             
+#'
+#' @return a list with elements \code{"combn_mat"}, \code{"de_list"} and
+#' \code{"level_vec"}
+
+#' @export
 differential_expression <- function(seurat_obj,
                                     assay,
                                     idents,
