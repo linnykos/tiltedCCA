@@ -175,7 +175,7 @@ p_all <- cowplot::plot_grid(p1, p2, p3, ncol = 3)
 p_all
 ```
 
-```{r, out.width = "650px", fig.align="center", echo = FALSE, fig.cap=c("UMAPs of the RNA modality (left), ADT modality (middle), or WNN (right, which combines the information in the RNA and ADT)")}
+```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("UMAPs of the RNA modality (left), ADT modality (middle), or WNN (right, which combines the information in the RNA and ADT)")}
 knitr::include_graphics("bm_wnn.png")
 ```
 
@@ -204,7 +204,7 @@ bm <- Seurat::FindClusters(bm, resolution = 0.25)
 We can plot the clusters. This is a way to assess if the clustering from each modality is appropriate prior to using Tilted-CCA.
 
 ```{r, eval = F}
-p1 <-Seurat::DimPlot(bm, 
+p1 <- Seurat::DimPlot(bm, 
                      reduction = "rna.umap",
                      group.by = "RNA_snn_res.0.25", 
                      label = TRUE, label.size = 2.5)
@@ -212,7 +212,7 @@ p1 <- p1 + Seurat::NoLegend() + ggplot2::labs(x = "", y = "")
 p1 <- p1 + ggplot2::ggtitle("RNA clustering")
 p1 <- p1 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
 
-p2 <-Seurat::DimPlot(bm, 
+p2 <- Seurat::DimPlot(bm, 
                      reduction = "adt.umap",
                      group.by = "ADT_snn_res.0.25", 
                      label = TRUE, label.size = 2.5)
@@ -227,6 +227,8 @@ p_all
 ```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("Modality-specific clustering structure")}
 knitr::include_graphics("bm_clustering.png")
 ```
+
+Note: These two clusters are *not* the same. The colorings in each of the two above plots are *not* related.
 
 ## Extracting the relevant matrices
 
@@ -523,7 +525,7 @@ for(i in 1:2){
 
 tiltedCCA::plot_alignment(rsquare_vec = rsquare_vec,
                logpval_vec = logpval_vec,
-               main = paste0("Human BM (CITE-Seq, RNA+ADT)\nCell cycling genes"),
+               main = "Human BM (CITE-Seq, RNA+ADT)\nCell cycling genes",
                col_gene_highlight = "black",
                gene_names = cycling_genes,
                lwd_polygon_bold = 3)
