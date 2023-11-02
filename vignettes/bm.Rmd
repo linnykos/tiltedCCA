@@ -224,7 +224,7 @@ p_all <- cowplot::plot_grid(p1, p2, ncol = 2)
 p_all
 ```
 
-```{r, out.width = "600px", fig.align="center", echo = FALSE, fig.cap=c("Modality-specific clustering structure")}
+```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("Modality-specific clustering structure")}
 knitr::include_graphics("bm_clustering.png")
 ```
 
@@ -390,7 +390,7 @@ p_all <- cowplot::plot_grid(p1, p2, p3, ncol = 3)
 p_all
 ```
 
-```{r, out.width = "600px", fig.align="center", echo = FALSE, fig.cap=c("Common, RNA distinct, and ADT distinct embeddings")}
+```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("Common, RNA distinct, and ADT distinct embeddings")}
 knitr::include_graphics("bm_tiltedcca.png")
 ```
 
@@ -529,6 +529,6 @@ tiltedCCA::plot_alignment(rsquare_vec = rsquare_vec,
                lwd_polygon_bold = 3)
 ```
 
-```{r, out.width = "600px", fig.align="center", echo = FALSE, fig.cap=c("Gene alignment plots, for all genes, or highlight the marker genes for B cells, CD14 Monocytes, or cell cycling")}
+```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("Gene alignment plots, for all genes, or highlight the marker genes for B cells, CD14 Monocytes, or cell cycling")}
 knitr::include_graphics("bm_gene-alignment.png")
 ```
