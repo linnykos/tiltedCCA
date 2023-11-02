@@ -6,6 +6,7 @@
 \usage{
 plot_cell_enrichment(
   cell_enrichment_res,
+  col_palette,
   cex_axis = 1,
   cex_lab = 1,
   lwd_diag = 3,

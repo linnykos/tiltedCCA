@@ -1,3 +1,20 @@
+#' Create Seurat dimension reduction objects of Tilted-CCA 
+#'
+#' @param input_obj a \code{multiSVD} object that is the output of \code{tiltedCCA_decomposition}
+#' @param what a character, either \code{"common"}, \code{"distinct_1"}, or \code{"distinct_2"} for 
+#' which embedding to construct the visualization for
+#' @param aligned_umap_assay either \code{NULL} or a UMAP assay in \code{seurat_assay} 
+#' (in which case the resulting UMAP will be rotated to best mimic the relative orientation
+#' of cells in \code{seurat_obj[[aligned_umap_assay]]})
+#' @param scale_max_1 numeric or \code{NULL}, to threshold Modality 1 in magnitude prior to computing latent dimensions
+#' @param scale_max_2 numeric or \code{NULL}, to threshold Modality 2 in magnitude prior to computing latent dimensions
+#' @param seurat_obj the \code{Seurat} object that was used to compute \code{input_obj}, the \code{multiSVD_obj}
+#' @param seurat_assay the assay in \code{seurat_obj} to assign the resulting embedding to
+#' @param verbose non-negative integer
+#' @param ... 
+#'
+#' @return a \code{DimReduc} \code{SeuratObject}
+#' @export
 create_SeuratDim <- function(input_obj,
                              what,
                              aligned_umap_assay = NULL,

@@ -13,6 +13,7 @@
 #' @return makes a plot but does not return anything
 #' @export
 plot_cell_enrichment <- function(cell_enrichment_res,
+                                 col_palette,
                                  cex_axis = 1,
                                  cex_lab = 1,
                                  lwd_diag = 3,
@@ -21,6 +22,8 @@ plot_cell_enrichment <- function(cell_enrichment_res,
                                  xlab_1 = "Modality 1 Distinct",
                                  xlab_2 = "Modality 2 Distinct",
                                  ylab = "Common"){
+  stopifnot(length(col_palette) == nrow(cell_enrichment_res$enrichment_common$df))
+  
   par(mfrow = c(1,2), mar = mar)
   
   y_vec <- cell_enrichment_res$enrichment_common$df[,"value"]
