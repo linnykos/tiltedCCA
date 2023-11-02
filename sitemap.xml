@@ -34,6 +34,9 @@
     <loc>https://linnykos.github.io/tiltedCCA/reference/create_multiSVD.html</loc>
   </url>
   <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/differential_expression.html</loc>
+  </url>
+  <url>
     <loc>https://linnykos.github.io/tiltedCCA/reference/dot-cca.html</loc>
   </url>
   <url>
@@ -73,6 +76,12 @@
     <loc>https://linnykos.github.io/tiltedCCA/reference/index.html</loc>
   </url>
   <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/plot_alignment.html</loc>
+  </url>
+  <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/plot_cell_enrichment.html</loc>
+  </url>
+  <url>
     <loc>https://linnykos.github.io/tiltedCCA/reference/plot_clisi.html</loc>
   </url>
   <url>
@@ -101,6 +110,15 @@
   </url>
   <url>
     <loc>https://linnykos.github.io/tiltedCCA/reference/postprocess_cell_enrichment.multiSVD.html</loc>
+  </url>
+  <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/postprocess_depvalue.html</loc>
+  </url>
+  <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/postprocess_marker_variables.html</loc>
+  </url>
+  <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/postprocess_modality_alignment.html</loc>
   </url>
   <url>
     <loc>https://linnykos.github.io/tiltedCCA/reference/tiltedCCA.html</loc>
