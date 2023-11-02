@@ -226,7 +226,7 @@ appropriate color palette.</p>
 <span><span class="va">p_all</span> <span class="op">&lt;-</span> <span class="fu">cowplot</span><span class="fu">::</span><span class="fu"><a href="https://wilkelab.org/cowplot/reference/plot_grid.html" class="external-link">plot_grid</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, <span class="va">p3</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">p_all</span></span></code></pre></div>
 <div class="figure" style="text-align: center">
-<img src="bm_wnn.png" alt="UMAPs of the RNA modality (left), ADT modality (middle), or WNN (right, which combines the information in the RNA and ADT)" width="650px"><p class="caption">
+<img src="bm_wnn.png" alt="UMAPs of the RNA modality (left), ADT modality (middle), or WNN (right, which combines the information in the RNA and ADT)" width="800px"><p class="caption">
 UMAPs of the RNA modality (left), ADT modality (middle), or WNN (right,
 which combines the information in the RNA and ADT)
 </p>
@@ -259,7 +259,7 @@ for the RNA modality, and 14 communities for the ADT modality.</p>
 <p>We can plot the clusters. This is a way to assess if the clustering
 from each modality is appropriate prior to using Tilted-CCA.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">bm</span>, </span>
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">bm</span>, </span>
 <span>                     reduction <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>                     group.by <span class="op">=</span> <span class="st">"RNA_snn_res.0.25"</span>, </span>
 <span>                     label <span class="op">=</span> <span class="cn">TRUE</span>, label.size <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span>
@@ -267,7 +267,7 @@ from each modality is appropriate prior to using Tilted-CCA.</p>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">p1</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"RNA clustering"</span><span class="op">)</span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">p1</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.text <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">bm</span>, </span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">bm</span>, </span>
 <span>                     reduction <span class="op">=</span> <span class="st">"adt.umap"</span>,</span>
 <span>                     group.by <span class="op">=</span> <span class="st">"ADT_snn_res.0.25"</span>, </span>
 <span>                     label <span class="op">=</span> <span class="cn">TRUE</span>, label.size <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span>
@@ -282,6 +282,8 @@ from each modality is appropriate prior to using Tilted-CCA.</p>
 Modality-specific clustering structure
 </p>
 </div>
+<p>Note: These two clusters are <em>not</em> the same. The colorings in
+each of the two above plots are <em>not</em> related.</p>
 </div>
 <div class="section level3">
 <h3 id="extracting-the-relevant-matrices">Extracting the relevant matrices<a class="anchor" aria-label="anchor" href="#extracting-the-relevant-matrices"></a>
@@ -647,7 +649,7 @@ signature that is not reflected in the ADT modality).</p>
 <span></span>
 <span><span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_alignment.html">plot_alignment</a></span><span class="op">(</span>rsquare_vec <span class="op">=</span> <span class="va">rsquare_vec</span>,</span>
 <span>               logpval_vec <span class="op">=</span> <span class="va">logpval_vec</span>,</span>
-<span>               main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Human BM (CITE-Seq, RNA+ADT)\nCell cycling genes"</span><span class="op">)</span>,</span>
+<span>               main <span class="op">=</span> <span class="st">"Human BM (CITE-Seq, RNA+ADT)\nCell cycling genes"</span>,</span>
 <span>               col_gene_highlight <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>               gene_names <span class="op">=</span> <span class="va">cycling_genes</span>,</span>
 <span>               lwd_polygon_bold <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
