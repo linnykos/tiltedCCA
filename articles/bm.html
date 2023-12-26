@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tiltedCCA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.003</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/bm.html">Analysis of CITE-seq</a>
+    <a class="dropdown-item" href="../articles/embryo.html">Analysis of human embryo</a>
     <a class="dropdown-item" href="../articles/simulation.html">Tilted-CCA Simulation (3 cell types)</a>
   </div>
 </li>
@@ -81,14 +82,14 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://linnykos.github.io/tiltedCCA/">tiltedCCA</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>We go through how to analyze single-cell multiomic data in this
-vignette. We focus on the CITE-seq data, which comes directly from the
-<code>SeuratData</code> package. (In fact, this dataset is showcased in
-<a href="https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis" class="external-link uri">https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis</a>.)</p>
+vignette (RNA and Protein, via surface antibody markers). We focus on
+the CITE-seq data, which comes directly from the <code>SeuratData</code>
+package. (In fact, this dataset is showcased in <a href="https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis" class="external-link uri">https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis</a>.)</p>
 <div class="section level2">
 <h2 id="preliminary-analysis">Preliminary analysis<a class="anchor" aria-label="anchor" href="#preliminary-analysis"></a>
 </h2>
 <div class="section level3">
-<h3 id="installing-and-lodaing-the-data">Installing and lodaing the data<a class="anchor" aria-label="anchor" href="#installing-and-lodaing-the-data"></a>
+<h3 id="installing-and-loading-the-data">Installing and loading the data<a class="anchor" aria-label="anchor" href="#installing-and-loading-the-data"></a>
 </h3>
 <p>To install the data, uncomment the
 <code>SeuratData::InstallData("bmcite")</code> line.</p>

@@ -10,6 +10,9 @@
     <loc>https://linnykos.github.io/tiltedCCA/articles/bm.html</loc>
   </url>
   <url>
+    <loc>https://linnykos.github.io/tiltedCCA/articles/embryo.html</loc>
+  </url>
+  <url>
     <loc>https://linnykos.github.io/tiltedCCA/articles/index.html</loc>
   </url>
   <url>
@@ -125,6 +128,9 @@
   </url>
   <url>
     <loc>https://linnykos.github.io/tiltedCCA/reference/postprocess_modality_alignment.html</loc>
+  </url>
+  <url>
+    <loc>https://linnykos.github.io/tiltedCCA/reference/rotate_seurat_embeddings.html</loc>
   </url>
   <url>
     <loc>https://linnykos.github.io/tiltedCCA/reference/tiltedCCA.html</loc>
