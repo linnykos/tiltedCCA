@@ -1,58 +1,67 @@
+---
+output: github_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 # Purpose
 
-This repository contains all the functions to perform Tilted-CCA
-(version `1.0.0.001` as of October 4, 2022) and the downstream analysis,
-for the paper “Quantifying common and distinct information in
-single-cell multimodal data with Tilted-CCA”. See the companion GitHub
-package <https://github.com/linnykos/tiltedCCA_analysis> for all the
-analyses performed in the paper.
+This repository contains all the functions to perform Tilted-CCA (version `1.0.0.001` as of October 4, 2022) and the downstream analysis, for the paper "Quantifying common and distinct information in single-cell multimodal data with Tilted-CCA". See the companion GitHub package https://github.com/linnykos/tiltedCCA_analysis for all the analyses performed in the paper.
 
-This code was developed and tested primarily on R 4.1.2. on a Macbook
-(macOS 11.6.8 Big Sur) equipped with an i7 processor.
+This code was developed and tested primarily on R 4.1.2. on a Macbook (macOS 11.6.8 Big Sur) equipped with an i7 processor.
 
 <!-- badges: start -->
-
 [![DOI:0.1073/pnas.2303647120](https://img.shields.io/badge/doi-10.1073/pnas.2303647120-firebrick.svg)](https://doi.org/10.1073/pnas.2303647120)
-[![Lifecycle:
-stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
-
+  
 # Tutorials and vignettes
 
-Please see <https://linnykos.github.io/tiltedCCA/> for in-depth
-tutorials and vignettes on how to use Tilted-CCA.
+Please see https://linnykos.github.io/tiltedCCA/ for in-depth tutorials and vignettes on how to use Tilted-CCA.
 
 # Installation
 
 This package can be installed through `devtools` in R.
 
-``` r
+```R
 library("devtools")
 devtools::install_github("linnykos/tiltedCCA")
 ```
+The package itself depends on several packages. These include `dbscan`, `ggplot2`, `ggrepel`, `irlba`, `MASS`, `Matrix`, `quadprog`, `RANN`, `RColorBrewer`, `RSpectra`, `scales`, `Seurat`, `SeuratObject`, and `sparseMatrixStats`. See the last section of this README to see where (i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
 
-The package itself depends on several packages. These include `dbscan`,
-`ggplot2`, `ggrepel`, `irlba`, `MASS`, `Matrix`, `quadprog`, `RANN`,
-`RColorBrewer`, `RSpectra`, `scales`, `Seurat`, `SeuratObject`, and
-`sparseMatrixStats`. See the last section of this README to see where
-(i.e., CRAN, Bioconductor, or GitHub) to download all such packages.
+After installation of all the dependencies, the installation of the `tiltedCCA` package itself is fast (less than 2 minutes).
 
-After installation of all the dependencies, the installation of the
-`tiltedCCA` package itself is fast (less than 2 minutes).
+<details>
+<summary>**Known installation issues and the solutions**</summary>
+
+(Solution posted on December 24, 2023): If you come across the error,
+```R
+Error in irlba::irlba() : 
+  function 'as_cholmod_sparse' not provided by package 'Matrix'
+```
+then it is likely you need to downgrade your version of `Matrix` to `1.6-1.1`. See https://github.com/satijalab/seurat/issues/7983. Hence, in the R console,
+```R
+> remove.packages("SeuratObject")
+> remotes::install_version("SeuratObject", version = "5.0.0")
+> remove.packages("Matrix")
+> remotes::install_version("Matrix", version = "1.6-1.1")
+```
+</details>
 
 # Small simulated dataset to demo the software
 
-See
-<https://github.com/linnykos/tiltedCCA_analysis/tree/master/simulation>
-for the small demo on how to use Tilted-CCA.
+See https://github.com/linnykos/tiltedCCA_analysis/tree/master/simulation for the small demo on how to use Tilted-CCA.
 
 # Setup
 
-The following shows the suggested package versions that the developer
-(GitHub username: linnykos) used when developing the Tilted-CCA package.
+The following shows the suggested package versions that the developer (GitHub username: linnykos) used when developing the Tilted-CCA package.
 
-``` r
+```R
 > devtools::session_info()
 ─ Session info ─────────────────────────────────────────────────────
  setting  value
