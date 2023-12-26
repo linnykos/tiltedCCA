@@ -32,7 +32,7 @@
   })
   
   if(verbose >= 1) print(paste0(Sys.time(),": Tilted-CCA: (Inner) Computing best tilt"))
-  if(is.logical(fix_tilt_perc) && !fix_tilt_perc){
+  if(all(is.logical(fix_tilt_perc)) && all(!fix_tilt_perc)){
     tmp <- .search_tilt_perc(
       averaging_mat = averaging_mat,
       basis_list = basis_list,
@@ -54,9 +54,9 @@
     tilt_perc <- tmp$percentage
     df_percentage <- tmp$df
   } else {
-    if(is.logical(fix_tilt_perc) && fix_tilt_perc){
+    if(all(is.logical(fix_tilt_perc)) && all(fix_tilt_perc)){
       tilt_perc <- 0.5; df_percentage <- NA
-    } else if(is.numeric(fix_tilt_perc) & fix_tilt_perc >= 0 & fix_tilt_perc <= 1){
+    } else if(all(is.numeric(fix_tilt_perc)) & all(fix_tilt_perc >= 0) & all(fix_tilt_perc <= 1)){
       tilt_perc <- fix_tilt_perc; df_percentage <- NA
     } else {
       stop("Invalid value of tilt_perc")

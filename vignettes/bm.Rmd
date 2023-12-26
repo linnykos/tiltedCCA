@@ -24,11 +24,11 @@ library(tiltedCCA)
 set.seed(10)
 ```
 
-We go through how to analyze single-cell multiomic data in this vignette. We focus on the CITE-seq data, which comes directly from the `SeuratData` package. (In fact, this dataset is showcased in https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.)
+We go through how to analyze single-cell multiomic data in this vignette (RNA and Protein, via surface antibody markers). We focus on the CITE-seq data, which comes directly from the `SeuratData` package. (In fact, this dataset is showcased in https://satijalab.org/seurat/articles/weighted_nearest_neighbor_analysis.)
 
 # Preliminary analysis
 
-## Installing and lodaing the data
+## Installing and loading the data
 
 To install the data, uncomment the `SeuratData::InstallData("bmcite")` line.
 

@@ -178,3 +178,31 @@ create_reducedSeuratObj <- function(input_obj,
   
   as.factor(vec)
 }
+
+###################
+
+#' Rotate embedding in a Seurat object
+#' 
+#' This method rotates the embedding in \code{target_embedding}
+#' to look (visually) most similar to \code{source_embedding}
+#'
+#' @param seurat_obj object of class \code{Seurat}
+#' @param source_embedding character vector, so that \code{seurat_obj[[source_embedding]]} 
+#' is a object of class \code{DimReduc}
+#' @param target_embedding character vector, so that \code{seurat_obj[[target_embedding]]} 
+#' is a object of class \code{DimReduc}
+#'
+#' @return an updated \code{seurat_obj}
+#' @export
+rotate_seurat_embeddings <- function(seurat_obj,
+                                     source_embedding,
+                                     target_embedding){
+  source_mat <- seurat_obj[[source_embedding]]@cell.embeddings
+  target_mat <- seurat_obj[[target_embedding]]@cell.embeddings
+  
+  res <- .rotate_matrix(source_mat = source_mat,
+                        target_mat = target_mat)
+  
+  seurat_obj[[target_embedding]]@cell.embeddings <- res
+  seurat_obj
+}

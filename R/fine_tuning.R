@@ -104,10 +104,10 @@ fine_tuning <- function(input_obj,
                                     svd_1 = svd_1, 
                                     svd_2 = svd_2,
                                     target_dimred = target_dimred,
-                                    verbose = verbose)
+                                    verbose = verbose-2)
       if(verbose >= 1) {
         print(paste0("On iteration ", iter, " for latent dimension ", k))
-        print(res$df)
+        if(verbose >= 2) print(res$df)
         print("=======")
       }
       tilt_perc[k] <- res$percentage
