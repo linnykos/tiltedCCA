@@ -105,8 +105,8 @@ test_that("postprocess_smooth_variable_selection works", {
   mat_1 <- mat_1 + matrix(rnorm(prod(dim(mat_1))), nrow = nrow(mat_1), ncol = ncol(mat_1))
   mat_2 <- test_data$mat_2
   mat_2 <- mat_2 + matrix(rnorm(prod(dim(mat_2))), nrow = nrow(mat_2), ncol = ncol(mat_2))
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
-  seurat_obj[["RNA"]]@var.features <- colnames(mat_1)
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
+  Seurat::VariableFeatures(seurat_obj) <- colnames(mat_1)
   
   n <- nrow(mat_1)
   large_clustering_1 <- test_data$clustering_1
@@ -160,8 +160,8 @@ test_that("postprocess_smooth_variable_selection works with singular variables",
   colnames(mat_1) <- paste0("g", 1:ncol(mat_1))
   mat_2 <- test_data$mat_2
   mat_2 <- mat_2 + matrix(rnorm(prod(dim(mat_2))), nrow = nrow(mat_2), ncol = ncol(mat_2))
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
-  seurat_obj[["RNA"]]@var.features <- colnames(mat_1)
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
+  Seurat::VariableFeatures(seurat_obj) <- colnames(mat_1)
   
   n <- nrow(mat_1)
   large_clustering_1 <- test_data$clustering_1

@@ -46,10 +46,10 @@ Error in irlba::irlba() :
 ```
 then it is likely you need to downgrade your version of `Matrix` to `1.6-1.1`. See https://github.com/satijalab/seurat/issues/7983. Hence, in the R console,
 ```R
-> remove.packages("SeuratObject")
-> remotes::install_version("SeuratObject", version = "5.0.0")
-> remove.packages("Matrix")
-> remotes::install_version("Matrix", version = "1.6-1.1")
+remove.packages("SeuratObject")
+remove.packages("Matrix")
+remotes::install_version("Matrix", version = "1.6-1.1")
+remotes::install_version("SeuratObject", version = "5.0.0")
 ```
 </details>
 

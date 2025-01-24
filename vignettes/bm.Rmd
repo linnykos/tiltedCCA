@@ -21,6 +21,7 @@ library(cowplot)
 library(Seurat)
 library(SeuratData)
 library(tiltedCCA)
+library(MASS)
 set.seed(10)
 ```
 

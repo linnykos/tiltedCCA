@@ -12,6 +12,7 @@ create_SeuratDim(
   scale_max_2 = NULL,
   seurat_obj = NULL,
   seurat_assay = "RNA",
+  suppress_warnings = TRUE,
   verbose = 0,
   ...
 )
@@ -34,9 +35,11 @@ of cells in \code{seurat_obj[[aligned_umap_assay]]})}
 
 \item{seurat_assay}{the assay in \code{seurat_obj} to assign the resulting embedding to}
 
+\item{suppress_warnings}{boolean to suppress the warning when running \code{Seurat::RunUMAP}}
+
 \item{verbose}{non-negative integer}
 
-\item{...}{}
+\item{...}{extra arguments to \code{Seurat::RunUMAP}}
 }
 \value{
 a \code{DimReduc} \code{SeuratObject}

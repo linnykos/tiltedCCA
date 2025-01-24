@@ -42,16 +42,30 @@ postprocess_graph_alignment <- function(
     stopifnot(inherits(seurat_obj, "Seurat"))
     if(is.null(seurat_assay)) seurat_assay <- Seurat::DefaultAssay(seurat_obj)
     
+    feature_vec <- Seurat::VariableFeatures(seurat_obj)
+    
     if(seurat_slot == "counts"){
-      stopifnot(length(seurat_obj[[seurat_assay]]@var.features) > 0)
-      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@counts[seurat_obj[[seurat_assay]]@var.features,])
+      stopifnot(length(feature_vec) > 0)
+      everything_mat <- SeuratObject::LayerData(seurat_obj,
+                                                assay = seurat_assay,
+                                                layer = "counts",
+                                                features = feature_vec)
+      everything_mat <- Matrix::t(everything_mat)
       everything_mat <- as.matrix(everything_mat)
     } else if(seurat_slot == "data"){
-      stopifnot(length(seurat_obj[[seurat_assay]]@var.features) > 0)
-      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@data[seurat_obj[[seurat_assay]]@var.features,])
+      stopifnot(length(feature_vec)> 0)
+      everything_mat <- SeuratObject::LayerData(seurat_obj,
+                                                assay = seurat_assay,
+                                                layer = "data",
+                                                features = feature_vec)
+      everything_mat <- Matrix::t(everything_mat)
       everything_mat <- as.matrix(everything_mat)
     } else if(seurat_slot == "scale.data"){
-      everything_mat <- Matrix::t(seurat_obj[[seurat_assay]]@scale.data)
+      everything_mat <- SeuratObject::LayerData(seurat_obj,
+                                                assay = seurat_assay,
+                                                layer = "scale.data",
+                                                features = feature_vec)
+      everything_mat <- Matrix::t(everything_mat)
     } else {
       stop("seurat_slot invalid")
     }

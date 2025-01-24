@@ -11,7 +11,8 @@
 #' @param seurat_obj the \code{Seurat} object that was used to compute \code{input_obj}, the \code{multiSVD_obj}
 #' @param seurat_assay the assay in \code{seurat_obj} to assign the resulting embedding to
 #' @param verbose non-negative integer
-#' @param ... 
+#' @param suppress_warnings boolean to suppress the warning when running \code{Seurat::RunUMAP}
+#' @param ... extra arguments to \code{Seurat::RunUMAP}
 #'
 #' @return a \code{DimReduc} \code{SeuratObject}
 #' @export
@@ -22,6 +23,7 @@ create_SeuratDim <- function(input_obj,
                              scale_max_2 = NULL,
                              seurat_obj = NULL,
                              seurat_assay = "RNA",
+                             suppress_warnings = TRUE,
                              verbose = 0,
                              ...){
   stopifnot(what %in% c("common", "distinct_1", "distinct_2"))
@@ -74,10 +76,17 @@ create_SeuratDim <- function(input_obj,
     }
   } 
   
-  seurat_umap <- Seurat::RunUMAP(dimred, 
-                                 assay = seurat_assay,
-                                 verbose = (verbose != 0),
-                                 ...)
+  if(suppress_warnings){
+    suppressWarnings(seurat_umap <- Seurat::RunUMAP(dimred, 
+                                                    assay = seurat_assay,
+                                                    verbose = (verbose != 0),
+                                                    ...))
+  } else {
+    seurat_umap <- Seurat::RunUMAP(dimred, 
+                                   assay = seurat_assay,
+                                   verbose = (verbose != 0),
+                                   ...)
+  }
   rownames(seurat_umap@cell.embeddings) <- rownames(dimred)
   
   if(!all(is.null(seurat_obj)) & !is.null(aligned_umap_assay)){
@@ -94,6 +103,7 @@ create_reducedSeuratObj <- function(input_obj,
                                     aligned_umap_assay = NULL,
                                     seurat_celltype = NULL,
                                     seurat_obj = NULL,
+                                    suppress_warnings = TRUE,
                                     verbose = 0,
                                     ...){
   stopifnot(what %in% c("common_basis", "laplacian_1",
@@ -115,7 +125,12 @@ create_reducedSeuratObj <- function(input_obj,
   }
   
   colnames(dimred) <- paste0("tmp", 1:ncol(dimred))
-  new_obj <- Seurat::CreateSeuratObject(counts = t(dimred))
+  if(suppress_warnings){
+    suppressWarnings(new_obj <- Seurat::CreateSeuratObject(counts = t(dimred)))
+  } else {
+    new_obj <- Seurat::CreateSeuratObject(counts = t(dimred))
+  }
+  
   seurat_umap <- Seurat::RunUMAP(dimred, assay = "RNA", 
                                  verbose = (verbose != 0),
                                  ...)

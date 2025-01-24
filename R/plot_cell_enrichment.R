@@ -1,6 +1,7 @@
 #' Plot cell enrichment
 #'
 #' @param cell_enrichment_res the result of \code{tiltedCCA::postprocess_cell_enrichment}
+#' @param col_palette vector of colors (as strings), equal to the number of celltypes in \code{cell_enrichment_res} 
 #' @param cex_axis positive number (graphical parameter)
 #' @param cex_lab positive number (graphical parameter)
 #' @param lwd_diag positive number (graphical parameter)
@@ -24,7 +25,7 @@ plot_cell_enrichment <- function(cell_enrichment_res,
                                  ylab = "Common"){
   stopifnot(length(col_palette) == nrow(cell_enrichment_res$enrichment_common$df))
   
-  par(mfrow = c(1,2), mar = mar)
+  graphics::par(mfrow = c(1,2), mar = mar)
   
   y_vec <- cell_enrichment_res$enrichment_common$df[,"value"]
   names(y_vec) <- cell_enrichment_res$enrichment_common$df[,"celltype"]

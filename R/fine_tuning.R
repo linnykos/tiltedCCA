@@ -141,7 +141,7 @@ fine_tuning <- function(input_obj,
                                df_percentage = NA,
                                tilt_perc = tilt_perc)
   input_obj$tcca_obj <- tcca_obj
-  input_obj$param$ft_max_tier <- max_iter
+  input_obj$param$ft_max_iter <- max_iter
   
   input_obj
 }

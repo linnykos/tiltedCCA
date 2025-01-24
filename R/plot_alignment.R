@@ -39,7 +39,7 @@
 #' @param ylab character (graphical parameter)
 #' @param ylim vector of 2 numerics, or \code{NULL} (graphical parameter)
 #' @param verbose non-negative integer
-#' @param ... 
+#' @param ... extra arguments to \code{graphics::plot}
 #'
 #' @return makes a plot but does not return anything
 #' @export

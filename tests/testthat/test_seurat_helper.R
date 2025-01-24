@@ -85,10 +85,10 @@ test_that("create_SeuratDim works with Seurat objects", {
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj)
   multiSVD_obj <- tiltedCCA_decomposition(input_obj = multiSVD_obj)
   
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
-  seurat_obj[["umap"]] <- Seurat::RunUMAP(.get_Dimred(multiSVD_obj),
-                                          assay = "RNA",
-                                          verbose = F)
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
+  suppressWarnings(seurat_obj[["umap"]] <- Seurat::RunUMAP(.get_Dimred(multiSVD_obj),
+                                                           assay = "RNA",
+                                                           verbose = F))
   
   res <- create_SeuratDim(input_obj = multiSVD_obj,
                           what = "common",
@@ -130,7 +130,7 @@ test_that(".translate_celltype works", {
                                bool_intersect = T,
                                min_deg = 1)
   
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
   seurat_obj$celltype <- large_clustering_1
   
   metacell_list <- .get_metacell(input_obj = multiSVD_obj, 
@@ -169,7 +169,7 @@ test_that(".translate_celltype works with NULL metacell_list", {
                                  large_clustering_2 = large_clustering_2,
                                  num_metacells = NULL)
   
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
   seurat_obj$celltype <- large_clustering_1
   
   metacell_list <- .get_metacell(input_obj = multiSVD_obj, 
@@ -219,7 +219,7 @@ test_that("create_reducedSeuratObj works", {
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj)
   multiSVD_obj <- tiltedCCA_decomposition(input_obj = multiSVD_obj)
   
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
   seurat_obj[["umap"]] <- Seurat::RunUMAP(.get_Dimred(multiSVD_obj),
                                           assay = "RNA",
                                           verbose = F)
@@ -266,7 +266,7 @@ test_that("create_reducedSeuratObj works with no metacells", {
   multiSVD_obj <- tiltedCCA(input_obj = multiSVD_obj)
   multiSVD_obj <- tiltedCCA_decomposition(input_obj = multiSVD_obj)
   
-  seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1))
+  suppressWarnings(seurat_obj <- Seurat::CreateSeuratObject(counts = t(mat_1)))
   seurat_obj[["umap"]] <- Seurat::RunUMAP(.get_Dimred(multiSVD_obj),
                                           assay = "RNA",
                                           verbose = F)

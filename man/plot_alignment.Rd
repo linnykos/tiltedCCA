@@ -126,7 +126,7 @@ plot_alignment(
 
 \item{verbose}{non-negative integer}
 
-\item{...}{}
+\item{...}{extra arguments to \code{graphics::plot}}
 }
 \value{
 makes a plot but does not return anything

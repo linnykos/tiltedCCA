@@ -25,12 +25,16 @@ construct_celltype_subsample <- function(membership_vec, min_subsample_cell){
 }
 
 
-form_seurat_obj <- function(mat_1, mat_2){
+form_seurat_obj <- function(mat_1, mat_2, suppress_warnings = TRUE){
   stopifnot(nrow(mat_1) == nrow(mat_2))
   
   n <- nrow(mat_1); p_1 <- ncol(mat_1); p_2 <- ncol(mat_2)
   
-  obj <- Seurat::CreateSeuratObject(counts = t(mat_1), assay = "mode1")
+  if(suppress_warnings){
+    suppressWarnings(obj <- Seurat::CreateSeuratObject(counts = t(mat_1), assay = "mode1"))
+  } else {
+    obj <- Seurat::CreateSeuratObject(counts = t(mat_1), assay = "mode1")
+  }
   obj[["mode2"]] <- Seurat::CreateAssayObject(counts = t(mat_2))
   
   obj
@@ -112,7 +116,7 @@ form_seurat_obj <- function(mat_1, mat_2){
   }
 }
 
-## [[note to self: allow target_obj to be a Seurat obj]]
+## if the source_obj is a Seurat object, and bool_colnames is TRUE, this grabs ALL the features
 .append_rowcolnames <- function(bool_colnames,
                                 bool_rownames,
                                 source_obj,
@@ -126,6 +130,9 @@ form_seurat_obj <- function(mat_1, mat_2){
       rowname_vec <- rownames(source_obj)
     } else if(inherits(source_obj, "multiSVD")){
       rowname_vec <- rownames(.get_SVD(source_obj)$u)
+    } else if(inherits(source_obj, "Seurat")){
+      # this refers to the "cells" in this TCCA package
+      rowname_vec <- Seurat::Cells(source_obj)
     } else {
       stop("Not valid class for source_obj")
     }
@@ -144,8 +151,10 @@ form_seurat_obj <- function(mat_1, mat_2){
       colname_vec <- colnames(source_obj)
     } else if(inherits(source_obj, "multiSVD")){
       colname_vec <- rownames(.get_SVD(source_obj)$v)
+    } else if(inherits(source_obj, "Seurat")){
+      colname_vec <- SeuratObject::Features(source_obj)
     } else {
-      stop("Cannot identify class for target_obj")
+      stop("Cannot identify class for source_obj")
     }
     
     if(inherits(target_obj, "svd") & length(colname_vec) > 0){

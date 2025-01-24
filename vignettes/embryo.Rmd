@@ -21,6 +21,7 @@ library(Seurat)
 library(Signac)
 library(tiltedCCA)
 library(cowplot)
+library(MASS)
 set.seed(10)
 ```
 
@@ -158,25 +159,25 @@ We start Tilted-CCA by first preparing all the low-dimensional embeddings via `t
 
 ```{r, eval = F}
 set.seed(10)
-multiSVD_obj <- tiltedCCA:::create_multiSVD(mat_1 = mat_1b, mat_2 = mat_2b,
-                                            dims_1 = 1:50, dims_2 = 2:50,
-                                            center_1 = T, center_2 = F,
-                                            normalize_row = T,
-                                            normalize_singular_value = T,
-                                            recenter_1 = F, recenter_2 = T,
-                                            rescale_1 = F, rescale_2 = T,
-                                            scale_1 = T, scale_2 = F,
-                                            verbose = 1)
+multiSVD_obj <- tiltedCCA::create_multiSVD(mat_1 = mat_1b, mat_2 = mat_2b,
+                                           dims_1 = 1:50, dims_2 = 2:50,
+                                           center_1 = T, center_2 = F,
+                                           normalize_row = T,
+                                           normalize_singular_value = T,
+                                           recenter_1 = F, recenter_2 = T,
+                                           rescale_1 = F, rescale_2 = T,
+                                           scale_1 = T, scale_2 = F,
+                                           verbose = 1)
 ```
 
 We then go to the next step of `tiltedCCA:::form_metacells`. To make this tutorial be more portable, we downscale the calculation to only involve 100 metacells. However, since the UMAPs display a continuous transition of cell states, we do not need to pass any hard clustering information.
 
 ```{r, eval = F}
-multiSVD_obj <- tiltedCCA:::form_metacells(input_obj = multiSVD_obj,
-                                           large_clustering_1 = NULL, 
-                                           large_clustering_2 = NULL, 
-                                           num_metacells = 100,
-                                           verbose = 1)
+multiSVD_obj <- tiltedCCA::form_metacells(input_obj = multiSVD_obj,
+                                          large_clustering_1 = NULL, 
+                                          large_clustering_2 = NULL, 
+                                          num_metacells = 100,
+                                          verbose = 1)
 ```
 
 This next step, using `tiltedCCA::compute_snns`, is arguably the most subjective step of Tilted-CCA, but nonetheless can dramatically impact the results if not chosen with care. Here:
@@ -188,27 +189,27 @@ This next step, using `tiltedCCA::compute_snns`, is arguably the most subjective
 - `min_deg` dictates the smallest number of edges for each cell (which is only relevant if `bool_intersect=TRUE`), and this value should be a value smaller or equal to `num_neigh`
 
 ```{r, eval = F}
-multiSVD_obj <- tiltedCCA:::compute_snns(input_obj = multiSVD_obj,
-                                         latent_k = 20,
-                                         num_neigh = 15,
-                                         bool_cosine = T,
-                                         bool_intersect = F,
-                                         min_deg = 15,
-                                         verbose = 1)
+multiSVD_obj <- tiltedCCA::compute_snns(input_obj = multiSVD_obj,
+                                        latent_k = 20,
+                                        num_neigh = 15,
+                                        bool_cosine = T,
+                                        bool_intersect = F,
+                                        min_deg = 15,
+                                        verbose = 1)
 ```
 
 Then, we initialize the tilt for all 49 latent dimensions (i.e., the minimum between the number of latent dimensions in `dims_1` and `dims_2`) via `tiltedCCA::tiltedCCA`.
 
 ```{r, eval = F}
-multiSVD_obj2 <- tiltedCCA:::tiltedCCA(input_obj = multiSVD_obj,
-                                       verbose = 1)
+multiSVD_obj2 <- tiltedCCA::tiltedCCA(input_obj = multiSVD_obj,
+                                      verbose = 1)
 ```
 
 Finally, we fine tune the tilt of each latent dimension. This step can take a while. On a 2023 Macbook Pro (Sonoma, Apple M2 Max with 32 Gb of memory), this step takes around 20 minutes. 
 
 ```{r, eval = F}
-multiSVD_obj2 <- tiltedCCA:::fine_tuning(input_obj = multiSVD_obj2,
-                                         verbose = 1)
+multiSVD_obj2 <- tiltedCCA::fine_tuning(input_obj = multiSVD_obj2,
+                                        verbose = 1)
 ```
 
 
@@ -229,9 +230,9 @@ desired_tilt <- c(0.65, 0.85, 0.55, 1.00, 1.00, 0.95,
                   0.65, 0.85, 0.35, 1.00, 0.85, 0.25,
                   0.90, 0.30, 0.40, 0.95, 0.30, 0.55,
                   0.65)
-multiSVD_obj3 <- tiltedCCA:::tiltedCCA(input_obj = multiSVD_obj,
-                                       fix_tilt_perc = desired_tilt,
-                                       verbose = 1)
+multiSVD_obj3 <- tiltedCCA::tiltedCCA(input_obj = multiSVD_obj,
+                                      fix_tilt_perc = desired_tilt,
+                                      verbose = 1)
 ```
 
 We can then use `multiSVD_obj3` for the rest of the tutorial, instead of `multiSVD_obj2`.
@@ -241,10 +242,10 @@ We can then use `multiSVD_obj3` for the rest of the tutorial, instead of `multiS
 After running `tiltedCCA:fine_tuning`, it is recommended to save `multiSVD_obj2` since this was the most expensive calculation (in terms of computation time). The last function call simply takes the tilts of each latent dimension to compute the full decomposition of each modality (i.e., cell by feature matrix), four in total (i.e., a common and distinct for each RNA and ADT). While this function doesn't take too much computation time, it greatly expands the memory size of the `multiSVD_obj2` object.
 
 ```{r, eval = F}
-multiSVD_obj2 <- tiltedCCA:::tiltedCCA_decomposition(input_obj = multiSVD_obj2,
-                                                     verbose = 1,
-                                                     bool_modality_1_full = T,
-                                                     bool_modality_2_full = F)
+multiSVD_obj2 <- tiltedCCA::tiltedCCA_decomposition(input_obj = multiSVD_obj2,
+                                                    verbose = 1,
+                                                    bool_modality_1_full = T,
+                                                    bool_modality_2_full = F)
 ```
 
 # Downstream analysis of Tilted-CCA
@@ -255,21 +256,21 @@ Congratulations! You have computed the common and distinct embeddings for the si
 
 ```{r, eval = F}
 set.seed(10)
-seurat_obj[["common_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj,
+seurat_obj[["common_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj2,
                                                            what = "common",
                                                            aligned_umap_assay = "rna.umap",
                                                            seurat_obj = seurat_obj,
                                                            seurat_assay = "SCT",
                                                            verbose = 1)
 set.seed(10)
-seurat_obj[["distinct1_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj,
+seurat_obj[["distinct1_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj2,
                                                               what = "distinct_1",
                                                               aligned_umap_assay = "rna.umap",
                                                               seurat_obj = seurat_obj,
                                                               seurat_assay = "SCT",
                                                               verbose = 1)
 set.seed(10)
-seurat_obj[["distinct2_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj,
+seurat_obj[["distinct2_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj2,
                                                               what = "distinct_2",
                                                               aligned_umap_assay = "rna.umap",
                                                               seurat_obj = seurat_obj,

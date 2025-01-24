@@ -20,6 +20,8 @@ plot_cell_enrichment(
 \arguments{
 \item{cell_enrichment_res}{the result of \code{tiltedCCA::postprocess_cell_enrichment}}
 
+\item{col_palette}{vector of colors (as strings), equal to the number of celltypes in \code{cell_enrichment_res}}
+
 \item{cex_axis}{positive number (graphical parameter)}
 
 \item{cex_lab}{positive number (graphical parameter)}
