@@ -8,8 +8,8 @@
 <url><loc>https://linnykos.github.io/tiltedCCA/articles/tiltedCCA.html</loc></url>
 <url><loc>https://linnykos.github.io/tiltedCCA/authors.html</loc></url>
 <url><loc>https://linnykos.github.io/tiltedCCA/index.html</loc></url>
-<url><loc>https://linnykos.github.io/tiltedCCA/reference/compute_asynchrony.html</loc></url>
 <url><loc>https://linnykos.github.io/tiltedCCA/reference/compute_snns.html</loc></url>
+<url><loc>https://linnykos.github.io/tiltedCCA/reference/compute_synchrony.html</loc></url>
 <url><loc>https://linnykos.github.io/tiltedCCA/reference/consensus_pca.html</loc></url>
 <url><loc>https://linnykos.github.io/tiltedCCA/reference/construct_celltype_subsample.html</loc></url>
 <url><loc>https://linnykos.github.io/tiltedCCA/reference/create_SeuratDim.html</loc></url>

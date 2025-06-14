@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tiltedCCA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,7 +94,7 @@ biological information.</p>
 <p>After downloading the file from <a href="https://www.dropbox.com/s/gh2om9eb5edgi14/10x_trevino_simplified.RData" class="external-link">the
 Dropbox link</a>, load it into your R session.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="st">"10x_trevino_simplified.RData"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="st">"/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/vignettes/10x_trevino_simplified.RData"</span><span class="op">)</span></span>
 <span><span class="va">seurat_obj</span></span>
 <span><span class="co">#&gt; An object of class Seurat </span></span>
 <span><span class="co">#&gt; 271643 features across 6158 samples within 2 assays </span></span>
@@ -114,7 +114,7 @@ SCTransform, and ATAC via the typical Signac pipeline), we need to
 compute the embeddings.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"SCT"</span></span>
+<span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"SCT"</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/ScaleData.html" class="external-link">ScaleData</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link">RunPCA</a></span><span class="op">(</span><span class="va">seurat_obj</span>, </span>
 <span>                             verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -186,16 +186,16 @@ UMAPs of the RNA modality (left) and ATAC modality (right)
 is designed not necessarily for single-cell data, we don’t pass the
 Seurat object directly into Tilted-CCA. Instead, we extract the relevant
 matrices, where the rows are the cells and the columns are various
-features (i.e., genes and antibodies). We also remove features that has
-negligible empirical standard deviation. (In this tutorial, no genes or
-antibodies were removed in this step.) We end up with
-<code>mat_1b</code> that has 30,672 cells and 2000 genes, and
-<code>mat_2b</code> that has the same 30,672 cells and 25 surface
-antibody markers.</p>
+features (i.e., genes and accessible chromatin regions). We also remove
+features that has negligible empirical standard deviation. (In this
+tutorial, no genes or accessible chromatin region were removed in this
+step.) We end up with <code>mat_1b</code> that has 30,672 cells and 2000
+genes, and <code>mat_2b</code> that has the same 30,672 cells and
+269,616 accessible chromatin regions.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"SCT"</span></span>
+<code class="sourceCode R"><span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"SCT"</span></span>
 <span><span class="va">mat_1</span> <span class="op">&lt;-</span> <span class="fu">Matrix</span><span class="fu">::</span><span class="fu">t</span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">[[</span><span class="st">"SCT"</span><span class="op">]</span><span class="op">]</span><span class="op">@</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"ATAC"</span></span>
+<span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"ATAC"</span></span>
 <span><span class="va">mat_2</span> <span class="op">&lt;-</span> <span class="fu">Matrix</span><span class="fu">::</span><span class="fu">t</span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">[[</span><span class="st">"ATAC"</span><span class="op">]</span><span class="op">]</span><span class="op">@</span><span class="va">data</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mat_1b</span> <span class="op">&lt;-</span> <span class="va">mat_1</span></span>
@@ -219,7 +219,7 @@ boolean arguments are meant to tell our method on whether or not
 features are centered and/or scaled (or alternatively, the singular
 vectors are centered and/or scaled). We would recommend the boolean
 parameters here for any single-cell multiomic data that measures RNA and
-antibodies.</p>
+chromatin regions.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/create_multiSVD.html">create_multiSVD</a></span><span class="op">(</span>mat_1 <span class="op">=</span> <span class="va">mat_1b</span>, mat_2 <span class="op">=</span> <span class="va">mat_2b</span>,</span>
@@ -232,7 +232,7 @@ antibodies.</p>
 <span>                                           scale_1 <span class="op">=</span> <span class="cn">T</span>, scale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>                                           verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>We then go to the next step of
-<code>tiltedCCA:::form_metacells</code>. To make this tutorial be more
+<code><a href="../reference/form_metacells.html">tiltedCCA::form_metacells</a></code>. To make this tutorial be more
 portable, we downscale the calculation to only involve 100 metacells.
 However, since the UMAPs display a continuous transition of cell states,
 we do not need to pass any hard clustering information.</p>
@@ -292,12 +292,12 @@ of memory), this step takes around 20 minutes.</p>
 <code class="sourceCode R"><span><span class="va">multiSVD_obj2</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/fine_tuning.html">fine_tuning</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj2</span>,</span>
 <span>                                        verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <details><summary><strong>Results of fine tuning</strong>
-</summary><p>The <code>tiltedCCA:::fine_tuning</code> essentially sets the
+</summary><p>The <code><a href="../reference/fine_tuning.html">tiltedCCA::fine_tuning</a></code> essentially sets the
 appropriate tilts per latent dimension, stored in
 <code>multiSVD_obj$tcca_obj$tilt_perc</code>. If you want to directly,
 you can directly set the desired tilts using the
 <code>fix_tilt_perc</code> argument in
-<code>tiltedCCA:::fine_tuning</code>. For example, we can run the
+<code><a href="../reference/fine_tuning.html">tiltedCCA::fine_tuning</a></code>. For example, we can run the
 following code:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">desired_tilt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.65</span>, <span class="fl">0.85</span>, <span class="fl">0.55</span>, <span class="fl">1.00</span>, <span class="fl">1.00</span>, <span class="fl">0.95</span>,</span>
@@ -314,7 +314,7 @@ following code:</p>
 <span>                                      verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>We can then use <code>multiSVD_obj3</code> for the rest of the
 tutorial, instead of <code>multiSVD_obj2</code>.</p>
-</details><p>After running <code>tiltedCCA:fine_tuning</code>, it is recommended
+</details><p>After running <code><a href="../reference/fine_tuning.html">tiltedCCA::fine_tuning</a></code>, it is recommended
 to save <code>multiSVD_obj2</code> since this was the most expensive
 calculation (in terms of computation time). The last function call
 simply takes the tilts of each latent dimension to compute the full
@@ -342,21 +342,21 @@ diagnostics you can apply.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">seurat_obj</span><span class="op">[[</span><span class="st">"common_tcca"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/create_SeuratDim.html">create_SeuratDim</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj2</span>,</span>
 <span>                                                           what <span class="op">=</span> <span class="st">"common"</span>,</span>
-<span>                                                           aligned_umap_assay <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                                                           aligned_umap_assay <span class="op">=</span> <span class="st">"umap.rna"</span>,</span>
 <span>                                                           seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>                                                           seurat_assay <span class="op">=</span> <span class="st">"SCT"</span>,</span>
 <span>                                                           verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">seurat_obj</span><span class="op">[[</span><span class="st">"distinct1_tcca"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/create_SeuratDim.html">create_SeuratDim</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj2</span>,</span>
 <span>                                                              what <span class="op">=</span> <span class="st">"distinct_1"</span>,</span>
-<span>                                                              aligned_umap_assay <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                                                              aligned_umap_assay <span class="op">=</span> <span class="st">"umap.rna"</span>,</span>
 <span>                                                              seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>                                                              seurat_assay <span class="op">=</span> <span class="st">"SCT"</span>,</span>
 <span>                                                              verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">seurat_obj</span><span class="op">[[</span><span class="st">"distinct2_tcca"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/create_SeuratDim.html">create_SeuratDim</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj2</span>,</span>
 <span>                                                              what <span class="op">=</span> <span class="st">"distinct_2"</span>,</span>
-<span>                                                              aligned_umap_assay <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                                                              aligned_umap_assay <span class="op">=</span> <span class="st">"umap.rna"</span>,</span>
 <span>                                                              seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>                                                              seurat_assay <span class="op">=</span> <span class="st">"SCT"</span>,</span>
 <span>                                                              verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
@@ -396,6 +396,50 @@ Common, RNA distinct, and ATAC distinct embeddings
 </p>
 </div>
 </div>
+<div class="section level3">
+<h3 id="compute-sychrony-scores">Compute sychrony scores<a class="anchor" aria-label="anchor" href="#compute-sychrony-scores"></a>
+</h3>
+<p>We can now compute the <strong>synchrony score</strong> between the
+two modalities, where each cell gets a score. If the score is close to
+1, it means that for this cell, the ATAC profile is “similar” to that
+for the RNA profile, where “similar” here (conceptually) means that the
+cell has similar nearest neighbors in ATAC as those in the RNA profile.
+Typically, we interpret this cell as in the steady state, which means it
+is not in the process of differentiating (i.e., one modality is changing
+before another). In contrast, if the score is close to 0, it means that
+for this cell, the two modalities contain vastly different information.
+Typically, we interpret this cell as having one modality experiencing a
+change that is not yet reflected in the other modality. The specific
+calculation for the synchrony score relies on the low-dimension
+embeddings learned by Tilted-CCA.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">synchrony_score</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/compute_synchrony.html">compute_synchrony</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">seurat_obj</span><span class="op">$</span><span class="va">synchrony</span> <span class="op">&lt;-</span> <span class="va">synchrony_score</span><span class="op">[</span><span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Cells.html" class="external-link">Cells</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span>,<span class="st">"synchrony_rescaled"</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot</a></span><span class="op">(</span><span class="va">seurat_obj</span>,</span>
+<span>                    reduction <span class="op">=</span> <span class="st">"common_tcca"</span>,</span>
+<span>                    feature <span class="op">=</span> <span class="st">"synchrony"</span>,</span>
+<span>                    cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"forestgreen"</span>, <span class="st">"yellow"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">p1</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Synchrony score"</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Common TCCA 1"</span>, y <span class="op">=</span> <span class="st">"Common TCCA 2"</span><span class="op">)</span></span>
+<span><span class="va">p1</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<img src="embryo_synchrony.png" alt="Synchrony score" width="600px"><p class="caption">
+Synchrony score
+</p>
+</div>
+<p>Comparing this plot to the “Common, RNA distinct, and ATAC distinct
+embeddings” plot shows that the terminal cells (radial glia,
+glutamatergic 4 and glutamatergic 5) have high synchrony scores, meaning
+these cells are in a steady state. In contrast, the cells undergoing
+differentiation (glutamatergic 1 and glutamatergic 3) have low synchrony
+scores. This demonstrates the utility of the synchrony score.
+Importantly, the calculation of the synchrony scores does
+<strong>not</strong> require any pseudotime or trajectories – it’s
+entirely based on the Tilted-CCA embeddings, which makes this method
+appealing even for complex differentiation systems with many branching
+trajectories.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -408,7 +452,7 @@ Common, RNA distinct, and ATAC distinct embeddings
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

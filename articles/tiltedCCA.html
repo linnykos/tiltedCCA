@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tiltedCCA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,13 +102,13 @@ to not use the first leading PC.)</li>
 <p>This typically looks like the following.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/create_multiSVD.html">create_multiSVD</a></span><span class="op">(</span>mat_1 <span class="op">=</span> <span class="va">mat_1</span>, mat_2 <span class="op">=</span> <span class="va">mat_2</span>,</span>
-<span>                                            dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
-<span>                                            center_1 <span class="op">=</span> <span class="cn">F</span>, center_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                            normalize_row <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>                                            normalize_singular_value <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                            recenter_1 <span class="op">=</span> <span class="cn">F</span>, recenter_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                            rescale_1 <span class="op">=</span> <span class="cn">F</span>, rescale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                            scale_1 <span class="op">=</span> <span class="cn">F</span>, scale_2 <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
+<span>                                           dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
+<span>                                           center_1 <span class="op">=</span> <span class="cn">F</span>, center_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                           normalize_row <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>                                           normalize_singular_value <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                           recenter_1 <span class="op">=</span> <span class="cn">F</span>, recenter_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                           rescale_1 <span class="op">=</span> <span class="cn">F</span>, rescale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                           scale_1 <span class="op">=</span> <span class="cn">F</span>, scale_2 <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <p>The output of this step is a <code>multiSVD</code> object, which will
 continually be updated as we feed it as input and get an updated object
 after each of the following function calls. It currently has elements
@@ -129,9 +129,9 @@ practitioner can simply pass in <code>num_metacells=NULL</code>.</li>
 <p>This typically looks like the following.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/form_metacells.html">form_metacells</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj</span>,</span>
-<span>                                           large_clustering_1 <span class="op">=</span> <span class="va">clustering_1</span>, </span>
-<span>                                           large_clustering_2 <span class="op">=</span> <span class="va">clustering_2</span>,</span>
-<span>                                           num_metacells <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span>                                          large_clustering_1 <span class="op">=</span> <span class="va">clustering_1</span>, </span>
+<span>                                          large_clustering_2 <span class="op">=</span> <span class="va">clustering_2</span>,</span>
+<span>                                          num_metacells <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
 <p>The updated <code>multiSVD</code> object will now have an additional
 element: <code>metacell_obj</code>.</p>
 <ul>
@@ -151,11 +151,11 @@ either modality).</li>
 <p>This typically looks like the following.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">multiSVD_obj</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/compute_snns.html">compute_snns</a></span><span class="op">(</span>input_obj <span class="op">=</span> <span class="va">multiSVD_obj</span>,</span>
-<span>                                         latent_k <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                                         num_neigh <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                                         bool_cosine <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>                                         bool_intersect <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>                                         min_deg <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<span>                                        latent_k <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>                                        num_neigh <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                                        bool_cosine <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>                                        bool_intersect <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>                                        min_deg <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>The updated <code>multiSVD</code> object will now have additional
 elements: <code>snn_list</code> and <code>laplacian_list</code>.</p>
 <ul>
@@ -308,59 +308,59 @@ simulation2_consensuspca
 package.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="sc">&gt;</span> devtools<span class="sc">::</span><span class="fu">session_info</span>()</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>─ Session info ─────────────────────────────────────────────────────</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a> setting  value</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a> version  R version <span class="dv">4</span>.<span class="fl">1.2</span> (<span class="dv">2021-11-01</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a> os       Red Hat Enterprise Linux</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a> system   x86_64, linux<span class="sc">-</span>gnu</span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a> ui       X11</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a> <span class="fu">language</span> (EN)</span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a> collate  en_US.UTF<span class="dv">-8</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a> ctype    en_US.UTF<span class="dv">-8</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a> tz       America<span class="sc">/</span>New_York</span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a> date     <span class="dv">2022-10-04</span></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a> pandoc   <span class="dv">1</span>.<span class="dv">12</span>.<span class="fl">3.1</span> <span class="sc">@</span> <span class="er">/</span>usr<span class="sc">/</span>bin<span class="sc">/</span>pandoc</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>setting  value</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>version  R version <span class="dv">4</span>.<span class="fl">1.2</span> (<span class="dv">2021-11-01</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>os       Red Hat Enterprise Linux</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>system   x86_64, linux<span class="sc">-</span>gnu</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>ui       X11</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="fu">language</span> (EN)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>collate  en_US.UTF<span class="dv">-8</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>ctype    en_US.UTF<span class="dv">-8</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>tz       America<span class="sc">/</span>New_York</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>date     <span class="dv">2022-10-04</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>pandoc   <span class="dv">1</span>.<span class="dv">12</span>.<span class="fl">3.1</span> <span class="sc">@</span> <span class="er">/</span>usr<span class="sc">/</span>bin<span class="sc">/</span>pandoc</span>
 <span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a></span>
 <span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>─ Packages ────────────────────────</span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a> package           <span class="sc">*</span> version   <span class="fu">date</span> (UTC) lib source</span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a> cachem        <span class="dv">1</span>.<span class="fl">0.6</span>      <span class="dv">2021-08-19</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a> callr         <span class="dv">3</span>.<span class="fl">7.1</span>      <span class="dv">2022-07-13</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a> cli           <span class="dv">3</span>.<span class="fl">3.0</span>      <span class="dv">2022-04-25</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a> crayon        <span class="dv">1</span>.<span class="fl">5.1</span>      <span class="dv">2022-03-26</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a> devtools      <span class="dv">2</span>.<span class="fl">4.4</span>      <span class="dv">2022-07-20</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a> digest        <span class="dv">0</span>.<span class="fl">6.29</span>     <span class="dv">2021-12-01</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a> ellipsis      <span class="dv">0</span>.<span class="fl">3.2</span>      <span class="dv">2021-04-29</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a> fastmap       <span class="dv">1</span>.<span class="fl">1.0</span>      <span class="dv">2021-01-25</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a> fs            <span class="dv">1</span>.<span class="fl">5.2</span>      <span class="dv">2021-12-08</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a> glue          <span class="dv">1</span>.<span class="fl">6.2</span>      <span class="dv">2022-02-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a> htmltools     <span class="dv">0</span>.<span class="fl">5.3</span>      <span class="dv">2022-07-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a> htmlwidgets   <span class="dv">1</span>.<span class="fl">5.4</span>      <span class="dv">2021-09-08</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a> httpuv        <span class="dv">1</span>.<span class="fl">6.5</span>      <span class="dv">2022-01-05</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a> later         <span class="dv">1</span>.<span class="fl">3.0</span>      <span class="dv">2021-08-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a> lifecycle     <span class="dv">1</span>.<span class="fl">0.1</span>      <span class="dv">2021-09-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a> magrittr      <span class="dv">2</span>.<span class="fl">0.3</span>      <span class="dv">2022-03-30</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a> memoise       <span class="dv">2</span>.<span class="fl">0.1</span>      <span class="dv">2021-11-26</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a> mime          <span class="fl">0.12</span>       <span class="dv">2021-09-28</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a> miniUI        <span class="dv">0</span>.<span class="dv">1</span>.<span class="fl">1.1</span>    <span class="dv">2018-05-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a> pkgbuild      <span class="dv">1</span>.<span class="fl">3.1</span>      <span class="dv">2021-12-20</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a> pkgload       <span class="dv">1</span>.<span class="fl">3.0</span>      <span class="dv">2022-06-27</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a> prettyunits   <span class="dv">1</span>.<span class="fl">1.1</span>      <span class="dv">2020-01-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a> processx      <span class="dv">3</span>.<span class="fl">7.0</span>      <span class="dv">2022-07-07</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a> profvis       <span class="dv">0</span>.<span class="fl">3.7</span>      <span class="dv">2020-11-02</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a> promises      <span class="dv">1</span>.<span class="dv">2</span>.<span class="fl">0.1</span>    <span class="dv">2021-02-11</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a> ps            <span class="dv">1</span>.<span class="fl">7.0</span>      <span class="dv">2022-04-23</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a> purrr         <span class="dv">0</span>.<span class="fl">3.4</span>      <span class="dv">2020-04-17</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a> R6            <span class="dv">2</span>.<span class="fl">5.1</span>      <span class="dv">2021-08-19</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a> Rcpp          <span class="dv">1</span>.<span class="fl">0.9</span>      <span class="dv">2022-07-08</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a> remotes       <span class="dv">2</span>.<span class="fl">4.2</span>      <span class="dv">2021-11-30</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a> rlang         <span class="dv">1</span>.<span class="fl">0.4</span>      <span class="dv">2022-07-12</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-48"><a href="#cb7-48" tabindex="-1"></a> sessioninfo   <span class="dv">1</span>.<span class="fl">2.2</span>      <span class="dv">2021-12-06</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-49"><a href="#cb7-49" tabindex="-1"></a> shiny         <span class="dv">1</span>.<span class="fl">7.2</span>      <span class="dv">2022-07-19</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-50"><a href="#cb7-50" tabindex="-1"></a> stringi       <span class="dv">1</span>.<span class="fl">7.8</span>      <span class="dv">2022-07-11</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-51"><a href="#cb7-51" tabindex="-1"></a> stringr       <span class="dv">1</span>.<span class="fl">4.0</span>      <span class="dv">2019-02-10</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-52"><a href="#cb7-52" tabindex="-1"></a> tiltedCCA   <span class="sc">*</span> <span class="dv">1</span>.<span class="dv">0</span>.<span class="fl">0.001</span>  <span class="dv">2022-09-06</span> [<span class="dv">1</span>] local</span>
-<span id="cb7-53"><a href="#cb7-53" tabindex="-1"></a> urlchecker    <span class="dv">1</span>.<span class="fl">0.1</span>      <span class="dv">2021-11-30</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-54"><a href="#cb7-54" tabindex="-1"></a> usethis       <span class="dv">2</span>.<span class="fl">1.6</span>      <span class="dv">2022-05-25</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
-<span id="cb7-55"><a href="#cb7-55" tabindex="-1"></a> xtable        <span class="fl">1.8</span><span class="dv">-4</span>      <span class="dv">2019-04-21</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span></code></pre></div>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>package           <span class="sc">*</span> version   <span class="fu">date</span> (UTC) lib source</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>cachem        <span class="dv">1</span>.<span class="fl">0.6</span>      <span class="dv">2021-08-19</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>callr         <span class="dv">3</span>.<span class="fl">7.1</span>      <span class="dv">2022-07-13</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>cli           <span class="dv">3</span>.<span class="fl">3.0</span>      <span class="dv">2022-04-25</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>crayon        <span class="dv">1</span>.<span class="fl">5.1</span>      <span class="dv">2022-03-26</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>devtools      <span class="dv">2</span>.<span class="fl">4.4</span>      <span class="dv">2022-07-20</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>digest        <span class="dv">0</span>.<span class="fl">6.29</span>     <span class="dv">2021-12-01</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>ellipsis      <span class="dv">0</span>.<span class="fl">3.2</span>      <span class="dv">2021-04-29</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>fastmap       <span class="dv">1</span>.<span class="fl">1.0</span>      <span class="dv">2021-01-25</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>fs            <span class="dv">1</span>.<span class="fl">5.2</span>      <span class="dv">2021-12-08</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>glue          <span class="dv">1</span>.<span class="fl">6.2</span>      <span class="dv">2022-02-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>htmltools     <span class="dv">0</span>.<span class="fl">5.3</span>      <span class="dv">2022-07-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>htmlwidgets   <span class="dv">1</span>.<span class="fl">5.4</span>      <span class="dv">2021-09-08</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>httpuv        <span class="dv">1</span>.<span class="fl">6.5</span>      <span class="dv">2022-01-05</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>later         <span class="dv">1</span>.<span class="fl">3.0</span>      <span class="dv">2021-08-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>lifecycle     <span class="dv">1</span>.<span class="fl">0.1</span>      <span class="dv">2021-09-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>magrittr      <span class="dv">2</span>.<span class="fl">0.3</span>      <span class="dv">2022-03-30</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>memoise       <span class="dv">2</span>.<span class="fl">0.1</span>      <span class="dv">2021-11-26</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>mime          <span class="fl">0.12</span>       <span class="dv">2021-09-28</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a>miniUI        <span class="dv">0</span>.<span class="dv">1</span>.<span class="fl">1.1</span>    <span class="dv">2018-05-18</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a>pkgbuild      <span class="dv">1</span>.<span class="fl">3.1</span>      <span class="dv">2021-12-20</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a>pkgload       <span class="dv">1</span>.<span class="fl">3.0</span>      <span class="dv">2022-06-27</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a>prettyunits   <span class="dv">1</span>.<span class="fl">1.1</span>      <span class="dv">2020-01-24</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a>processx      <span class="dv">3</span>.<span class="fl">7.0</span>      <span class="dv">2022-07-07</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a>profvis       <span class="dv">0</span>.<span class="fl">3.7</span>      <span class="dv">2020-11-02</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a>promises      <span class="dv">1</span>.<span class="dv">2</span>.<span class="fl">0.1</span>    <span class="dv">2021-02-11</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a>ps            <span class="dv">1</span>.<span class="fl">7.0</span>      <span class="dv">2022-04-23</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a>purrr         <span class="dv">0</span>.<span class="fl">3.4</span>      <span class="dv">2020-04-17</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a>R6            <span class="dv">2</span>.<span class="fl">5.1</span>      <span class="dv">2021-08-19</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a>Rcpp          <span class="dv">1</span>.<span class="fl">0.9</span>      <span class="dv">2022-07-08</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a>remotes       <span class="dv">2</span>.<span class="fl">4.2</span>      <span class="dv">2021-11-30</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-47"><a href="#cb7-47" tabindex="-1"></a>rlang         <span class="dv">1</span>.<span class="fl">0.4</span>      <span class="dv">2022-07-12</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-48"><a href="#cb7-48" tabindex="-1"></a>sessioninfo   <span class="dv">1</span>.<span class="fl">2.2</span>      <span class="dv">2021-12-06</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-49"><a href="#cb7-49" tabindex="-1"></a>shiny         <span class="dv">1</span>.<span class="fl">7.2</span>      <span class="dv">2022-07-19</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-50"><a href="#cb7-50" tabindex="-1"></a>stringi       <span class="dv">1</span>.<span class="fl">7.8</span>      <span class="dv">2022-07-11</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-51"><a href="#cb7-51" tabindex="-1"></a>stringr       <span class="dv">1</span>.<span class="fl">4.0</span>      <span class="dv">2019-02-10</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-52"><a href="#cb7-52" tabindex="-1"></a>tiltedCCA   <span class="sc">*</span> <span class="dv">1</span>.<span class="dv">0</span>.<span class="fl">0.001</span>  <span class="dv">2022-09-06</span> [<span class="dv">1</span>] local</span>
+<span id="cb7-53"><a href="#cb7-53" tabindex="-1"></a>urlchecker    <span class="dv">1</span>.<span class="fl">0.1</span>      <span class="dv">2021-11-30</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-54"><a href="#cb7-54" tabindex="-1"></a>usethis       <span class="dv">2</span>.<span class="fl">1.6</span>      <span class="dv">2022-05-25</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span>
+<span id="cb7-55"><a href="#cb7-55" tabindex="-1"></a>xtable        <span class="fl">1.8</span><span class="dv">-4</span>      <span class="dv">2019-04-21</span> [<span class="dv">1</span>] <span class="fu">CRAN</span> (R <span class="dv">4</span>.<span class="fl">1.2</span>)</span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -373,7 +373,7 @@ package.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

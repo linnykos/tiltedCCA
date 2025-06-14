@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tiltedCCA</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -335,17 +335,17 @@ captures the “union of information,” while Tilted-CCA’s embedding is a
 method that captures the “intersection of information.”</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
-<span><span class="va">consensus_pca</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">:::</span><span class="fu"><a href="../reference/consensus_pca.html">consensus_pca</a></span><span class="op">(</span>mat_1 <span class="op">=</span> <span class="va">mat_1</span>, mat_2 <span class="op">=</span> <span class="va">mat_2</span>,</span>
-<span>                                           dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
-<span>                                           dims_consensus <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
-<span>                                           apply_pca <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>                                           center_1 <span class="op">=</span> <span class="cn">F</span>, center_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           center_consensus <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           recenter_1 <span class="op">=</span> <span class="cn">F</span>, recenter_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           rescale_1 <span class="op">=</span> <span class="cn">F</span>, rescale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           scale_1 <span class="op">=</span> <span class="cn">F</span>, scale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           scale_consensus <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>                                           verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">consensus_pca</span> <span class="op">&lt;-</span> <span class="fu">tiltedCCA</span><span class="fu">::</span><span class="fu"><a href="../reference/consensus_pca.html">consensus_pca</a></span><span class="op">(</span>mat_1 <span class="op">=</span> <span class="va">mat_1</span>, mat_2 <span class="op">=</span> <span class="va">mat_2</span>,</span>
+<span>                                          dims_1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, dims_2 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
+<span>                                          dims_consensus <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span>
+<span>                                          apply_pca <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>                                          center_1 <span class="op">=</span> <span class="cn">F</span>, center_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                          center_consensus <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                          recenter_1 <span class="op">=</span> <span class="cn">F</span>, recenter_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                          rescale_1 <span class="op">=</span> <span class="cn">F</span>, rescale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                          scale_1 <span class="op">=</span> <span class="cn">F</span>, scale_2 <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                          scale_consensus <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                                          verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">svd_func</span><span class="op">(</span><span class="va">consensus_pca</span><span class="op">$</span><span class="va">dimred_consensus</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">tmp</span><span class="op">[</span><span class="va">plot_idx</span>,<span class="fl">2</span><span class="op">]</span>,</span>
@@ -365,7 +365,7 @@ method that captures the “intersection of information.”</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
