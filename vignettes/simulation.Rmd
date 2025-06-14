@@ -181,9 +181,9 @@ multiSVD_obj <- tiltedCCA::tiltedCCA_decomposition(multiSVD_obj)
 
 We make two notes:
 
-  - In general, the biggest choices (as a user of Tilted-CCA) is: 1) whether to use the "hard clustering" variant of Tilted-CCA (done here, as seen in arguments of `tiltedCCA::form_metacells`) or not, and 2) what the `latent_k` and `num_neigh` are when computing the graph Laplacian bases of the target common shared-nearest-neighbor graph. The former choice is usually inferred when visualizing the data prior to applying Tilted-CCA. The latter choice requires some finesse (as we will show in tutorials of scRNA-seq data).
+- In general, the biggest choices (as a user of Tilted-CCA) is: 1) whether to use the "hard clustering" variant of Tilted-CCA (done here, as seen in arguments of `tiltedCCA::form_metacells`) or not, and 2) what the `latent_k` and `num_neigh` are when computing the graph Laplacian bases of the target common shared-nearest-neighbor graph. The former choice is usually inferred when visualizing the data prior to applying Tilted-CCA. The latter choice requires some finesse (as we will show in tutorials of scRNA-seq data).
 
-  - For the sake of simplicity in this tutorial, when we call `tiltedCCA::tiltedCCA`, we set `fix_tilt_perc = 0`. This initializes the "tilt" of each common component (3 in total) to aligned with Modality 2 (which we inferred visually). Then, `tiltedCCA::fine_tuning` optimizes the tilt of each common components in a coordinate descent fashion. 
+- For the sake of simplicity in this tutorial, when we call `tiltedCCA::tiltedCCA`, we set `fix_tilt_perc = 0`. This initializes the "tilt" of each common component (3 in total) to aligned with Modality 2 (which we inferred visually). Then, `tiltedCCA::fine_tuning` optimizes the tilt of each common components in a coordinate descent fashion. 
 
 Lastly, we can look at the objects stored inside the `multiSVD_obj`. 
 
@@ -226,17 +226,17 @@ Finally, for comparison, we can show how Consensus PCA combines information betw
 
 ```{r}
 set.seed(10)
-consensus_pca <- tiltedCCA:::consensus_pca(mat_1 = mat_1, mat_2 = mat_2,
-                                           dims_1 = 1:2, dims_2 = 1:2,
-                                           dims_consensus = 1:2,
-                                           apply_pca = T,
-                                           center_1 = F, center_2 = F,
-                                           center_consensus = F,
-                                           recenter_1 = F, recenter_2 = F,
-                                           rescale_1 = F, rescale_2 = F,
-                                           scale_1 = F, scale_2 = F,
-                                           scale_consensus = F,
-                                           verbose = 0)
+consensus_pca <- tiltedCCA::consensus_pca(mat_1 = mat_1, mat_2 = mat_2,
+                                          dims_1 = 1:2, dims_2 = 1:2,
+                                          dims_consensus = 1:2,
+                                          apply_pca = T,
+                                          center_1 = F, center_2 = F,
+                                          center_consensus = F,
+                                          recenter_1 = F, recenter_2 = F,
+                                          rescale_1 = F, rescale_2 = F,
+                                          scale_1 = F, scale_2 = F,
+                                          scale_consensus = F,
+                                          verbose = 0)
 
 tmp <- svd_func(consensus_pca$dimred_consensus)
 plot(tmp[plot_idx,1], tmp[plot_idx,2],

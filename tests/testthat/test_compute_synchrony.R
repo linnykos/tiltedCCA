@@ -1,8 +1,8 @@
-context("Test compute asynchrony")
+context("Test compute synchrony")
 
 ## tiltedCCA_decomposition is correct
 
-test_that("(Basic) compute_asynchrony works", {
+test_that("(Basic) compute_synchrony works", {
   # load("tests/assets/test_data4.RData")
   load("../assets/test_data4.RData")
   mat_1 <- test_data$mat_1
@@ -32,7 +32,7 @@ test_that("(Basic) compute_asynchrony works", {
                             verbose = F)
   multiSVD_obj <- tiltedCCA_decomposition(multiSVD_obj)
   
-  res <- compute_asynchrony(
+  res <- compute_synchrony(
     multiSVD_obj,
     anchor_modality = 1
   )

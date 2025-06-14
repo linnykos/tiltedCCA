@@ -8,11 +8,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
+  
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+collapse = TRUE,
+comment = "#>"
 )
 ```
 
@@ -39,7 +39,7 @@ We will work from a simplified preprocessed version of the data, already compile
 After downloading the file from [the Dropbox link](https://www.dropbox.com/s/gh2om9eb5edgi14/10x_trevino_simplified.RData), load it into your R session.
 
 ```{r, eval = F}
-load("10x_trevino_simplified.RData")
+load("/Users/kevinlin/Library/CloudStorage/Dropbox/Collaboration-and-People/Nancy/multiomeFate/out/vignettes/10x_trevino_simplified.RData")
 seurat_obj
 #> An object of class Seurat 
 #> 271643 features across 6158 samples within 2 assays 
@@ -130,9 +130,9 @@ We are now ready to run Tilted-CCA.
 
 We now extract the relevant matrices for Tilted-CCA.
 Since Tilted-CCA is designed not necessarily for single-cell data, we don't pass the Seurat object directly into Tilted-CCA.
-Instead, we extract the relevant matrices, where the rows are the cells and the columns are various features (i.e., genes and antibodies). We also remove features that has negligible empirical standard deviation. (In this tutorial, no genes or antibodies were removed in this step.)
+Instead, we extract the relevant matrices, where the rows are the cells and the columns are various features (i.e., genes and accessible chromatin regions). We also remove features that has negligible empirical standard deviation. (In this tutorial, no genes or accessible chromatin region were removed in this step.)
 We end up with `mat_1b` that has 30,672 cells and 2000 genes,
-and `mat_2b` that has the same 30,672 cells and 25 surface antibody markers.
+and `mat_2b` that has the same 30,672 cells and 269,616 accessible chromatin regions.
 
 ```{r, eval = F}
 Seurat::DefaultAssay(seurat_obj) <- "SCT"
@@ -155,7 +155,7 @@ if(any(sd_vec <= 1e-6)){
 
 ## Running Tilted-CCA
 
-We start Tilted-CCA by first preparing all the low-dimensional embeddings via `tiltedCCA::create_multiSVD`. Most of the boolean arguments are meant to tell our method on whether or not features are centered and/or scaled (or alternatively, the singular vectors are centered and/or scaled). We would recommend the boolean parameters here for any single-cell multiomic data that measures RNA and antibodies.
+We start Tilted-CCA by first preparing all the low-dimensional embeddings via `tiltedCCA::create_multiSVD`. Most of the boolean arguments are meant to tell our method on whether or not features are centered and/or scaled (or alternatively, the singular vectors are centered and/or scaled). We would recommend the boolean parameters here for any single-cell multiomic data that measures RNA and chromatin regions.
 
 ```{r, eval = F}
 set.seed(10)
@@ -170,7 +170,7 @@ multiSVD_obj <- tiltedCCA::create_multiSVD(mat_1 = mat_1b, mat_2 = mat_2b,
                                            verbose = 1)
 ```
 
-We then go to the next step of `tiltedCCA:::form_metacells`. To make this tutorial be more portable, we downscale the calculation to only involve 100 metacells. However, since the UMAPs display a continuous transition of cell states, we do not need to pass any hard clustering information.
+We then go to the next step of `tiltedCCA::form_metacells`. To make this tutorial be more portable, we downscale the calculation to only involve 100 metacells. However, since the UMAPs display a continuous transition of cell states, we do not need to pass any hard clustering information.
 
 ```{r, eval = F}
 multiSVD_obj <- tiltedCCA::form_metacells(input_obj = multiSVD_obj,
@@ -216,8 +216,8 @@ multiSVD_obj2 <- tiltedCCA::fine_tuning(input_obj = multiSVD_obj2,
 <details>
 <summary>**Results of fine tuning**</summary>
 
-The `tiltedCCA:::fine_tuning` essentially sets the appropriate tilts per latent dimension, stored in `multiSVD_obj$tcca_obj$tilt_perc`. 
-If you want to directly, you can directly set the desired tilts using the `fix_tilt_perc` argument in `tiltedCCA:::fine_tuning`.
+The `tiltedCCA::fine_tuning` essentially sets the appropriate tilts per latent dimension, stored in `multiSVD_obj$tcca_obj$tilt_perc`. 
+If you want to directly, you can directly set the desired tilts using the `fix_tilt_perc` argument in `tiltedCCA::fine_tuning`.
 For example, we can run the following code:
 
 ```{r, eval = F}
@@ -239,7 +239,7 @@ We can then use `multiSVD_obj3` for the rest of the tutorial, instead of `multiS
 
 </details>
 
-After running `tiltedCCA:fine_tuning`, it is recommended to save `multiSVD_obj2` since this was the most expensive calculation (in terms of computation time). The last function call simply takes the tilts of each latent dimension to compute the full decomposition of each modality (i.e., cell by feature matrix), four in total (i.e., a common and distinct for each RNA and ADT). While this function doesn't take too much computation time, it greatly expands the memory size of the `multiSVD_obj2` object.
+After running `tiltedCCA::fine_tuning`, it is recommended to save `multiSVD_obj2` since this was the most expensive calculation (in terms of computation time). The last function call simply takes the tilts of each latent dimension to compute the full decomposition of each modality (i.e., cell by feature matrix), four in total (i.e., a common and distinct for each RNA and ADT). While this function doesn't take too much computation time, it greatly expands the memory size of the `multiSVD_obj2` object.
 
 ```{r, eval = F}
 multiSVD_obj2 <- tiltedCCA::tiltedCCA_decomposition(input_obj = multiSVD_obj2,
@@ -258,21 +258,21 @@ Congratulations! You have computed the common and distinct embeddings for the si
 set.seed(10)
 seurat_obj[["common_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj2,
                                                            what = "common",
-                                                           aligned_umap_assay = "rna.umap",
+                                                           aligned_umap_assay = "umap.rna",
                                                            seurat_obj = seurat_obj,
                                                            seurat_assay = "SCT",
                                                            verbose = 1)
 set.seed(10)
 seurat_obj[["distinct1_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj2,
                                                               what = "distinct_1",
-                                                              aligned_umap_assay = "rna.umap",
+                                                              aligned_umap_assay = "umap.rna",
                                                               seurat_obj = seurat_obj,
                                                               seurat_assay = "SCT",
                                                               verbose = 1)
 set.seed(10)
 seurat_obj[["distinct2_tcca"]] <- tiltedCCA::create_SeuratDim(input_obj = multiSVD_obj2,
                                                               what = "distinct_2",
-                                                              aligned_umap_assay = "rna.umap",
+                                                              aligned_umap_assay = "umap.rna",
                                                               seurat_obj = seurat_obj,
                                                               seurat_assay = "SCT",
                                                               verbose = 1)
@@ -313,3 +313,30 @@ p_all
 ```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("Common, RNA distinct, and ATAC distinct embeddings")}
 knitr::include_graphics("embryo_tiltedcca.png")
 ```
+
+## Compute sychrony scores
+
+We can now compute the **synchrony score** between the two modalities, where each cell gets a score. If the score is close to 1, it means that for this cell, the ATAC profile is "similar" to that for the RNA profile, where "similar" here (conceptually) means that the cell has similar nearest neighbors in ATAC as those in the RNA profile. Typically, we interpret this cell as in the steady state, which means it is not in the process of differentiating (i.e., one modality is changing before another).
+In contrast, if the score is close to 0, it means that for this cell, the two modalities contain vastly different information. Typically, we interpret this cell as having one modality experiencing a change that is not yet reflected in the other modality.
+The specific calculation for the synchrony score relies on the low-dimension embeddings learned by Tilted-CCA.
+
+```{r, eval = F}
+synchrony_score <- tiltedCCA::compute_synchrony(input_obj = multiSVD_obj2)
+
+seurat_obj$synchrony <- synchrony_score[Seurat::Cells(seurat_obj),"synchrony_rescaled"]
+
+p1 <- Seurat::FeaturePlot(seurat_obj,
+                    reduction = "common_tcca",
+                    feature = "synchrony",
+                    cols = c("forestgreen", "yellow"))
+p1 <- p1 + ggplot2::ggtitle("Synchrony score") + ggplot2::labs(x = "Common TCCA 1", y = "Common TCCA 2")
+p1
+```
+
+```{r, out.width = "600px", fig.align="center", echo = FALSE, fig.cap=c("Synchrony score")}
+knitr::include_graphics("embryo_synchrony.png")
+```
+
+Comparing this plot to the "Common, RNA distinct, and ATAC distinct embeddings" plot shows that the terminal cells (radial glia, glutamatergic 4 and glutamatergic 5) have high synchrony scores, meaning these cells are in a steady state. In contrast, the cells undergoing differentiation (glutamatergic 1 and glutamatergic 3) have low synchrony scores.
+This demonstrates the utility of the synchrony score. 
+Importantly, the calculation of the synchrony scores does **not** require any pseudotime or trajectories -- it's entirely based on the Tilted-CCA embeddings, which makes this method appealing even for complex differentiation systems with many branching trajectories.

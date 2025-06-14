@@ -1,6 +1,6 @@
 Package: tiltedCCA
 Title: Tilted CCA
-Version: 1.0.0.004
+Version: 1.0.0.005
 Authors@R: person("Kevin Z", "Lin", email = "kzlin@uw.edu", role = c("aut", "cre"))
 Description: Tilted CCA method for separating out the common and distinct information from paired multimodal data. Here, the information is defined based on the geometric relations between the samples.
 Depends:
@@ -22,10 +22,11 @@ Imports:
     ggrepel,
     quadprog
 Suggests:
+    MASS,
     knitr,
     rmarkdown,
     testthat,
     waldo
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 URL: https://linnykos.github.io/tiltedCCA/

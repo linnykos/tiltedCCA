@@ -2,13 +2,6 @@
 output: github_document
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
 # Purpose
 
 This repository contains all the functions to perform Tilted-CCA (version `1.0.0.001` as of October 4, 2022) and the downstream analysis, for the paper "Quantifying common and distinct information in single-cell multimodal data with Tilted-CCA". See the companion GitHub package https://github.com/linnykos/tiltedCCA_analysis for all the analyses performed in the paper.

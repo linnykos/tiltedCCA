@@ -8,11 +8,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
+  
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+collapse = TRUE,
+comment = "#>"
 )
 ```
 
@@ -206,17 +206,17 @@ We can plot the clusters. This is a way to assess if the clustering from each mo
 
 ```{r, eval = F}
 p1 <- Seurat::DimPlot(bm, 
-                     reduction = "rna.umap",
-                     group.by = "RNA_snn_res.0.25", 
-                     label = TRUE, label.size = 2.5)
+                      reduction = "rna.umap",
+                      group.by = "RNA_snn_res.0.25", 
+                      label = TRUE, label.size = 2.5)
 p1 <- p1 + Seurat::NoLegend() + ggplot2::labs(x = "", y = "")
 p1 <- p1 + ggplot2::ggtitle("RNA clustering")
 p1 <- p1 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
 
 p2 <- Seurat::DimPlot(bm, 
-                     reduction = "adt.umap",
-                     group.by = "ADT_snn_res.0.25", 
-                     label = TRUE, label.size = 2.5)
+                      reduction = "adt.umap",
+                      group.by = "ADT_snn_res.0.25", 
+                      label = TRUE, label.size = 2.5)
 p2 <- p2 + Seurat::NoLegend() + ggplot2::labs(x = "", y = "")
 p2 <- p2 + ggplot2::ggtitle("ADT clustering")
 p2 <- p2 + ggplot2::theme(legend.text = ggplot2::element_text(size = 5))
@@ -472,11 +472,11 @@ The former calculation tells us how "important" a gene is in separating the cell
 
 ```{r, eval = F}
 rsquare_vec <- tiltedCCA::postprocess_modality_alignment(input_obj = multiSVD_obj,
-                                              bool_use_denoised = T,
-                                              seurat_obj = bm,
-                                              input_assay = 1,
-                                              seurat_assay = "RNA",
-                                              seurat_slot = "data")
+                                                         bool_use_denoised = T,
+                                                         seurat_obj = bm,
+                                                         input_assay = 1,
+                                                         seurat_assay = "RNA",
+                                                         seurat_slot = "data")
 ```
 
 We are almost ready to plot `rsquare_vec` against `logpval_vec`. Before doing so, it's informative to compute a few more statistics. Here,
@@ -507,29 +507,29 @@ Finally, we are ready to make the alignment plots. Here, we plot 4 of them. The 
 ```{r, eval = F}
 par(mfrow = c(1,4), mar = c(5,5,5,1))
 tiltedCCA::plot_alignment(rsquare_vec = rsquare_vec[ord_idx],
-               logpval_vec = logpval_vec[ord_idx],
-               main = "Human BM (CITE-Seq, RNA+ADT)\nGene differentiability vs. alignment",
-               bool_mark_ymedian = T,
-               col_gene_highlight_border = rgb(255, 205, 87, 255*0.5, maxColorValue = 255),
-               col_points = gene_color[ord_idx],
-               mark_median_xthres = 10,
-               lwd_polygon_bold = 3)
+                          logpval_vec = logpval_vec[ord_idx],
+                          main = "Human BM (CITE-Seq, RNA+ADT)\nGene differentiability vs. alignment",
+                          bool_mark_ymedian = T,
+                          col_gene_highlight_border = rgb(255, 205, 87, 255*0.5, maxColorValue = 255),
+                          col_points = gene_color[ord_idx],
+                          mark_median_xthres = 10,
+                          lwd_polygon_bold = 3)
 
 for(i in 1:2){
   tiltedCCA::plot_alignment(rsquare_vec = rsquare_vec,
-                 logpval_vec = logpval_vec,
-                 main = paste0("Human BM (CITE-Seq, RNA+ADT)\n", names(gene_list)[i], " genes"),
-                 col_gene_highlight = col_palette2[names(gene_list)[i]],
-                 gene_names = gene_list[[i]],
-                 lwd_polygon_bold = 3)
+                            logpval_vec = logpval_vec,
+                            main = paste0("Human BM (CITE-Seq, RNA+ADT)\n", names(gene_list)[i], " genes"),
+                            col_gene_highlight = col_palette2[names(gene_list)[i]],
+                            gene_names = gene_list[[i]],
+                            lwd_polygon_bold = 3)
 }
 
 tiltedCCA::plot_alignment(rsquare_vec = rsquare_vec,
-               logpval_vec = logpval_vec,
-               main = "Human BM (CITE-Seq, RNA+ADT)\nCell cycling genes",
-               col_gene_highlight = "black",
-               gene_names = cycling_genes,
-               lwd_polygon_bold = 3)
+                          logpval_vec = logpval_vec,
+                          main = "Human BM (CITE-Seq, RNA+ADT)\nCell cycling genes",
+                          col_gene_highlight = "black",
+                          gene_names = cycling_genes,
+                          lwd_polygon_bold = 3)
 ```
 
 ```{r, out.width = "800px", fig.align="center", echo = FALSE, fig.cap=c("Gene alignment plots, for all genes, or highlight the marker genes for B cells, CD14 Monocytes, or cell cycling")}
