@@ -213,7 +213,7 @@ elements: <code>common_mat_1</code> and <code>distint_mat_1</code> (or
 <h3 id="simulation-1-modality-1-separates-cells-into-3-clusters-and-modality-2-does-not">Simulation 1: Modality 1 separates cells into 3 clusters, and
 Modality 2 does not<a class="anchor" aria-label="anchor" href="#simulation-1-modality-1-separates-cells-into-3-clusters-and-modality-2-does-not"></a>
 </h3>
-<p>See <a href="https://github.com/linnykos/tiltedCCA_analysis/blob/master/simulation/simulation_1.R" class="external-link uri">https://github.com/linnykos/tiltedCCA_analysis/blob/master/simulation/simulation_1.R</a>
+<p>See <a href="https://github.com/linnykos/tiltedCCA_analysis/blob/master/simulation/ppt_examples/toy-simulation.R" class="external-link uri">https://github.com/linnykos/tiltedCCA_analysis/blob/master/simulation/ppt_examples/toy-simulation.R</a>
 for this simulation. In this simulation, there are 300 cells across two
 modalities of 10 features each. Modality 1 has a “high” amount of
 distinct information – it separates the 300 cells into 3 obvious
@@ -222,7 +222,7 @@ clusters. Modality 2 has a “low” amount of distinct information – all
 <p>The following shows each modality based on their leading 2 PCs
 respectively, where the cells are colored by the true cell-types.</p>
 <div class="figure" style="text-align: center">
-<img src="simulation1_data.png" alt="simulation1_data" width="600px"><p class="caption">
+<img src="simulation1_data.png" class="r-plt" alt="simulation1_data" width="600px"><p class="caption">
 simulation1_data
 </p>
 </div>
@@ -236,7 +236,7 @@ cell-type separation information are unique to Modality 1 (hence,
 appearing in the Modality 1’s distinct embedding). The common embedding
 demonstrates the “intersection of information.”</p>
 <div class="figure" style="text-align: center">
-<img src="simulation1_tcca.png" alt="simulation1_tcca" width="650px"><p class="caption">
+<img src="simulation1_tcca.png" class="r-plt" alt="simulation1_tcca" width="650px"><p class="caption">
 simulation1_tcca
 </p>
 </div>
@@ -250,7 +250,7 @@ combines both modalities), but is not useful for to understand the
 shared and distinct signals between the two modalities. Here, observe
 that the three cell-types are clearly separated by Consensus PCA.</p>
 <div class="figure" style="text-align: center">
-<img src="simulation1_consensuspca.png" alt="simulation1_consensuspca" width="300px"><p class="caption">
+<img src="simulation1_consensuspca.png" class="r-plt" alt="simulation1_consensuspca" width="300px"><p class="caption">
 simulation1_consensuspca
 </p>
 </div>
@@ -269,7 +269,7 @@ red+blue cells from the green+black cells.</p>
 <p>The following shows each modality based on their leading 2 PCs
 respectively, where the cells are colored by the true cell-types.</p>
 <div class="figure" style="text-align: center">
-<img src="simulation2_data.png" alt="simulation2_data" width="600px"><p class="caption">
+<img src="simulation2_data.png" class="r-plt" alt="simulation2_data" width="600px"><p class="caption">
 simulation2_data
 </p>
 </div>
@@ -283,7 +283,7 @@ Modality 1 separates the cyan cells from the red+black cells from the
 green+blue cells, while Modality 2 separates the cyan cells from the
 red+blue cells from the green+black cells.</p>
 <div class="figure" style="text-align: center">
-<img src="simulation2_tcca.png" alt="simulation2_tcca" width="650px"><p class="caption">
+<img src="simulation2_tcca.png" class="r-plt" alt="simulation2_tcca" width="650px"><p class="caption">
 simulation2_tcca
 </p>
 </div>
@@ -294,7 +294,7 @@ what axes of variation are contained across both modalities, while
 Tilted-CCA’s common embeddings gives perspective on what axes of
 variation are shared between both modalities.</p>
 <div class="figure" style="text-align: center">
-<img src="simulation2_consensuspca.png" alt="simulation2_consensuspca" width="300px"><p class="caption">
+<img src="simulation2_consensuspca.png" class="r-plt" alt="simulation2_consensuspca" width="300px"><p class="caption">
 simulation2_consensuspca
 </p>
 </div>
@@ -373,7 +373,7 @@ package.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

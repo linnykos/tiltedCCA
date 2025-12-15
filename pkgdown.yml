@@ -1,12 +1,12 @@
 pandoc: 3.1.11
-pkgdown: 2.1.3
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   bm: bm.html
   embryo: embryo.html
   simulation: simulation.html
   tiltedCCA: tiltedCCA.html
-last_built: 2025-06-14T23:28Z
+last_built: 2025-12-15T19:57Z
 urls:
   reference: https://linnykos.github.io/tiltedCCA/reference
   article: https://linnykos.github.io/tiltedCCA/articles
