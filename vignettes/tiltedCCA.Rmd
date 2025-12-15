@@ -91,7 +91,7 @@ and `common_mat_2` and `distint_mat_2` (or `common_dimred_2` and `distinct_dimre
 
 ## Simulation 1: Modality 1 separates cells into 3 clusters, and Modality 2 does not
 
-See https://github.com/linnykos/tiltedCCA_analysis/blob/master/simulation/simulation_1.R for this simulation. In this simulation, there are 300 cells across two modalities of 10 features each. Modality 1 has a "high" amount of distinct information -- it separates the 300 cells into 3 obvious clusters. Modality 2 has a "low" amount of distinct information -- all 300 cells are in one amorphous ball.
+See https://github.com/linnykos/tiltedCCA_analysis/blob/master/simulation/ppt_examples/toy-simulation.R for this simulation. In this simulation, there are 300 cells across two modalities of 10 features each. Modality 1 has a "high" amount of distinct information -- it separates the 300 cells into 3 obvious clusters. Modality 2 has a "low" amount of distinct information -- all 300 cells are in one amorphous ball.
 
 The following shows each modality based on their leading 2 PCs respectively, where the cells are colored by the true cell-types.
 
